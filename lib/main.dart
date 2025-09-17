@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedal/screens/login_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
-import 'package:pedal/screens/main_wrapper.dart';
+import 'package:pedal/screens/main_navigation_screen.dart';
 
 // 1. ThemeExtension을 사용하여 커스텀 색상 클래스 정의
 @immutable
@@ -133,7 +133,7 @@ class _PedalAppState extends State<PedalApp> {
   Widget _buildHome() {
     switch (_authState) {
       case AuthState.loggedIn:
-        return const MainWrapper();
+        return const MainNavigationScreen();
       case AuthState.needsProfileSetup:
         return ProfileSetupPage(onSetupComplete: _onProfileSetupComplete);
       case AuthState.loggedOut:

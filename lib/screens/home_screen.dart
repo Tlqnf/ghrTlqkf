@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:pedal/widgets/card/activity_card.dart';
 import 'package:pedal/widgets/card/activity_summary_card.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

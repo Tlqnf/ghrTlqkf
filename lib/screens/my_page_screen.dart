@@ -23,7 +23,6 @@ class MyPageScreen extends StatelessWidget {
           ],
         ),
       ),
-      
     );
   }
 }

@@ -8,6 +8,7 @@ class AllRecordsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: LogoBar(),
       body: Column(

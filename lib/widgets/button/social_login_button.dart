@@ -3,19 +3,20 @@ import 'package:flutter/material.dart';
 class SocialLoginButton extends StatelessWidget {
   final String source;
   final String text;
-  final VoidCallback onPressed;
+  // 경로 지정하는데 활용하시오. (google, naver, kakao 중 1개)
+  final String type;
 
   const SocialLoginButton({
     super.key,
     required this.source,
     required this.text,
-    required this.onPressed,
+    required this.type,
   });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: () {_},
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,

@@ -19,6 +19,8 @@ State<PostFormScreen> createState() => _PostFormScreenState();
 class _PostFormScreenState extends State<PostFormScreen> {
   final TextEditingController _routeNameController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _bodyController = TextEditingController();
   final List<String> _tags = [];
   bool _isCommunityUploadEnabled = false;
 
@@ -34,6 +36,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
   void dispose() {
     _routeNameController.dispose();
     _tagController.dispose();
+    _bodyController.dispose();
     super.dispose();
   }
 
@@ -54,163 +57,229 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: const Text(
-          '게시글 작성',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Map Placeholder
-            Container(
-              height: 200,
-              color: Colors.grey[300],
-              child: const Center(child: Text('Map Placeholder')),
-            ),
-            const SizedBox(height: 16),
-
-            // Stats Summary
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatItem('거리', widget.initialDistance ?? '0.00', 'km'),
-                _buildStatItem('평균 속력', '19.92', 'km/h'), // Placeholder value
-                _buildStatItem('총 시간', widget.initialTime ?? '0시간 00분', ''),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Route Name Input
-            const Text(
-              '경로 이름 *',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _routeNameController,
-              decoration: InputDecoration(
-                hintText: '경로 이름을 입력해주세요.',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
+      body: SafeArea(
+        top: false, // Allow content to go under the status bar, but respect bottom safe area
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Stack for Map and Floating Button
+              Stack(
+                children: [
+                  Container(
+                    height: 300,
+                    color: Colors.grey[300],
+                    child: const Center(child: Text('Map Placeholder')),
+                  ),
+                  Positioned(
+                    top: 40, // Adjust position as needed, considering status bar
+                    left: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 24),
+              // Padding for the rest of the content
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Stats Summary
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildStatItem('거리', widget.initialDistance ?? '0.00', 'km'),
+                        _buildStatItem('평균 속력', '19.92', 'km/h'), // Placeholder value
+                        _buildStatItem('총 시간', widget.initialTime ?? '0시간 00분', ''),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
-            // Tags Input
-            const Text(
-              '태그',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _tagController,
-              onSubmitted: (value) => _addTag(value),
-              decoration: InputDecoration(
-                hintText: '추가할 태그를 입력해주세요. (최대 3개)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 4.0,
-              children: _tags
-                  .map((tag) => Chip(
+                    // Route Name Input
+                    const Text(
+                      '경로 이름 *',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _routeNameController,
+                      decoration: InputDecoration(
+                        hintText: '경로 이름을 입력해주세요.',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Tags Input
+                    const Text(
+                      '태그',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _tagController,
+                      onSubmitted: (value) => _addTag(value),
+                      decoration: InputDecoration(
+                        hintText: '추가할 태그를 입력해주세요. (최대 3개)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 4.0,
+                      children: _tags
+                          .map((tag) => Chip(
                         label: Text('#$tag'),
                         onDeleted: () => _removeTag(tag),
                       ))
-                  .toList(),
-            ),
-            const SizedBox(height: 24),
+                          .toList(),
+                    ),
+                    const SizedBox(height: 24),
 
-            // Add Photos
-            const Text(
-              '추가 사진',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.image, size: 40, color: Colors.grey),
-                ),
-                const SizedBox(width: 16),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('640 x 320px 사이즈'),
-                    Text('최대 2장까지 추가 가능'),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+                    // Add Photos
+                    const Text(
+                      '추가 사진',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 100,
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.image, size: 40, color: Colors.grey),
+                        ),
+                        const SizedBox(width: 16),
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('640 x 320px 사이즈'),
+                            Text('최대 2장까지 추가 가능'),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
-            // Community Upload Switch
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+                    // Community Upload Switch
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '커뮤니티 업로드',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Switch(
+                          value: _isCommunityUploadEnabled,
+                          onChanged: (value) {
+                            setState(() {
+                              _isCommunityUploadEnabled = value;
+                            });
+                          },
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: theme.colorScheme.secondary,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+
+                    if (_isCommunityUploadEnabled)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '게시글 제목',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _titleController,
+                            decoration: InputDecoration(
+                              hintText: '게시글 제목을 입력해주세요.',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[200],
+                            ),
+                          ),
+                          const SizedBox(height: 16,),
                 const Text(
-                  '커뮤니티 업로드',
+                  '게시글 내용',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                Switch(
-                  value: _isCommunityUploadEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      _isCommunityUploadEnabled = value;
-                    });
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-
-            // Save Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Handle save action
-                  debugPrint('Route Name: ${_routeNameController.text}');
-                  debugPrint('Tags: $_tags');
-                  debugPrint('Community Upload: $_isCommunityUploadEnabled');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // Example color
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _bodyController,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                  minLines: 3,
+                  decoration: InputDecoration(
+                    hintText: '게시글에 올릴 내용을 입력해주세요.',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[200],
                   ),
                 ),
-                child: const Text('저장', style: TextStyle(fontSize: 18)),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    // Save Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Handle save action
+                          debugPrint('Route Name: ${_routeNameController.text}');
+                          debugPrint('Tags: $_tags');
+                          debugPrint('Community Upload: $_isCommunityUploadEnabled');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue, // Example color
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('저장', style: TextStyle(fontSize: 18)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

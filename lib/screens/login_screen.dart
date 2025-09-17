@@ -29,19 +29,19 @@ class LoginPage extends StatelessWidget {
             SocialLoginButton(
               source: "assets/google.png",
               text: 'Google 계정으로 로그인',
-              onPressed: onLogin, // Simulate login
+              type: 'google', // Simulate login
             ),
             const SizedBox(height: 16),
             SocialLoginButton(
               source: "assets/naver.png",
               text: 'Naver 계정으로 로그인',
-              onPressed: onLogin, // Simulate login
+              type: 'naver', // Simulate login
             ),
             const SizedBox(height: 16),
             SocialLoginButton(
               source: "assets/kakao.png",
               text: 'Kakao 계정으로 로그인',
-              onPressed: onLogin, // Simulate login
+              type: 'kakao', // Simulate login
             ),
           ],
         ),
