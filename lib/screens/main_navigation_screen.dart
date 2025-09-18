@@ -23,7 +23,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     super.initState();
     _screens = [
       HomePage(token: widget.token),
-      const MyPageScreen(),
+      MyPageScreen(token: widget.token),
     ];
   }
 

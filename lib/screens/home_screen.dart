@@ -2,6 +2,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pedal/api/user_api_service.dart';
+import 'package:pedal/models/analyze.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/widgets/card/activity_card.dart';
 import 'package:pedal/widgets/card/activity_summary_card.dart';
@@ -16,12 +18,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<List<Post>> _postsFuture;
+  Analyze? _analyze;
 
   @override
   void initState() {
     super.initState();
     _postsFuture = _fetchPosts();
+    _fetchAnalyze();
   }
+
 
   Future<List<Post>> _fetchPosts() async {
     final response = await http.get(
@@ -38,6 +43,15 @@ class _HomePageState extends State<HomePage> {
       throw Exception('Failed to load posts');
     }
   }
+
+  Future<void> _fetchAnalyze() async {
+    final analyze = await UserApiService.analyzeUser(widget.token);
+    setState(() {
+      _analyze = analyze;
+    });
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -67,9 +81,9 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           SizedBox(
                             width: MediaQuery.of(context).size.width / 3,
-                            child: const ActivitySummaryCard(
+                            child: ActivitySummaryCard(
                               label: '활동 횟수',
-                              value: '4',
+                              value: '${_analyze?.routes_taken_count}',
                               unit: '회',
                             ),
                           ),
@@ -82,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                                 color: theme.colorScheme.surface,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Column(
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
@@ -100,7 +114,8 @@ class _HomePageState extends State<HomePage> {
                                     mainAxisSize: MainAxisSize
                                         .min, // Prevent row from expanding unnecessarily
                                     children: [
-                                      Text('3',
+                                      Text(
+                                          '${_analyze?.total_activity_time_hours}',
                                           style: TextStyle(
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold,
@@ -108,7 +123,7 @@ class _HomePageState extends State<HomePage> {
                                       SizedBox(width: 4),
                                       Text('시간', style: TextStyle(fontSize: 16)),
                                       SizedBox(width: 8),
-                                      Text('30',
+                                      Text('${_analyze?.total_activity_time_remaining_minutes}',
                                           style: TextStyle(
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold,
@@ -124,9 +139,9 @@ class _HomePageState extends State<HomePage> {
                           const SizedBox(width: 8),
                           SizedBox(
                             width: MediaQuery.of(context).size.width / 3,
-                            child: const ActivitySummaryCard(
+                            child: ActivitySummaryCard(
                               label: '활동',
-                              value: '21.7',
+                              value: '${_analyze?.total_activity_distance_km}',
                               unit: 'km',
                             ),
                           ),
@@ -169,7 +184,7 @@ class _HomePageState extends State<HomePage> {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      return ActivityCard(post: posts[index]);
+                      return ActivityCard(post: posts[index],token: widget.token,);
                     },
                     childCount: posts.length,
                   ),

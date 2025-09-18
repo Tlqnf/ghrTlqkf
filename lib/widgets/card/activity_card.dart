@@ -1,12 +1,14 @@
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/widgets/modal/comment_modal.dart';
 
 class ActivityCard extends StatefulWidget {
   final Post post;
-  const ActivityCard({super.key, required this.post});
+  final String token;
+  const ActivityCard({super.key, required this.post, required this.token});
 
   @override
   State<ActivityCard> createState() => _ActivityCardState();
@@ -23,16 +25,38 @@ class _ActivityCardState extends State<ActivityCard> {
     _likeCount = widget.post.likeCount;
   }
 
-  void _toggleLike() {
-    setState(() {
-      if (_isLiked) {
+  Future<void> _addThumbsUp(int postId) async{
+    await http.post(
+        Uri.parse('http://172.30.1.14:8080/post/${postId}/like'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        }
+    );
+  }
+
+  Future<void> _removeThumbsUp(int postId) async{
+    await http.post(
+        Uri.parse('http://172.30.1.14:8080/post/${postId}/unlike'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        }
+    );
+  }
+
+  void _toggleLike() async {
+    if (_isLiked) {
+      setState(() {
         _isLiked = false;
         _likeCount--;
-      } else {
+      });
+      await _removeThumbsUp(widget.post.id);
+    } else {
+      setState(() {
         _isLiked = true;
         _likeCount++;
-      }
-    });
+      });
+      await _addThumbsUp(widget.post.id);
+    }
   }
 
   @override

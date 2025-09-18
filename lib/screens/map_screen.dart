@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:pedal/services/ad_helper.dart';
 import 'package:pedal/services/socket_service.dart';
@@ -29,7 +29,7 @@ class _MapScreenState extends State<MapScreen> {
   late final SocketService _socketService;
   StreamSubscription<dynamic>? _socketStreamSubscription;
 
-  BannerAd? _bannerAd;
+  // BannerAd? _bannerAd;
 
   // --- Map Interaction State ---
   bool _isFollowingUser = true;
@@ -40,17 +40,17 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     _initializeLocationStream();
     _initializeSocket();
-    _createBannerAd();
+    // _createBannerAd();
   }
 
-  void _createBannerAd() {
-    _bannerAd = BannerAd(
-      size: AdSize.fullBanner,
-      adUnitId: AdHelper.bannerAdUnitId!,
-      listener: AdHelper.bannerAdListener,
-      request: const AdRequest(),
-    )..load();
-  }
+  // void _createBannerAd() {
+  //   _bannerAd = BannerAd(
+  //     size: AdSize.fullBanner,
+  //     adUnitId: AdHelper.bannerAdUnitId!,
+  //     listener: AdHelper.bannerAdListener,
+  //     request: const AdRequest(),
+  //   )..load();
+  // }
 
   void _initializeSocket() {
     const socketUrl = 'ws://172.30.1.14:8080/ws/record-route';
@@ -285,7 +285,9 @@ class _MapScreenState extends State<MapScreen> {
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 12),
                           height: 60,
-                          child: AdWidget(ad: _bannerAd!), // 배너 광고 추가
+                          child: Center(
+                            child: Text("placeholder"),
+                          )// AdWidget(ad: _bannerAd!), // 배너 광고 추가
                         ),
                       ),
                     ),
