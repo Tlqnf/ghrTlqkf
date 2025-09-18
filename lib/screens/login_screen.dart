@@ -3,7 +3,7 @@ import 'package:pedal/widgets/button/social_login_button.dart';
 import 'package:pedal/widgets/bar/logo_bar.dart';
 
 class LoginPage extends StatelessWidget {
-  final VoidCallback onLogin;
+  final Function(String) onLogin;
 
   const LoginPage({super.key, required this.onLogin});
 
@@ -29,19 +29,22 @@ class LoginPage extends StatelessWidget {
             SocialLoginButton(
               source: "assets/google.png",
               text: 'Google 계정으로 로그인',
-              type: 'google', // Simulate login
+              type: 'google',
+              onLogin: onLogin,
             ),
             const SizedBox(height: 16),
             SocialLoginButton(
               source: "assets/naver.png",
               text: 'Naver 계정으로 로그인',
-              type: 'naver', // Simulate login
+              type: 'naver',
+              onLogin: onLogin,
             ),
             const SizedBox(height: 16),
             SocialLoginButton(
               source: "assets/kakao.png",
               text: 'Kakao 계정으로 로그인',
-              type: 'kakao', // Simulate login
+              type: 'kakao',
+              onLogin: onLogin,
             ),
           ],
         ),
@@ -49,4 +52,3 @@ class LoginPage extends StatelessWidget {
     );
   }
 }
-

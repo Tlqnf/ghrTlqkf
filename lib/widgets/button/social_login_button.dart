@@ -1,22 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:pedal/screens/webview_screen.dart';
 
 class SocialLoginButton extends StatelessWidget {
   final String source;
   final String text;
-  // 경로 지정하는데 활용하시오. (google, naver, kakao 중 1개)
   final String type;
+  final Function(String) onLogin;
 
   const SocialLoginButton({
     super.key,
     required this.source,
     required this.text,
     required this.type,
+    required this.onLogin,
   });
+
+  String _getUrlForType(String type) {
+    switch (type) {
+      case 'google':
+        return 'http://172.30.1.14:8080/oauth/google/login';
+      case 'naver':
+        return 'http://172.30.1.14:8080/oauth/naver/login';
+      case 'kakao':
+        return 'http://172.30.1.14:8080/oauth/kakao/login';
+      default:
+        throw Exception('Unknown login type: $type');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {_},
+      onPressed: () async {
+        final url = _getUrlForType(type);
+        final token = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WebViewScreen(url: url),
+          ),
+        );
+        if (token != null && token is String) {
+          onLogin(token);
+        }
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -31,7 +57,7 @@ class SocialLoginButton extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Image.asset(source, height: 30),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
           Text(text, style: const TextStyle(fontSize: 16)),
         ],
       ),

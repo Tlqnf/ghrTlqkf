@@ -1,7 +1,18 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:pedal/screens/login_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
+  await initializeDateFormatting('ko_KR', null);
+  runApp(const PedalApp());
+}
 
 // 1. ThemeExtension을 사용하여 커스텀 색상 클래스 정의
 @immutable
@@ -47,9 +58,29 @@ class AppColors extends ThemeExtension<AppColors> {
   }
 }
 
-void main() {
-  runApp(const PedalApp());
-}
+// 2. 팔레트 색상으로 ColorScheme 정의 (Top-level)
+final colorScheme = ColorScheme(
+  brightness: Brightness.light,
+  primary: const Color(0xFFFF3B30), // Main Red
+  onPrimary: Colors.white,
+  secondary: const Color(0xFF0A84FF), // Info
+  onSecondary: Colors.white,
+  error: const Color(0xFFE70C00), // Error
+  onError: Colors.white,
+  background: const Color(0xFFFFFFFF), // Background
+  surface: const Color(0xFFF7F7F7), // Sub Bg
+  onSurface: const Color(0xFF272727), // Text
+  outline: const Color(0xFF8E8E93), // Stroke
+  onSurfaceVariant: const Color(0xFF8E8E93), // Sub Text
+);
+
+// 3. 커스텀 색상을 ThemeExtension에 정의 (Top-level)
+const appColors = AppColors(
+  success: Color(0xFF34C759),
+  info: Color(0xFF0A84FF),
+  warning: Color(0xFFFF9500),
+  highlight: Color(0xFFFF6B00),
+);
 
 class PedalApp extends StatefulWidget {
   const PedalApp({super.key});
@@ -62,11 +93,38 @@ enum AuthState { loggedOut, needsProfileSetup, loggedIn }
 
 class _PedalAppState extends State<PedalApp> {
   AuthState _authState = AuthState.loggedOut;
+  String? _token;
 
-  void _onLogin() {
+  Future<void> _handleLogin(String token) async {
     setState(() {
-      _authState = AuthState.needsProfileSetup;
+      _token = token;
     });
+    print('Logged in with token: $_token');
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://172.30.1.14:8080/users/me'),
+        headers: {
+          'Authorization': 'Bearer $_token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _authState = AuthState.loggedIn;
+        });
+      } else {
+        setState(() {
+          _authState = AuthState.needsProfileSetup;
+        });
+      }
+    } catch (e) {
+      print('Error checking user profile: $e');
+      setState(() {
+        _authState = AuthState.loggedOut;
+        _token = null;
+      });
+    }
   }
 
   void _onProfileSetupComplete() {
@@ -75,35 +133,10 @@ class _PedalAppState extends State<PedalApp> {
     });
   }
 
-  // 2. 팔레트 색상으로 ColorScheme 정의
-  static final colorScheme = ColorScheme(
-    brightness: Brightness.light,
-    primary: const Color(0xFFFF3B30), // Main Red
-    onPrimary: Colors.white,
-    secondary: const Color(0xFF0A84FF), // Info
-    onSecondary: Colors.white,
-    error: const Color(0xFFE70C00), // Error
-    onError: Colors.white,
-    background: const Color(0xFFFFFFFF), // Background
-    surface: const Color(0xFFF7F7F7), // Sub Bg
-    onSurface: const Color(0xFF272727), // Text
-    outline: const Color(0xFF8E8E93), // Stroke
-    onSurfaceVariant: const Color(0xFF8E8E93), // Sub Text
-  );
-
-  // 3. 커스텀 색상을 ThemeExtension에 정의
-  static const appColors = AppColors(
-    success: Color(0xFF34C759),
-    info: Color(0xFF0A84FF),
-    warning: Color(0xFFFF9500),
-    highlight: Color(0xFFFF6B00),
-  );
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Pedal',
-      // 4. MaterialApp에 ThemeData 적용
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
@@ -112,7 +145,6 @@ class _PedalAppState extends State<PedalApp> {
         textTheme: TextTheme(
           bodyMedium: TextStyle(color: colorScheme.onBackground),
         ),
-        // 입력창 포커스 색상 등을 onSurface로 지정
         inputDecorationTheme: InputDecorationTheme(
           focusColor: colorScheme.onSurface,
           focusedBorder: UnderlineInputBorder(
@@ -133,11 +165,11 @@ class _PedalAppState extends State<PedalApp> {
   Widget _buildHome() {
     switch (_authState) {
       case AuthState.loggedIn:
-        return const MainNavigationScreen();
+        return MainNavigationScreen(token: _token!);
       case AuthState.needsProfileSetup:
-        return ProfileSetupPage(onSetupComplete: _onProfileSetupComplete);
+        return ProfileSetupPage(token: _token!, onSetupComplete: _onProfileSetupComplete);
       case AuthState.loggedOut:
-      return LoginPage(onLogin: _onLogin);
+        return LoginPage(onLogin: _handleLogin);
     }
   }
 }

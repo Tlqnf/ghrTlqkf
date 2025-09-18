@@ -6,7 +6,8 @@ import 'package:pedal/widgets/bar/custom_bottom_nav_bar.dart';
 import 'package:pedal/widgets/bar/logo_bar.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+  final String token;
+  const MainNavigationScreen({super.key, required this.token});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -15,10 +16,16 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomePage(),
-    const MyPageScreen(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      HomePage(token: widget.token),
+      const MyPageScreen(),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {

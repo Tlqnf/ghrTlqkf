@@ -15,17 +15,13 @@ class ActivitySummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ConstrainedBox(
-      constraints: const BoxConstraints(
-        minWidth: 120, // 카드의 최소 너비를 120으로 설정
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface, // 테마의 surface 색상 사용 (Sub Bg)
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface, // 테마의 surface 색상 사용 (Sub Bg)
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -40,12 +36,15 @@ class ActivitySummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
+                Flexible(
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                    overflow: TextOverflow.ellipsis, // Prevent long text from breaking layout
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -59,7 +58,6 @@ class ActivitySummaryCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

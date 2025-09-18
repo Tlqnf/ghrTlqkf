@@ -4,8 +4,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:pedal/services/ad_helper.dart';
 import 'package:pedal/services/socket_service.dart';
+import 'package:pedal/widgets/modal/record_list_modal.dart'; // Import RecordListModal
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key}) : super(key: key);
@@ -26,6 +29,8 @@ class _MapScreenState extends State<MapScreen> {
   late final SocketService _socketService;
   StreamSubscription<dynamic>? _socketStreamSubscription;
 
+  BannerAd? _bannerAd;
+
   // --- Map Interaction State ---
   bool _isFollowingUser = true;
   // ---------------------------
@@ -35,6 +40,16 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     _initializeLocationStream();
     _initializeSocket();
+    _createBannerAd();
+  }
+
+  void _createBannerAd() {
+    _bannerAd = BannerAd(
+      size: AdSize.fullBanner,
+      adUnitId: AdHelper.bannerAdUnitId!,
+      listener: AdHelper.bannerAdListener,
+      request: const AdRequest(),
+    )..load();
   }
 
   void _initializeSocket() {
@@ -170,7 +185,7 @@ class _MapScreenState extends State<MapScreen> {
       setState(() {
         _isFollowingUser = true;
       });
-      _mapController.move(_currentLocation!, _mapController.camera.zoom);
+      _mapController.move(_currentLocation!, 16.5);
     }
   }
 
@@ -207,7 +222,7 @@ class _MapScreenState extends State<MapScreen> {
                           }
                         },
                         interactionOptions: const InteractionOptions(
-                          flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+                          flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.rotate,
                         ),
                       ),
                       children: [
@@ -244,11 +259,11 @@ class _MapScreenState extends State<MapScreen> {
                             icon: Icons.arrow_back,
                             onPressed: () => Navigator.of(context).pop(),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 32),
                           _buildFloatingButton(
                             icon: Icons.explore_outlined,
                             onPressed: () {
-                              // TODO: Implement compass functionality
+                              _mapController.rotate(0); // Reset map rotation to 0 degrees (north up)
                             },
                           ),
                           const SizedBox(height: 8),
@@ -268,30 +283,105 @@ class _MapScreenState extends State<MapScreen> {
                       child: SafeArea(
                         top: false,
                         child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
                           height: 60,
-                          color: Colors.grey[200],
-                          child: const Center(child: Text("Google AdMob Banner Placeholder")),
+                          child: AdWidget(ad: _bannerAd!), // 배너 광고 추가
                         ),
                       ),
+                    ),
+                    // Slide-up bar for RecordListModal
+                    Positioned(
+                      bottom: 60, // Above the AdMob banner
+                      left: 0,
+                      right: 0,
+                      child: SafeArea(
+                          child: GestureDetector(
+                            onVerticalDragEnd: (details) {
+                              if (details.primaryVelocity! < 0) { // Check for upward drag
+                                _showRecordListModal();
+                              }
+                            },
+                            child: Container(
+                              height: 30, // Height of the bar
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.9), // Light background
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(16.0),
+                                  topRight: Radius.circular(16.0),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 5,
+                                    offset: const Offset(0, -2), // Shadow at the top
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Container(
+                                  width: 40,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      )
                     ),
                     // Floating Record Button above AdMob Banner
                     Positioned(
-                      bottom: 30, // Adjust this value to position it correctly above the banner
+                      bottom: 100, // Adjust this value to position it correctly above the banner
                       left: 0,
                       right: 0,
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: GestureDetector(
-                          onTap: () {
-                            // TODO: Implement start/stop recording logic
-                          },
-                          child: _buildRecordButton(),
-                        ),
+                      child: SafeArea(
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: GestureDetector(
+                            onTap: () {
+                              // TODO: Implement start/stop recording logic
+                            },
+                            child: _buildRecordButton(),
+                          ),
+                        )
                       ),
                     ),
-                  ],
+                    ],
                 ),
       // Remove floatingActionButton and floatingActionButtonLocation from Scaffold
+    );
+  }
+
+  void _showRecordListModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        final screenHeight = MediaQuery.of(context).size.height;
+        final adBannerHeight = 60.0; // Height of the AdMob banner
+        final availableHeight = screenHeight - adBannerHeight;
+        final maxModalHeightFraction = availableHeight / screenHeight;
+
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.5, // Start at half screen height
+          maxChildSize: maxModalHeightFraction, // Adjust max height to leave space for AdMob
+          minChildSize: 0.4, // Can be dragged down to 20% of screen height
+          builder: (context, scrollController) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white, // Background color of the modal
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16.0),
+                topRight: Radius.circular(16.0),
+              ),
+            ),
+            child: const RecordListModal(),
+          ),
+        );
+      },
     );
   }
 
