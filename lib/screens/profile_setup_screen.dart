@@ -128,14 +128,19 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                           CircleAvatar(
                             radius: 40,
                             backgroundColor: const Color(0xFFE0E0E0),
-                            backgroundImage: _imageFile != null ? FileImage(File(_imageFile!.path)) : null,
-                            child: _imageFile == null
-                                ? const Icon(
-                                    Icons.person,
-                                    size: 50,
-                                    color: Colors.white,
-                                  )
+                            backgroundImage: _imageFile != null
+                                ? (() {
+                                    debugPrint('Image file path: ${_imageFile!.path}');
+                                    return FileImage(File(_imageFile!.path));
+                                  })()
                                 : null,
+                            child: _imageFile == null
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: Colors.white,
+                                )
+                              : null,
                           ),
                           const SizedBox(width: 16),
                           Column(
@@ -206,6 +211,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                   ),
                   child: const Text('프로필 설정'),
                 ),
+
             ],
           ),
         ),
