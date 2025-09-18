@@ -110,17 +110,19 @@ class _ActivityCardState extends State<ActivityCard> {
             if (widget.post.images.isNotEmpty && widget.post.images.first['url'] != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
-                child: Image.network(
-                  widget.post.images.first['url'],
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const SizedBox(height: 200, child: Center(child: Text('이미지를 불러올 수 없습니다.'))),
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
-                  },
-                ),
+                child: (widget.post.images.first['url'] as String).startsWith('http')
+                    ? Image.network(
+                        widget.post.images.first['url'],
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox(height: 200, child: Center(child: Text('이미지를 불러올 수 없습니다.'))),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+                        },
+                      )
+                    : const SizedBox(height: 200, child: Center(child: Text('잘못된 이미지 URL입니다.'))), // Fallback for invalid URL
               ),
             const SizedBox(height: 16),
             // TODO: Implement map view using post.route
