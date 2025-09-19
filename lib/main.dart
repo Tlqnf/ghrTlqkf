@@ -9,7 +9,7 @@ import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
 
 void main() async {
-  await dotenv.load(fileName: "assets/config/");
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('ko_KR', null);
