@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:flutter/material.dart';
 // import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:http/http.dart' as http;
@@ -101,6 +102,8 @@ class _PedalAppState extends State<PedalApp> {
       _token = token;
     });
     print('Logged in with token: $_token');
+    bool? is_null = await UserApiService.checkUserProfile(token);
+    print(is_null);
 
     try {
       final response = await http.get(
@@ -111,7 +114,7 @@ class _PedalAppState extends State<PedalApp> {
       );
 
       if (response.statusCode == 200) {
-        if(UserApiService.checkUserProfile('$_token') == true) {
+        if(await UserApiService.checkUserProfile('$_token') == false) {
           setState(() {
             _authState = AuthState.loggedIn;
         });}
