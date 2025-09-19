@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pedal/api/user_api_service.dart';
@@ -118,6 +116,8 @@ class _PedalAppState extends State<PedalApp> {
       _token = token;
     });
     debugPrint('Logged in with token: $_token');
+    bool? is_null = await UserApiService.checkUserProfile(token);
+    print(is_null);
 
     try {
       final response = await http.get(
@@ -128,11 +128,10 @@ class _PedalAppState extends State<PedalApp> {
       );
 
       if (response.statusCode == 200) {
-        if (await UserApiService.checkUserProfile('$_token') == true) {
+        if(await UserApiService.checkUserProfile('$_token') == false) {
           setState(() {
             _authState = AuthState.loggedIn;
-          }
-        );
+          });
         } else {
           setState(() {
             _authState = AuthState.needsProfileSetup;
@@ -184,14 +183,13 @@ class _PedalAppState extends State<PedalApp> {
   }
 
   Widget _buildHome() {
-    // switch (_authState) {
-    //   case AuthState.loggedIn:
-    //     return MainNavigationScreen(token: _token!);
-    //   case AuthState.needsProfileSetup:
-    //     return ProfileSetupPage(token: _token!, onSetupComplete: _onProfileSetupComplete);
-    //   case AuthState.loggedOut:
-    //     return LoginPage(onLogin: _handleLogin);
-    // }
-    return MapScreen();
+    switch (_authState) {
+      case AuthState.loggedIn:
+        return MainNavigationScreen(token: _token!);
+      case AuthState.needsProfileSetup:
+        return ProfileSetupPage(token: _token!, onSetupComplete: _onProfileSetupComplete);
+      case AuthState.loggedOut:
+        return LoginPage(onLogin: _handleLogin);
+    }
   }
 }

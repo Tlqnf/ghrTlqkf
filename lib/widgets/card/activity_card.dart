@@ -1,8 +1,7 @@
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:pedal/models/post.dart';
+import 'package:pedal/api/user_api_service.dart';
 import 'package:pedal/widgets/modal/comment_modal.dart';
 
 class ActivityCard extends StatefulWidget {
@@ -25,52 +24,59 @@ class _ActivityCardState extends State<ActivityCard> {
     _likeCount = widget.post.likeCount;
   }
 
-  Future<void> _addThumbsUp(int postId) async{
-    await http.post(
-        Uri.parse('http://172.30.1.14:8080/post/${postId}/like'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-        }
-    );
-  }
+  Future<void> _addThumbsUp(int postId) =>
+      UserApiService.addThumbsUp(widget.token, postId);
 
-  Future<void> _removeThumbsUp(int postId) async{
-    await http.post(
-        Uri.parse('http://172.30.1.14:8080/post/${postId}/unlike'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-        }
-    );
-  }
+  Future<void> _removeThumbsUp(int postId) =>
+      UserApiService.removeThumbsUp(widget.token, postId);
 
   void _toggleLike() async {
-    if (_isLiked) {
+    final prevLiked = _isLiked;
+    final prevCount = _likeCount;
+
+    setState(() {
+      _isLiked = !_isLiked;
+      _likeCount += _isLiked ? 1 : -1;
+    });
+
+    try {
+      if (_isLiked) {
+        await _addThumbsUp(widget.post.id);
+      } else {
+        await _removeThumbsUp(widget.post.id);
+      }
+    } catch (e) {
+      // 실패 시 롤백
       setState(() {
-        _isLiked = false;
-        _likeCount--;
+        _isLiked = prevLiked;
+        _likeCount = prevCount;
       });
-      await _removeThumbsUp(widget.post.id);
-    } else {
-      setState(() {
-        _isLiked = true;
-        _likeCount++;
-      });
-      await _addThumbsUp(widget.post.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('요청 실패: $e')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final formattedDate = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR').format(widget.post.createdAt.toLocal());
+    final formattedDate = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR')
+        .format(widget.post.createdAt.toLocal());
+
+    final hasImage = widget.post.images.isNotEmpty;
 
     return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        elevation: 0,
-        color: theme.colorScheme.background,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 0,
+      color: theme.colorScheme.background,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 헤더
             Row(
               children: [
                 const CircleAvatar(
@@ -107,36 +113,31 @@ class _ActivityCardState extends State<ActivityCard> {
             const SizedBox(height: 8),
             Text(widget.post.content),
             const SizedBox(height: 16),
-            if (widget.post.images.isNotEmpty && widget.post.images.first['url'] != null)
+
+            // 이미지 (첫 장만)
+            if (hasImage)
               ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
-                child: (widget.post.images.first['url'] as String).startsWith('http')
-                    ? Image.network(
-                        widget.post.images.first['url'],
+                child: Image.network(
+                  widget.post.images.first, // ← 문자열 URL
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => const SizedBox(
+                      height: 200,
+                      child: Center(child: Text('이미지를 불러올 수 없습니다.'))),
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const SizedBox(
                         height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox(height: 200, child: Center(child: Text('이미지를 불러올 수 없습니다.'))),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
-                        },
-                      )
-                    : const SizedBox(height: 200, child: Center(child: Text('잘못된 이미지 URL입니다.'))), // Fallback for invalid URL
+                        child: Center(child: CircularProgressIndicator()));
+                  },
+                ),
               ),
+
             const SizedBox(height: 16),
-            // TODO: Implement map view using post.route
-            // Container(
-            //   height: 150,
-            //   decoration: BoxDecoration(
-            //     color: Colors.grey[300],
-            //     borderRadius: BorderRadius.circular(8),
-            //   ),
-            //   child: const Center(
-            //     child: Text('Map Placeholder'),
-            //   ),
-            // ),
-            // const SizedBox(height: 16),
+
+            // 액션
             Row(
               children: [
                 InkWell(
@@ -144,8 +145,12 @@ class _ActivityCardState extends State<ActivityCard> {
                   child: Row(
                     children: [
                       Icon(
-                        _isLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
-                        color: _isLiked ? theme.colorScheme.secondary : Colors.black54,
+                        _isLiked
+                            ? Icons.thumb_up
+                            : Icons.thumb_up_alt_outlined,
+                        color: _isLiked
+                            ? theme.colorScheme.secondary
+                            : Colors.black54,
                       ),
                       const SizedBox(width: 4),
                       Text(_likeCount.toString()),
@@ -177,11 +182,11 @@ class _ActivityCardState extends State<ActivityCard> {
                       ),
                     );
                   },
-                  child: Row(
-                    children: const [
+                  child: const Row(
+                    children: [
                       Icon(Icons.chat_bubble_outline),
                       SizedBox(width: 4),
-                      Text('0'), // TODO: Replace with actual comment count
+                      Text('0'), // TODO: 실제 댓글 수로 교체
                     ],
                   ),
                 ),
@@ -189,8 +194,10 @@ class _ActivityCardState extends State<ActivityCard> {
                 const Icon(Icons.bookmark_border),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
           ],
-        ));
+        ),
+      ),
+    );
   }
 }
