@@ -337,7 +337,7 @@ class _MapScreenState extends State<MapScreen> {
     await Future.delayed(const Duration(milliseconds: 300));
 
     final imageFile = await _mapController!.takeSnapshot();
-    snapshotPath = imageFile?.path;
+    snapshotPath = imageFile.path;
     // --- End: Snapshot Logic ---
 
     if (mounted) {
