@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pedal/api/user_api_service.dart';
@@ -10,7 +8,6 @@ import 'package:pedal/screens/main_navigation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // MobileAds.instance.initialize();
   await initializeDateFormatting('ko_KR', null);
   runApp(const PedalApp());
 }
@@ -100,7 +97,9 @@ class _PedalAppState extends State<PedalApp> {
     setState(() {
       _token = token;
     });
-    print('Logged in with token: $_token');
+    debugPrint('Logged in with token: $_token');
+    bool? is_null = await UserApiService.checkUserProfile(token);
+    print(is_null);
 
     try {
       final response = await http.get(
@@ -111,12 +110,16 @@ class _PedalAppState extends State<PedalApp> {
       );
 
       if (response.statusCode == 200) {
-        if(UserApiService.checkUserProfile('$_token') == true) {
+        if(await UserApiService.checkUserProfile('$_token') == false) {
           setState(() {
             _authState = AuthState.loggedIn;
-        });}
-        else {setState(() {_authState = AuthState.needsProfileSetup;});
-      }
+          });
+        }
+        else {
+          setState(() {
+            _authState = AuthState.needsProfileSetup;
+          });
+        }
       }
     } catch (e) {
       print('Error checking user profile: $e');
