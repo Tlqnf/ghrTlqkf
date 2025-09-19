@@ -65,7 +65,6 @@ class RecordListModal extends StatelessWidget {
                         distance: '${(index + 1) * 5.5} km',
                         time: '${(index + 1) * 30} 분',
                         date: '2023.0${index + 1}.15',
-                        image_url: '',
                         onTap: () {
                           // Handle tap on record card
                           print('Record Card ${index + 1} tapped!');

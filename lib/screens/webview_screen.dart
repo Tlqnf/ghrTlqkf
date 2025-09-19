@@ -35,7 +35,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 }
               } catch (e) {
                 // Could not parse JSON, ignore. This happens on the initial login page.
-                print('Error parsing JSON from webview: $e');
+                debugPrint('Error parsing JSON from webview: $e');
               }
             }
           }

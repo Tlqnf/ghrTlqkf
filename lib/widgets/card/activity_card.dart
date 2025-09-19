@@ -1,5 +1,6 @@
-// lib/widgets/activity_card.dart
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/api/user_api_service.dart';
@@ -21,7 +22,7 @@ class _ActivityCardState extends State<ActivityCard> {
   @override
   void initState() {
     super.initState();
-    _isLiked = false; // TODO: 서버에서 isLiked 주면 그 값으로 초기화
+    _isLiked = false; 
     _likeCount = widget.post.likeCount;
   }
 
@@ -107,8 +108,6 @@ class _ActivityCardState extends State<ActivityCard> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // 본문
             Text(
               widget.post.title,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),

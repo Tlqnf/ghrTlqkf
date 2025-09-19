@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:pedal/screens/main_navigation_screen.dart';
 
 class PostFormScreen extends StatefulWidget {
   final String? initialRouteName;
   final String? initialDistance;
   final String? initialTime;
+  final String? initialAvgSpeed;
 
   const PostFormScreen({
     super.key,
     this.initialRouteName,
     this.initialDistance,
     this.initialTime,
+    this.initialAvgSpeed,
   });
 
   @override
@@ -103,7 +106,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _buildStatItem('거리', widget.initialDistance ?? '0.00', 'km'),
-                        _buildStatItem('평균 속력', '19.92', 'km/h'), // Placeholder value
+                        _buildStatItem('평균 속력', widget.initialAvgSpeed ?? '0.0', 'km/h'),
                         _buildStatItem('총 시간', widget.initialTime ?? '0시간 00분', ''),
                       ],
                     ),
@@ -263,6 +266,12 @@ class _PostFormScreenState extends State<PostFormScreen> {
                           debugPrint('Route Name: ${_routeNameController.text}');
                           debugPrint('Tags: $_tags');
                           debugPrint('Community Upload: $_isCommunityUploadEnabled');
+
+                          Navigator.of(context).pushAndRemoveUntil(
+                            // 무조건 수정해야 하는 부분
+                            MaterialPageRoute(builder: (context) => const MainNavigationScreen(token: "",)),
+                                (Route<dynamic> route) => false,
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue, // Example color
