@@ -35,8 +35,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   void _onMapButtonPressed() {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const MapScreen(),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const MapScreen(),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
       ),
     );
   }

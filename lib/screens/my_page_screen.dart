@@ -37,7 +37,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
 class _ProfileHeader extends StatefulWidget {
   final String token;
-  const _ProfileHeader({super.key, required this.token});
+  const _ProfileHeader({required this.token});
 
   @override
   State<_ProfileHeader> createState() => _ProfileHeaderState();

@@ -1,14 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pedal/api/user_api_service.dart';
 import 'package:pedal/screens/login_screen.dart';
+import 'package:pedal/screens/map_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
 
 void main() async {
+  await dotenv.load(fileName: "assets/config/.env");
   WidgetsFlutterBinding.ensureInitialized();
+
   await initializeDateFormatting('ko_KR', null);
+  await FlutterNaverMap().init(
+    clientId: dotenv.env["CLIENT_ID"],
+    onAuthFailed: (ex) {
+      switch (ex) {
+        case NQuotaExceededException(:final message):
+          debugPrint("사용량 초과 (message: $message)");
+          break;
+        case NUnauthorizedClientException() ||
+        NClientUnspecifiedException() ||
+        NAnotherAuthFailedException():
+          debugPrint("인증 실패: $ex");
+          break;
+      }
+    }
+  );
   runApp(const PedalApp());
 }
 
@@ -97,7 +117,7 @@ class _PedalAppState extends State<PedalApp> {
     setState(() {
       _token = token;
     });
-    print('Logged in with token: $_token');
+    debugPrint('Logged in with token: $_token');
 
     try {
       final response = await http.get(
@@ -108,7 +128,7 @@ class _PedalAppState extends State<PedalApp> {
       );
 
       if (response.statusCode == 200) {
-        if (UserApiService.checkUserProfile('$_token') == true) {
+        if (await UserApiService.checkUserProfile('$_token') == true) {
           setState(() {
             _authState = AuthState.loggedIn;
           }
@@ -120,7 +140,7 @@ class _PedalAppState extends State<PedalApp> {
         }
       }
     } catch (e) {
-      print('Error checking user profile: $e');
+      debugPrint('Error checking user profile: $e');
       setState(() {
         _authState = AuthState.loggedOut;
         _token = null;
@@ -152,7 +172,7 @@ class _PedalAppState extends State<PedalApp> {
             borderSide: BorderSide(color: colorScheme.onSurface),
           ),
           enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.5)),
+            borderSide: BorderSide(color: colorScheme.outline.withValues(alpha: 0.5)),
           ),
         ),
         textSelectionTheme: TextSelectionThemeData(
@@ -164,13 +184,14 @@ class _PedalAppState extends State<PedalApp> {
   }
 
   Widget _buildHome() {
-    switch (_authState) {
-      case AuthState.loggedIn:
-        return MainNavigationScreen(token: _token!);
-      case AuthState.needsProfileSetup:
-        return ProfileSetupPage(token: _token!, onSetupComplete: _onProfileSetupComplete);
-      case AuthState.loggedOut:
-        return LoginPage(onLogin: _handleLogin);
-    }
+    // switch (_authState) {
+    //   case AuthState.loggedIn:
+    //     return MainNavigationScreen(token: _token!);
+    //   case AuthState.needsProfileSetup:
+    //     return ProfileSetupPage(token: _token!, onSetupComplete: _onProfileSetupComplete);
+    //   case AuthState.loggedOut:
+    //     return LoginPage(onLogin: _handleLogin);
+    // }
+    return MapScreen();
   }
 }
