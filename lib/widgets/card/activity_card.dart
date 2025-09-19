@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:pedal/api/post_api_service.dart';
+import 'package:pedal/models/comment.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/widgets/modal/comment_modal.dart';
 
@@ -24,7 +26,7 @@ class _ActivityCardState extends State<ActivityCard> {
     _isLiked = false; 
     _likeCount = widget.post.likeCount;
   }
-
+ //TODO 추후 서비스로 분리 시키기
   Future<void> _addThumbsUp(int postId) async{
     await http.post(
         Uri.parse('http://172.30.1.14:8080/post/${postId}/like'),
@@ -33,7 +35,7 @@ class _ActivityCardState extends State<ActivityCard> {
         }
     );
   }
-
+  //TODO ""
   Future<void> _removeThumbsUp(int postId) async{
     await http.post(
         Uri.parse('http://172.30.1.14:8080/post/${postId}/unlike'),
@@ -42,6 +44,7 @@ class _ActivityCardState extends State<ActivityCard> {
         }
     );
   }
+
 
   void _toggleLike() async {
     if (_isLiked) {
@@ -63,6 +66,8 @@ class _ActivityCardState extends State<ActivityCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final formattedDate = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR').format(widget.post.createdAt.toLocal());
+    final token = widget.token;
+    final postId = widget.post.id;
 
     return Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -164,6 +169,7 @@ class _ActivityCardState extends State<ActivityCard> {
                         initialChildSize: 0.7,
                         maxChildSize: 0.9,
                         minChildSize: 0.4,
+                        //채팅 불러와지는 곳
                         builder: (context, scrollController) => Container(
                           decoration: const BoxDecoration(
                             color: Colors.white,
@@ -172,7 +178,7 @@ class _ActivityCardState extends State<ActivityCard> {
                               topRight: Radius.circular(16.0),
                             ),
                           ),
-                          child: const CommentModal(),
+                          child: CommentModal(token: token, postId: postId),
                         ),
                       ),
                     );

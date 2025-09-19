@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
     _fetchAnalyze();
   }
 
-
+  //TODO 추후 서비스로 분리하기.
   Future<List<Post>> _fetchPosts() async {
     final response = await http.get(
       Uri.parse('http://172.30.1.14:8080/post'),
