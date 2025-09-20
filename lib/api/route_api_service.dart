@@ -24,4 +24,54 @@ class RouteApiService {
       throw Exception('Failed to update route: ${response.statusCode}');
     }
   }
+
+  static Future<void> getRouteById(String token, String routeId) async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}/routes/$routeId"),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else {
+      throw Exception('Failed to load route: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> getMyRoutes(String token) async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}/routes/me"),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else {
+      throw Exception('Failed to load my routes: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> getRoutesByFilter(List<String> tags, String token) async {
+    final uri = Uri.parse("${ApiConfig.baseUrl}/routes").replace(
+      queryParameters: {
+        'tags': tags,
+      },
+    );
+    final response = await http.get(
+      uri,
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else {
+      throw Exception('Failed to load routes by filter: ${response.statusCode}');
+    }
+  }
 }
