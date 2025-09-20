@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedal/config/api_config.dart';
 import 'package:pedal/screens/webview_screen.dart';
 
 class SocialLoginButton extends StatelessWidget {
@@ -18,11 +19,11 @@ class SocialLoginButton extends StatelessWidget {
   String _getUrlForType(String type) {
     switch (type) {
       case 'google':
-        return 'http://172.30.1.14:8080/oauth/google/login';
+        return '${ApiConfig.baseUrl}/oauth/google/login';
       case 'naver':
-        return 'http://172.30.1.14:8080/oauth/naver/login';
+        return '${ApiConfig.baseUrl}/oauth/naver/login';
       case 'kakao':
-        return 'http://172.30.1.14:8080/oauth/kakao/login';
+        return '${ApiConfig.baseUrl}/oauth/kakao/login';
       default:
         throw Exception('Unknown login type: $type');
     }

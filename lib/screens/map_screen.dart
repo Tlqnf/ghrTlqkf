@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:pedal/config/api_config.dart';
+import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/post_form_screen.dart';
 import 'package:pedal/services/socket_service.dart';
+import 'package:pedal/utils/time_formatter.dart';
 import 'package:pedal/widgets/map/pre_recording_overlay.dart';
 import 'package:pedal/widgets/map/recording_overlay.dart';
+import 'package:provider/provider.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key}) : super(key: key);
@@ -30,7 +33,7 @@ class _MapScreenState extends State<MapScreen> {
   bool _isMapReady = false; // Variable to control map loading
 
   // Socket State
-  late final SocketService _socketService;
+  SocketService? _socketService;
   StreamSubscription<dynamic>? _socketStreamSubscription;
   bool _isSocketConnected = false;
 
@@ -49,7 +52,6 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _initializeLocationStream();
-    _initializeSocket();
 
     // Delay map loading to prevent transition animation conflicts
     Future.delayed(const Duration(milliseconds: 600), () {
@@ -65,18 +67,17 @@ class _MapScreenState extends State<MapScreen> {
   void dispose() {
     _positionStreamSubscription?.cancel();
     _socketStreamSubscription?.cancel();
-    _socketService.disconnect();
+    _socketService?.disconnect();
     _timer?.cancel();
     _mapController?.dispose();
     super.dispose();
   }
 
-  void _initializeSocket() {
-    const socketUrl =
-        'ws://localhost:8080/ws/record-route?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0IiwiZXhwIjoxNzc2MDc1NzQzfQ.F5ZrL5I4mCiYOml4I-v-9QyRF2nsDpMEYnGJdjRaG-k';
+  void _initializeSocket(String token) {
+    _socketStreamSubscription?.cancel();
+    String socketUrl = '${ApiConfig.socketUrl}/ws/record-route?token=$token';
     _socketService = SocketService(url: socketUrl);
-
-    _socketStreamSubscription = _socketService.stream.listen((data) {
+    _socketStreamSubscription = _socketService!.stream.listen((data) {
       if (mounted && _isSocketConnected) {
         try {
           debugPrint('Socket received data: $data');
@@ -144,84 +145,84 @@ class _MapScreenState extends State<MapScreen> {
     );
 
     _positionStreamSubscription =
-        Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-              (Position position) async {
-            if (!mounted) return;
+      Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+            (Position position) async {
+          if (!mounted) return;
 
-            // Throttle updates to once per second
-            final now = DateTime.now();
-            if (_lastLocationUpdateTime != null &&
-                now.difference(_lastLocationUpdateTime!) <
-                    const Duration(milliseconds: 500)) {
-              return;
-            }
-            _lastLocationUpdateTime = now;
+          // Throttle updates to once per second
+          final now = DateTime.now();
+          if (_lastLocationUpdateTime != null &&
+              now.difference(_lastLocationUpdateTime!) <
+                  const Duration(milliseconds: 500)) {
+            return;
+          }
+          _lastLocationUpdateTime = now;
 
-            final newPoint = NLatLng(position.latitude, position.longitude);
-            final currentSpeedKmh = position.speed * 3.6;
+          final newPoint = NLatLng(position.latitude, position.longitude);
+          final currentSpeedKmh = position.speed * 3.6;
 
-            // Update marker on the map
-            final marker = NMarker(
-              id: 'current_location',
-              position: newPoint,
-              icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
-              size: const Size(15, 15),
-              anchor: const NPoint(0.5, 0.5),
-            );
-            _mapController?.addOverlay(marker);
+          // Update marker on the map
+          final marker = NMarker(
+            id: 'current_location',
+            position: newPoint,
+            icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
+            size: const Size(15, 15),
+            anchor: const NPoint(0.5, 0.5),
+          );
+          _mapController?.addOverlay(marker);
 
-            if (_isRecording && !_isPaused) {
-              final lastPoint = _currentLocation;
-              if (lastPoint != null) {
-                _distance += Geolocator.distanceBetween(
-                  lastPoint.latitude,
-                  lastPoint.longitude,
-                  newPoint.latitude,
-                  newPoint.longitude,
-                );
-              }
-              if (_stopwatch.elapsed.inSeconds > 0) {
-                _avgSpeed = (_distance / _stopwatch.elapsed.inSeconds) * 3.6;
-              }
-
-              if (_isSocketConnected) {
-                final locationData = {
-                  'lat': position.latitude,
-                  'lon': position.longitude,
-                };
-                final message = jsonEncode(locationData);
-                _socketService.sendMessage(message);
-                debugPrint('Socket sent data: $message');
-              } else {
-                // Offline mode: draw route directly from GPS
-                _addPointToRoute(newPoint);
-              }
-            }
-
-            setState(() {
-              _currentLocation = newPoint;
-              _currentSpeed = currentSpeedKmh;
-              if (_isRecording && currentSpeedKmh > _maxSpeed) {
-                _maxSpeed = currentSpeedKmh;
-              }
-              if (_isLoading) _isLoading = false;
-            });
-
-            // Update camera position if following user
-            if (_isFollowingUser && _isMapVisible && _mapController != null) {
-              final cameraUpdate = NCameraUpdate.scrollAndZoomTo(
-                target: newPoint,
-                zoom: await _mapController!.getCameraPosition().then((p) => p.zoom),
+          if (_isRecording && !_isPaused) {
+            final lastPoint = _currentLocation;
+            if (lastPoint != null) {
+              _distance += Geolocator.distanceBetween(
+                lastPoint.latitude,
+                lastPoint.longitude,
+                newPoint.latitude,
+                newPoint.longitude,
               );
-              _mapController!.updateCamera(cameraUpdate);
             }
-          },
-          onError: (error) {
-            if (_isLoading) {
-              _showError('Failed to get location: $error');
+            if (_stopwatch.elapsed.inSeconds > 0) {
+              _avgSpeed = (_distance / _stopwatch.elapsed.inSeconds) * 3.6;
             }
-          },
-        );
+
+            if (_isSocketConnected) {
+              final locationData = {
+                'lat': position.latitude,
+                'lon': position.longitude,
+              };
+              final message = jsonEncode(locationData);
+              _socketService!.sendMessage(message);
+              debugPrint('Socket sent data: $message');
+            } else {
+              // Offline mode: draw route directly from GPS
+              _addPointToRoute(newPoint);
+            }
+          }
+
+          setState(() {
+            _currentLocation = newPoint;
+            _currentSpeed = currentSpeedKmh;
+            if (_isRecording && currentSpeedKmh > _maxSpeed) {
+              _maxSpeed = currentSpeedKmh;
+            }
+            if (_isLoading) _isLoading = false;
+          });
+
+          // Update camera position if following user
+          if (_isFollowingUser && _isMapVisible && _mapController != null) {
+            final cameraUpdate = NCameraUpdate.scrollAndZoomTo(
+              target: newPoint,
+              zoom: await _mapController!.getCameraPosition().then((p) => p.zoom),
+            );
+            _mapController!.updateCamera(cameraUpdate);
+          }
+        },
+        onError: (error) {
+          if (_isLoading) {
+            _showError('Failed to get location: $error');
+          }
+        },
+      );
   }
 
   void _addPointToRoute(NLatLng point) {
@@ -252,7 +253,22 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _startRecording() async {
-    final bool connected = await _socketService.connect();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+
+    if (token == null) {
+      debugPrint("Authentication token not found. Cannot connect to socket.");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('인증 정보가 없습니다. 다시 로그인해주세요.')),
+        );
+      }
+      return;
+    }
+
+    _initializeSocket(token);
+
+    final bool connected = await _socketService!.connect();
     setState(() {
       _isSocketConnected = connected;
     });
@@ -297,7 +313,7 @@ class _MapScreenState extends State<MapScreen> {
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (mounted) {
           setState(() {
-            _elapsedTime = _formatTime(_stopwatch.elapsed.inSeconds);
+            _elapsedTime = formatTime(_stopwatch.elapsed.inSeconds);
           });
         }
       });
@@ -306,7 +322,7 @@ class _MapScreenState extends State<MapScreen> {
 
   void _stopRecordingAndNavigate(BuildContext context) async {
     if (!_isRecording) return;
-    _socketService.disconnect();
+    _socketService?.disconnect();
     debugPrint('Socket disconnected.');
 
     _isMapVisible = true;
@@ -334,7 +350,7 @@ class _MapScreenState extends State<MapScreen> {
         NCameraUpdate.withParams(target: _currentLocation),
       );
     }
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     final imageFile = await _mapController!.takeSnapshot();
     snapshotPath = imageFile.path;
@@ -376,16 +392,6 @@ class _MapScreenState extends State<MapScreen> {
         _stopwatch.start();
       }
     });
-  }
-
-  String _formatTime(int totalSeconds) {
-    final duration = Duration(seconds: totalSeconds);
-    final hours = duration.inHours.toString().padLeft(2, '0');
-    final minutes =
-    duration.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds =
-    duration.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$hours:$minutes:$seconds';
   }
 
   void _showError(String message) {

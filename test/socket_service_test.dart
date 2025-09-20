@@ -4,7 +4,7 @@ import 'package:pedal/services/socket_service.dart';
 
 void main() {
   group('SocketService', () {
-    const socketUrl = 'ws://172.30.1.14:8080/ws/record-route';
+    const socketUrl = '/ws/record-route';
     late SocketService socketService;
 
     setUp(() {

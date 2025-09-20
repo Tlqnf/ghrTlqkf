@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:pedal/api/user_api_service.dart';
+import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/login_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -14,21 +14,25 @@ void main() async {
 
   await initializeDateFormatting('ko_KR', null);
   await FlutterNaverMap().init(
-    clientId: dotenv.env["CLIENT_ID"],
-    onAuthFailed: (ex) {
-      switch (ex) {
-        case NQuotaExceededException(:final message):
-          debugPrint("사용량 초과 (message: $message)");
-          break;
-        case NUnauthorizedClientException() ||
-        NClientUnspecifiedException() ||
-        NAnotherAuthFailedException():
-          debugPrint("인증 실패: $ex");
-          break;
-      }
-    }
+      clientId: dotenv.env["CLIENT_ID"],
+      onAuthFailed: (ex) {
+        switch (ex) {
+          case NQuotaExceededException(:final message):
+            debugPrint("사용량 초과 (message: $message)");
+            break;
+          case NUnauthorizedClientException() ||
+              NClientUnspecifiedException() ||
+              NAnotherAuthFailedException():
+            debugPrint("인증 실패: $ex");
+            break;
+        }
+      });
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthProvider(),
+      child: const PedalApp(),
+    ),
   );
-  runApp(const PedalApp());
 }
 
 // 1. ThemeExtension을 사용하여 커스텀 색상 클래스 정의
@@ -99,60 +103,8 @@ const appColors = AppColors(
   highlight: Color(0xFFFF6B00),
 );
 
-class PedalApp extends StatefulWidget {
+class PedalApp extends StatelessWidget {
   const PedalApp({super.key});
-
-  @override
-  State<PedalApp> createState() => _PedalAppState();
-}
-
-enum AuthState { loggedOut, needsProfileSetup, loggedIn }
-
-class _PedalAppState extends State<PedalApp> {
-  AuthState _authState = AuthState.loggedOut;
-  String? _token;
-
-  Future<void> _handleLogin(String token) async {
-    setState(() {
-      _token = token;
-    });
-    debugPrint('Logged in with token: $_token');
-    bool? is_null = await UserApiService.checkUserProfile(token);
-    print(is_null);
-
-    try {
-      final response = await http.get(
-        Uri.parse('http://172.30.1.14:8080/users/me'),
-        headers: {
-          'Authorization': 'Bearer $_token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        if(await UserApiService.checkUserProfile('$_token') == false) {
-          setState(() {
-            _authState = AuthState.loggedIn;
-          });
-        } else {
-          setState(() {
-            _authState = AuthState.needsProfileSetup;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Error checking user profile: $e');
-      setState(() {
-        _authState = AuthState.loggedOut;
-        _token = null;
-      });
-    }
-  }
-
-  void _onProfileSetupComplete() {
-    setState(() {
-      _authState = AuthState.loggedIn;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -179,18 +131,39 @@ class _PedalAppState extends State<PedalApp> {
           cursorColor: colorScheme.onSurface,
         ),
       ),
-      home: _buildHome(),
-    );
-  }
+      home: FutureBuilder(
+        future: Provider.of<AuthProvider>(context, listen: false).tryAutoLogin(),
+        builder: (ctx, snapshot) {
+          // While waiting for auto-login to complete, show a loading screen
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
 
-  Widget _buildHome() {
-    switch (_authState) {
-      case AuthState.loggedIn:
-        return MainNavigationScreen(token: _token!);
-      case AuthState.needsProfileSetup:
-        return ProfileSetupPage(token: _token!, onSetupComplete: _onProfileSetupComplete);
-      case AuthState.loggedOut:
-        return LoginPage(onLogin: _handleLogin);
-    }
+          return Consumer<AuthProvider>(
+            builder: (context, auth, _) {
+              switch (auth.authState) {
+                case AuthState.loggedIn:
+                  return MainNavigationScreen();
+                case AuthState.needsProfileSetup:
+                  return ProfileSetupPage(
+                    token: auth.token!,
+                    onSetupComplete: () {
+                      auth.completeProfileSetup();
+                    },
+                  );
+                case AuthState.loggedOut:
+                  return LoginPage(
+                    onLogin: (token) {
+                      Provider.of<AuthProvider>(context, listen: false).login(token);
+                    },
+                  );
+                case AuthState.loading:
+                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+              }
+            },
+          );
+        },
+      ),
+    );
   }
 }
