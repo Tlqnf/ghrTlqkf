@@ -46,7 +46,7 @@ class AllRecordsScreen extends StatelessWidget {
                 return RecordCard(
                   routeName: '갤러리아 백화점 경로',
                   distance: '17.28 km',
-                  time: '1시간 03분',
+                  time: '01:03:48',
                   date: '2025.09.01',
                   image_url: '',
                   onTap: () {

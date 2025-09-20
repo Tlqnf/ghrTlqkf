@@ -445,7 +445,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                             return GestureDetector(
                               onTap: _pickImage,
                               child: Container(
-                                width: 100,
+                                width: 200,
                                 height: 100,
                                 margin: const EdgeInsets.only(right: 16.0),
                                 decoration: BoxDecoration(
@@ -585,81 +585,82 @@ class _PostFormScreenState extends State<PostFormScreen> {
                         ],
                       ),
                     _isEditing
-                        ? SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _savePost,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue, // Example color
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                disabledBackgroundColor: Colors.grey[400],
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 3,
-                                      ),
-                                    )
-                                  : const Text('저장', style: TextStyle(fontSize: 18)),
-                              ),
-                          )
-                        : Row(
-                            children: [
-                              // 삭제
-                              ElevatedButton(
-                                onPressed: _isLoading ? null : _deletePost,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue, // Example color
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  disabledBackgroundColor: Colors.grey[400],
-                                ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.red,
-                                        strokeWidth: 3,
-                                      ),
-                                    )
-                                  : const Text('삭제', style: TextStyle(fontSize: 18)),
-                              ),
-                              // 수정
-                              ElevatedButton(
-                                onPressed: _isLoading ? null : _updatePost,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue, // Example color
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  disabledBackgroundColor: Colors.grey[400],
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 3,
-                                        ),
-                                      )
-                                    : const Text('수정', style: TextStyle(fontSize: 18)),
-                              ),
-                            ],
+                        ? Row(
+                      children: [
+                        // 삭제
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _deletePost,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red, // Example color
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            disabledBackgroundColor: Colors.grey[400],
                           ),
+                          child: _isLoading
+                              ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.red,
+                              strokeWidth: 3,
+                            ),
+                          )
+                              : const Text('삭제', style: TextStyle(fontSize: 18)),
+                        ),
+                        const Spacer(),
+                        // 수정
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _updatePost,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Example color
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            disabledBackgroundColor: Colors.grey[400],
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 3,
+                            ),
+                          )
+                              : const Text('수정', style: TextStyle(fontSize: 18)),
+                        ),
+                      ],
+                    )
+                        : SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _savePost,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue, // Example color
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          disabledBackgroundColor: Colors.grey[400],
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 3,
+                          ),
+                        )
+                            : const Text('저장', style: TextStyle(fontSize: 18)),
+                      ),
+                    )
                   ],
                 ),
               ),
