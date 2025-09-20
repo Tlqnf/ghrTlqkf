@@ -7,3 +7,10 @@ String formatTime(int totalSeconds) {
   duration.inSeconds.remainder(60).toString().padLeft(2, '0');
   return '$hours:$minutes:$seconds';
 }
+
+// 00:00:00 -> inSecond
+int timeToInt(String time) {
+  List<String> format = time.split(":");
+  final int timeInSecond = int.parse(format[0]) * 3600 + int.parse(format[1]) * 60 + int.parse(format[2]);
+  return timeInSecond;
+}

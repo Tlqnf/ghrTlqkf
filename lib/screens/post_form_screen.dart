@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pedal/api/post_api_service.dart';
+import 'package:pedal/api/route_api_service.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
@@ -11,6 +12,7 @@ import 'package:provider/provider.dart';
 
 class PostFormScreen extends StatefulWidget {
   final int? postId;
+  final int? reportId;
   final String? initialDistance;
   final String? initialTime;
   final String? initialAvgSpeed;
@@ -24,6 +26,7 @@ class PostFormScreen extends StatefulWidget {
   const PostFormScreen({
     super.key,
     this.postId,
+    this.reportId,
     this.initialDistance,
     this.initialTime,
     this.initialAvgSpeed,
@@ -151,7 +154,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
       final double? distance = double.tryParse(widget.initialDistance ?? '');
       final double? avgSpeed = double.tryParse(widget.initialAvgSpeed ?? '');
       List<String>? format = widget.initialTime?.split(":");
-      final double? time = double.parse(
+      final double time = double.parse(
           (int.parse(format![0]) * 3600 + int.parse(format[1]) * 60 + int.parse(format[2])) as String
       );
 
@@ -161,6 +164,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
             : _routeNameController.text,
         content: _isCommunityUploadEnabled ? _bodyController.text : '',
         hashTag: _tags,
+        reportId: widget.reportId,
         public: _isCommunityUploadEnabled,
         distance: distance,
         speed: avgSpeed,
@@ -208,6 +212,19 @@ class _PostFormScreenState extends State<PostFormScreen> {
         });
       }
     }
+  }
+
+  Future<void> _saveRoute() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+
+    if (token == null) return;
+    await RouteApiService.updateRoute(
+      _routeNameController.text,
+      _tags,
+      token,
+      1
+    );
   }
 
   Future<void> _updatePost() async {
@@ -319,7 +336,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                     left: 16,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
@@ -345,7 +362,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                               shape: BoxShape.circle,
                               color: _currentImagePage == index
                                   ? Colors.white
-                                  : Colors.white.withOpacity(0.5),
+                                  : Colors.white.withValues(alpha: 0.5),
                             ),
                           ),
                         ),
@@ -491,7 +508,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.6),
+                                        color: Colors.black.withValues(alpha: 0.6),
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(Icons.close,
@@ -586,81 +603,87 @@ class _PostFormScreenState extends State<PostFormScreen> {
                       ),
                     _isEditing
                         ? Row(
-                      children: [
-                        // 삭제
-                        ElevatedButton(
-                          onPressed: _isLoading ? null : _deletePost,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red, // Example color
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            disabledBackgroundColor: Colors.grey[400],
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.red,
-                              strokeWidth: 3,
-                            ),
-                          )
-                              : const Text('삭제', style: TextStyle(fontSize: 18)),
-                        ),
-                        const Spacer(),
-                        // 수정
-                        ElevatedButton(
-                          onPressed: _isLoading ? null : _updatePost,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue, // Example color
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            disabledBackgroundColor: Colors.grey[400],
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 3,
-                            ),
-                          )
-                              : const Text('수정', style: TextStyle(fontSize: 18)),
-                        ),
-                      ],
+                            children: [
+                              // 삭제
+                              ElevatedButton(
+                                onPressed: _isLoading ? null : _deletePost,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red, // Example color
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  disabledBackgroundColor: Colors.grey[400],
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.red,
+                                    strokeWidth: 3,
+                                  ),
+                                )
+                                    : const Text('삭제', style: TextStyle(fontSize: 18)),
+                              ),
+                              const Spacer(),
+                              // 수정
+                              ElevatedButton(
+                                onPressed: _isLoading ? null : _updatePost,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue, // Example color
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  disabledBackgroundColor: Colors.grey[400],
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                  ),
+                                )
+                                    : const Text('수정', style: TextStyle(fontSize: 18)),
+                              ),
+                            ],
                     )
                         : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _savePost,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue, // Example color
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          disabledBackgroundColor: Colors.grey[400],
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 3,
-                          ),
-                        )
-                            : const Text('저장', style: TextStyle(fontSize: 18)),
-                      ),
-                    )
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : () {
+                                // 경로로 저장
+                                _saveRoute();
+
+                                // 게시글로 저장
+                                _savePost();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue, // Example color
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                disabledBackgroundColor: Colors.grey[400],
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3,
+                                ),
+                              )
+                                  : const Text('저장', style: TextStyle(fontSize: 18)),
+                            ),
+                          )
                   ],
                 ),
               ),

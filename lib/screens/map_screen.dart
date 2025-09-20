@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:pedal/api/report_api_service.dart';
 import 'package:pedal/config/api_config.dart';
+import 'package:pedal/models/report.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/post_form_screen.dart';
 import 'package:pedal/services/socket_service.dart';
@@ -13,7 +15,7 @@ import 'package:pedal/widgets/map/recording_overlay.dart';
 import 'package:provider/provider.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({Key? key}) : super(key: key);
+  const MapScreen({super.key});
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -321,6 +323,9 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _stopRecordingAndNavigate(BuildContext context) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+
     if (!_isRecording) return;
     _socketService?.disconnect();
     debugPrint('Socket disconnected.');
@@ -333,6 +338,18 @@ class _MapScreenState extends State<MapScreen> {
     final distanceInKm = (_distance / 1000).toStringAsFixed(2);
     final elapsedTime = _elapsedTime;
     final avgSpeed = _avgSpeed.toStringAsFixed(1);
+
+    var reportData = ReportCreate(
+      routeId: 1,
+      distance: double.parse(distanceInKm),
+      averageSpeed: _avgSpeed,
+      healthTime: timeToInt(elapsedTime),
+    );
+
+    // report 생성
+    // final int reportId = await ReportApiService.createReport(
+    //   reportData, token!
+    // );
 
     // --- Start: Snapshot Logic ---
     String? snapshotPath;
@@ -356,16 +373,15 @@ class _MapScreenState extends State<MapScreen> {
     snapshotPath = imageFile.path;
     // --- End: Snapshot Logic ---
 
-    if (mounted) {
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => PostFormScreen(
-          initialDistance: distanceInKm,
-          initialTime: elapsedTime,
-          initialAvgSpeed: avgSpeed,
-          mapImagePath: snapshotPath,
-        ),
-      ));
-    }
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => PostFormScreen(
+        initialDistance: distanceInKm,
+        initialTime: elapsedTime,
+        initialAvgSpeed: avgSpeed,
+        mapImagePath: snapshotPath,
+        reportId: 1,
+      ),
+    ));
 
     setState(() {
       _isRecording = false;

@@ -14,7 +14,7 @@ class MyPageScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token!;
 
     return Scaffold(
@@ -179,7 +179,7 @@ class SectionHeader extends StatelessWidget {
 
 class _RecordListHeader extends StatefulWidget {
   final String token;
-  const _RecordListHeader({super.key, required this.token});
+  const _RecordListHeader({required this.token});
 
   @override
   State<_RecordListHeader> createState() => _RecordListHeaderState();
@@ -260,7 +260,7 @@ class _RecordListHeaderState extends State<_RecordListHeader> {
 
 class _RecordListBookHeader extends StatefulWidget {
   final String token;
-  const _RecordListBookHeader({super.key, required this.token});
+  const _RecordListBookHeader({required this.token});
 
   @override
   State<_RecordListBookHeader> createState() => _RecordListBookHeaderState();

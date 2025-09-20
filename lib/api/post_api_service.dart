@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
@@ -53,10 +54,10 @@ class PostApiService {
           'Authorization': 'Bearer ${token}',
           'Content-type': 'application/json'
         },
-        body: {
+        body: jsonEncode({
           'title': postData.title,
           'content': postData.content,
-        }
+        })
       );
       return response;
 
