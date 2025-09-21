@@ -82,7 +82,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SingleChildScrollView(
+                    _analyze == null
+                      ? const Center(child: CircularProgressIndicator())
+                      : SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
@@ -116,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                                   SizedBox(height: 8),
                                   Row(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.baseline,
+                                    CrossAxisAlignment.baseline,
                                     textBaseline: TextBaseline.alphabetic,
                                     mainAxisSize: MainAxisSize
                                         .min, // Prevent row from expanding unnecessarily

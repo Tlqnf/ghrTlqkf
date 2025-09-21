@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pedal/api/post_api_service.dart';
 import 'package:pedal/models/comment.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/api/user_api_service.dart';
@@ -26,23 +25,8 @@ class _ActivityCardState extends State<ActivityCard> {
     _isLiked = false;
     _likeCount = widget.post.likeCount;
   }
-  
-  Future<void> _addThumbsUp(int postId) =>
-      UserApiService.addThumbsUp(widget.token, postId);
 
-  void _toggleLike() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-
-    if (token == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('로그인이 필요합니다.')),
-        );
-      }
-      return;
-    }
-
+  void _toggleLike(String token) async {
     final prevLiked = _isLiked;
     final prevCount = _likeCount;
 
@@ -75,7 +59,8 @@ class _ActivityCardState extends State<ActivityCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final formattedDate = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR').format(widget.post.createdAt.toLocal());
-    final token = widget.token;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
     final postId = widget.post.id;
     final hasImage = widget.post.images.isNotEmpty;
 
@@ -153,7 +138,7 @@ class _ActivityCardState extends State<ActivityCard> {
             Row(
               children: [
                 InkWell(
-                  onTap: _toggleLike,
+                  onTap: () => _toggleLike(token!),
                   child: Row(
                     children: [
                       Icon(
@@ -190,7 +175,7 @@ class _ActivityCardState extends State<ActivityCard> {
                               topRight: Radius.circular(16.0),
                             ),
                           ),
-                          child: CommentModal(token: token, postId: postId),
+                          child: CommentModal(token: token!, postId: postId),
                         ),
                       ),
                     );

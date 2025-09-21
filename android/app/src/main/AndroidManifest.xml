@@ -9,7 +9,7 @@
 
         <application
         android:usesCleartextTraffic="true"
-        android:label="pedal"
+        android:label="페달"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <meta-data

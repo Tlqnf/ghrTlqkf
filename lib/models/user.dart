@@ -2,15 +2,15 @@ class User {
   final int id;
   final String email;
   final String username;
-  final String profileDescription;
-  final String profilePic;
+  final String? profileDescription;
+  final String? profilePic;
 
   User({
     required this.id,
     required this.email,
     required this.username,
-    required this.profileDescription,
-    required this.profilePic,
+    this.profileDescription,
+    this.profilePic,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {

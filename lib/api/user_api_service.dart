@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/analyze.dart';
-import '../models/post.dart';
-import '../models/user.dart';
-import '../models/card.dart';
+import 'package:pedal/models/post.dart';
+import 'package:pedal/models/user.dart';
+import 'package:pedal/models/card.dart';
 
 class UserApiService {
-
   static Future<User> fetchUserProfile(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/users/me'),
@@ -24,7 +24,6 @@ class UserApiService {
       throw Exception('Failed to load user profile: ${response.statusCode}');
     }
   }
-
 
   static Future<bool?> checkUserProfile(String token) async{
     final response = await http.get(

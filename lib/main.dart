@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:http/http.dart' as http;
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/login_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
@@ -115,26 +116,22 @@ const appColors = AppColors(
   highlight: Color(0xFFFF6B00),
 );
 
-class PedalApp extends StatelessWidget {
+class PedalApp extends StatefulWidget {
   const PedalApp({super.key});
 
   @override
   State<PedalApp> createState() => _PedalAppState();
 }
 
-enum AuthState { loggedOut, needsProfileSetup, loggedIn }
-
 class _PedalAppState extends State<PedalApp> {
-  AuthState _authState = AuthState.loggedOut;
   String? _token;
 
   Future<void> _handleLogin(String token) async {
-    setState(() {
-      _token = token;
-    });
-    debugPrint('Logged in with token: $_token');
+    Provider.of<AuthProvider>(context, listen: false).login(token);
+
+    debugPrint('Logged in with token: $token');
     bool? is_null = await UserApiService.checkUserProfile(token);
-    print(is_null);
+    debugPrint("$is_null");
 
     try {
       final response = await http.get(
@@ -159,27 +156,18 @@ class _PedalAppState extends State<PedalApp> {
 
         if(await UserApiService.checkUserProfile('$_token') == false) {
           setState(() {
-            _authState = AuthState.loggedIn;
           });
         } else {
           setState(() {
-            _authState = AuthState.needsProfileSetup;
           });
         }
       }
     } catch (e) {
       debugPrint('Error checking user profile: $e');
       setState(() {
-        _authState = AuthState.loggedOut;
         _token = null;
       });
     }
-  }
-
-  void _onProfileSetupComplete() {
-    setState(() {
-      _authState = AuthState.loggedIn;
-    });
   }
 
   @override
@@ -218,6 +206,8 @@ class _PedalAppState extends State<PedalApp> {
           return Consumer<AuthProvider>(
             builder: (context, auth, _) {
               switch (auth.authState) {
+                case AuthState.loading:
+                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
                 case AuthState.loggedIn:
                   return MainNavigationScreen();
                 case AuthState.needsProfileSetup:
@@ -229,12 +219,8 @@ class _PedalAppState extends State<PedalApp> {
                   );
                 case AuthState.loggedOut:
                   return LoginPage(
-                    onLogin: (token) {
-                      Provider.of<AuthProvider>(context, listen: false).login(token);
-                    },
+                    onLogin: _handleLogin
                   );
-                case AuthState.loading:
-                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
               }
             },
           );

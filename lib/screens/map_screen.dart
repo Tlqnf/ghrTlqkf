@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:pedal/api/report_api_service.dart';
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/report.dart';
 import 'package:pedal/providers/auth_provider.dart';
@@ -324,8 +323,6 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _stopRecordingAndNavigate(BuildContext context) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
 
     if (!_isRecording) return;
     _socketService?.disconnect();

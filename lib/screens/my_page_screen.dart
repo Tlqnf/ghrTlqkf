@@ -53,7 +53,6 @@ class _ProfileHeaderState extends State<ProfileHeader> {
   @override
   void initState() {
     super.initState();
-    debugPrint(widget.token);
     _fetchUserData();
   }
 
@@ -92,17 +91,17 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                   radius: 30,
                   child: CircularProgressIndicator(), // Loading indicator
                 )
-              : _user?.profilePic != null && _user!.profilePic.isNotEmpty
+              : _user?.profilePic != null && _user!.profilePic!.isNotEmpty
                   ? CircleAvatar(
                       radius: 30,
-                      backgroundImage: NetworkImage(ApiConfig.baseUrl + _user!.profilePic),
+                      backgroundImage: NetworkImage(ApiConfig.baseUrl + _user!.profilePic!),
                     )
                   : const CircleAvatar(
                       radius: 30,
                       backgroundImage: AssetImage('assets/image/google.png'), // Fallback placeholder
                     ),
           const SizedBox(width: 16),
-          Expanded(
+          Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

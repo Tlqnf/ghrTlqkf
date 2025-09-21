@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -18,6 +17,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('소셜 로그인'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: InAppWebView(
         initialUrlRequest: URLRequest(url: WebUri(widget.url)),
