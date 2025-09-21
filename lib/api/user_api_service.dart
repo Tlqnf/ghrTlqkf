@@ -25,6 +25,7 @@ class UserApiService {
     }
   }
 
+
   static Future<bool?> checkUserProfile(String token) async{
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/users/me/profile-description-status'),
@@ -36,7 +37,7 @@ class UserApiService {
 
     if (response.statusCode == 200) {
       Map<String, dynamic> json = jsonDecode(response.body);
-      return json['is_null'];
+      return json["is_null"];
 
     } else {
       throw Exception('Failed to load user profile: ${response.statusCode}');

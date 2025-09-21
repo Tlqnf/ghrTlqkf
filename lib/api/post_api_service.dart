@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/post.dart';
+import 'package:pedal/models/comment.dart';
 
 class PostApiService {
   static Future<http.Response> createPost(
@@ -81,5 +82,69 @@ class PostApiService {
       print('Error creating post: $e');
       rethrow;
     }
+  }
+}
+
+class CommentApiService{
+  Future<void> getPostComments(String token, int postId) async {
+    dynamic response = await http.get(
+        Uri.parse("${ApiConfig.baseUrl}/post/${postId}/comments"),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+    );
+  }
+
+  Future<void> getPostChildComments(int commentId, String token) async {
+    dynamic response = await http.get(
+        Uri.parse("${ApiConfig.baseUrl}/post/comments/${commentId}"),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+    );
+  }
+
+  // 댓글 등록 (POST /post/{post_id}/comments)
+  Future<void> createComment(String token, Comment comment) async {
+    final url = Uri.parse("${ApiConfig.baseUrl}/post/${comment.postId}/comments");
+    final body = jsonEncode(comment.toJson()); // Comment 모델을 JSON으로 변환
+
+    dynamic response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    );
+
+    // TODO: 응답 처리 (예: 상태 코드 확인, 에러 처리)
+    debugPrint('Create Comment Response Status: ${response.statusCode}');
+    debugPrint('Create Comment Response Body: ${response.body}');
+  }
+
+  // 댓글 업데이트 (PATCH /post/comments/{comment_id})
+  Future<void> updateComment(
+      String token, int commentId, String content, {List<String>? mentions}) async {
+    final url = Uri.parse("${ApiConfig.baseUrl}/post/comments/${commentId}");
+    final body = jsonEncode({
+      "content": content,
+      "mentions": mentions ?? [], // body에도 mentions 추가
+    });
+
+    dynamic response = await http.patch(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    );
+
+    // TODO: 응답 처리 (예: 상태 코드 확인, 에러 처리)
+    debugPrint('Update Comment Response Status: ${response.statusCode}');
+    debugPrint('Update Comment Response Body: ${response.body}');
   }
 }

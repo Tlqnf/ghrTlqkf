@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pedal/api/post_api_service.dart';
+import 'package:pedal/models/comment.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/api/user_api_service.dart';
 import 'package:pedal/providers/auth_provider.dart';
@@ -24,6 +26,9 @@ class _ActivityCardState extends State<ActivityCard> {
     _isLiked = false;
     _likeCount = widget.post.likeCount;
   }
+  
+  Future<void> _addThumbsUp(int postId) =>
+      UserApiService.addThumbsUp(widget.token, postId);
 
   void _toggleLike() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -69,9 +74,9 @@ class _ActivityCardState extends State<ActivityCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final formattedDate = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR')
-        .format(widget.post.createdAt.toLocal());
-
+    final formattedDate = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR').format(widget.post.createdAt.toLocal());
+    final token = widget.token;
+    final postId = widget.post.id;
     final hasImage = widget.post.images.isNotEmpty;
 
     return Card(
@@ -176,6 +181,7 @@ class _ActivityCardState extends State<ActivityCard> {
                         initialChildSize: 0.7,
                         maxChildSize: 0.9,
                         minChildSize: 0.4,
+                        //채팅 불러와지는 곳
                         builder: (context, scrollController) => Container(
                           decoration: const BoxDecoration(
                             color: Colors.white,
@@ -184,7 +190,7 @@ class _ActivityCardState extends State<ActivityCard> {
                               topRight: Radius.circular(16.0),
                             ),
                           ),
-                          child: const CommentModal(),
+                          child: CommentModal(token: token, postId: postId),
                         ),
                       ),
                     );

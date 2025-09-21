@@ -1,11 +1,16 @@
-import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/login_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
+import 'package:pedal/api/user_api_service.dart';
+import 'package:pedal/firebase_options.dart';
+import 'package:pedal/services/fcm_service.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -13,6 +18,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('ko_KR', null);
+
+  // firebase 설정
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseMessaging.onBackgroundMessage(FCMService().backgroundMessageHandler);
+
   await FlutterNaverMap().init(
       clientId: dotenv.env["CLIENT_ID"],
       onAuthFailed: (ex) {
@@ -105,6 +117,70 @@ const appColors = AppColors(
 
 class PedalApp extends StatelessWidget {
   const PedalApp({super.key});
+
+  @override
+  State<PedalApp> createState() => _PedalAppState();
+}
+
+enum AuthState { loggedOut, needsProfileSetup, loggedIn }
+
+class _PedalAppState extends State<PedalApp> {
+  AuthState _authState = AuthState.loggedOut;
+  String? _token;
+
+  Future<void> _handleLogin(String token) async {
+    setState(() {
+      _token = token;
+    });
+    debugPrint('Logged in with token: $_token');
+    bool? is_null = await UserApiService.checkUserProfile(token);
+    print(is_null);
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://172.30.1.14:8080/users/me'),
+        headers: {
+          'Authorization': 'Bearer $_token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        await FCMService().initialize();
+        // Send FCM token to the server
+        try {
+          final fcmToken = await FCMService().getToken();
+          if (fcmToken != null) {
+            await FCMService().updateUserFcmToken(_token, fcmToken);
+          }
+        } catch (e) {
+          print('Error sending FCM token: $e');
+        }
+
+
+        if(await UserApiService.checkUserProfile('$_token') == false) {
+          setState(() {
+            _authState = AuthState.loggedIn;
+          });
+        } else {
+          setState(() {
+            _authState = AuthState.needsProfileSetup;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking user profile: $e');
+      setState(() {
+        _authState = AuthState.loggedOut;
+        _token = null;
+      });
+    }
+  }
+
+  void _onProfileSetupComplete() {
+    setState(() {
+      _authState = AuthState.loggedIn;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
