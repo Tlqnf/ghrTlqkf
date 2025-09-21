@@ -86,51 +86,54 @@ class _ProfileHeaderState extends State<ProfileHeader> {
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
-          _isLoading
-              ? const CircleAvatar(
-                  radius: 30,
-                  child: CircularProgressIndicator(), // Loading indicator
-                )
-              : _user?.profilePic != null && _user!.profilePic!.isNotEmpty
+          Row(
+            children: [
+              _isLoading
+                  ? const CircleAvatar(
+                radius: 30,
+                child: CircularProgressIndicator(), // Loading indicator
+              )
+                  : _user?.profilePic != null && _user!.profilePic!.isNotEmpty
                   ? CircleAvatar(
-                      radius: 30,
-                      backgroundImage: NetworkImage(ApiConfig.baseUrl + _user!.profilePic!),
-                    )
+                radius: 30,
+                backgroundImage: NetworkImage(ApiConfig.baseUrl + _user!.profilePic!),
+              )
                   : const CircleAvatar(
-                      radius: 30,
-                      backgroundImage: AssetImage('assets/image/google.png'), // Fallback placeholder
-                    ),
-          const SizedBox(width: 16),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _isLoading
-                    ? const Text(
-                        'Loading...',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      )
-                    : Text(
-                        _user?.username ?? 'Guest',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                _isLoading
-                    ? const Text(
-                        'Loading...',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      )
-                    : Text(
-                        _user?.profileDescription ?? 'No description',
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                if (_error != null)
-                  Text(
-                    'Error: $_error',
-                    style: const TextStyle(fontSize: 12, color: Colors.red),
+                radius: 30,
+                backgroundImage: AssetImage('assets/image/google.png'), // Fallback placeholder
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _isLoading
+                      ? const Text(
+                    'Loading...',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  )
+                      : Text(
+                    _user?.username ?? 'Guest',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-              ],
-            ),
+                  _isLoading
+                      ? const Text(
+                    'Loading...',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  )
+                      : Text(
+                    _user?.profileDescription ?? 'No description',
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  if (_error != null)
+                    Text(
+                      'Error: $_error',
+                      style: const TextStyle(fontSize: 12, color: Colors.red),
+                    ),
+                ],
+              ),
+            ],
           ),
+          const Spacer(),
           OutlinedButton(
             onPressed: () {
               UserApiService.logoutUserProfile(widget.token);

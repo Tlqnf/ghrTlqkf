@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pedal/models/comment.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/api/user_api_service.dart';
 import 'package:pedal/providers/auth_provider.dart';

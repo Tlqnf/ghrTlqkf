@@ -339,8 +339,14 @@ class _PostFormScreenState extends State<PostFormScreen> {
                         color: Colors.black.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
+                      width: 50,
+                      height: 50,
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                        ),
+                        iconSize: 20.0,
                         onPressed: () {
                           Navigator.of(context).pop();
                         },

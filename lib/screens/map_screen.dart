@@ -28,8 +28,8 @@ class _MapScreenState extends State<MapScreen> {
   bool _isLoading = true;
   NaverMapController? _mapController;
   DateTime? _lastLocationUpdateTime;
-  final List<List<NLatLng>> _routeChunks = [[]];
-  final int _chunkSize = 5;
+  List<List<NLatLng>> _routeChunks = [[]];
+  final int _chunkSize = 25; // 경로 생성 조작
   bool _isFollowingUser = true;
   bool _isMapVisible = true;
   bool _isMapReady = false; // Variable to control map loading
@@ -56,7 +56,7 @@ class _MapScreenState extends State<MapScreen> {
     _initializeLocationStream();
 
     // Delay map loading to prevent transition animation conflicts
-    Future.delayed(const Duration(milliseconds: 600), () {
+    Future.delayed(const Duration(milliseconds: 400), () {
       if (mounted) {
         setState(() {
           _isMapReady = true;
@@ -143,22 +143,13 @@ class _MapScreenState extends State<MapScreen> {
   void _startLocationStream() {
     const locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 10,
+      distanceFilter: 1, // n미터 마다 기록 갱신
     );
 
     _positionStreamSubscription =
       Geolocator.getPositionStream(locationSettings: locationSettings).listen(
             (Position position) async {
           if (!mounted) return;
-
-          // Throttle updates to once per second
-          final now = DateTime.now();
-          if (_lastLocationUpdateTime != null &&
-              now.difference(_lastLocationUpdateTime!) <
-                  const Duration(milliseconds: 500)) {
-            return;
-          }
-          _lastLocationUpdateTime = now;
 
           final newPoint = NLatLng(position.latitude, position.longitude);
           final currentSpeedKmh = position.speed * 3.6;
@@ -231,13 +222,16 @@ class _MapScreenState extends State<MapScreen> {
     if (!mounted) return;
     setState(() {
       var lastChunk = _routeChunks.last;
+
+      // 마지막 청크 좌표도 다음 청크 좌표에 저장하기
       if (lastChunk.length >= _chunkSize) {
-        _routeChunks.add([]);
+        final NLatLng lastPoint = lastChunk.last;
+        _routeChunks.add([lastPoint]);
         lastChunk = _routeChunks.last;
       }
       lastChunk.add(point);
 
-      // 지도 위에 경로 오버레이 갱신
+      // 경로를 chunk에 저장하기
       if (_mapController != null) {
         final chunkIndex = _routeChunks.length - 1;
         _mapController!.addOverlay(
@@ -268,22 +262,15 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
-    _initializeSocket(token);
-
-    final bool connected = await _socketService!.connect();
+    // For offline testing
     setState(() {
-      _isSocketConnected = connected;
+      _isSocketConnected = false;
     });
-
-    if (!connected) {
-      debugPrint('Socket connection failed. Starting in offline mode.');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('서버에 연결할 수 없어 오프라인 모드로 주행을 기록합니다.')),
-        );
-      }
-    } else {
-      debugPrint('Socket connected for recording.');
+    debugPrint('Forcing offline mode for testing.');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('[테스트] 오프라인 모드로 주행을 기록합니다.')),
+      );
     }
 
     _mapController?.clearOverlays();
@@ -323,7 +310,6 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _stopRecordingAndNavigate(BuildContext context) async {
-
     if (!_isRecording) return;
     _socketService?.disconnect();
     debugPrint('Socket disconnected.');
@@ -337,39 +323,26 @@ class _MapScreenState extends State<MapScreen> {
     final elapsedTime = _elapsedTime;
     final avgSpeed = _avgSpeed.toStringAsFixed(1);
 
-    var reportData = ReportCreate(
-      routeId: 1,
-      distance: double.parse(distanceInKm),
-      averageSpeed: _avgSpeed,
-      healthTime: timeToInt(elapsedTime),
-    );
-
-    // report 생성
-    // final int reportId = await ReportApiService.createReport(
-    //   reportData, token!
-    // );
-
-    // --- Start: Snapshot Logic ---
+    // --- 스크린샷을 위한 위치 값 구하기 ---
     String? snapshotPath;
     final fullRoute = _routeChunks.expand((chunk) => chunk).toList();
 
     if (fullRoute.isNotEmpty && _mapController != null) {
       final bounds = NLatLngBounds.from(fullRoute);
-      await _mapController!.updateCamera(
-        NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(40)),
-      );
+      final cameraUpdate = NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(40));
+      cameraUpdate.setAnimation(animation: NCameraAnimation.none);
 
-      // Wait for the camera to move and the map to render before taking a snapshot.
+      await _mapController!.updateCamera(cameraUpdate);
     } else {
-      await _mapController!.updateCamera(
-        NCameraUpdate.withParams(target: _currentLocation),
-      );
+      final cameraUpdate = NCameraUpdate.withParams(target: _currentLocation);
+      cameraUpdate.setAnimation(animation: NCameraAnimation.none);
+
+      await _mapController!.updateCamera(cameraUpdate);
     }
-    await Future.delayed(const Duration(milliseconds: 100));
 
     final imageFile = await _mapController!.takeSnapshot();
     snapshotPath = imageFile.path;
-    // --- End: Snapshot Logic ---
+    // --- 스크린샷 로직 끝 ---
 
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => PostFormScreen(
@@ -384,6 +357,7 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       _isRecording = false;
       _isPaused = false;
+      _routeChunks = [[]];
 
       _stopwatch.reset();
       _distance = 0.0;
