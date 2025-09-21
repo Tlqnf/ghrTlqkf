@@ -128,6 +128,7 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
+    // 첫 화면 로딩 속도 증가 -> 마지막 기록 GPS
     Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
     if (lastKnownPosition != null && mounted) {
       setState(() {
@@ -137,13 +138,18 @@ class _MapScreenState extends State<MapScreen> {
       });
     }
 
+    // 백그라운드에서 최신 위치 정보 수집
+    Position? currentPosition = await Geolocator.getCurrentPosition();
+    setState(() {
+      _currentLocation = NLatLng(currentPosition.latitude, currentPosition.longitude);
+    });
+
     _startLocationStream();
   }
 
   void _startLocationStream() {
     const locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 1, // n미터 마다 기록 갱신
+      accuracy: LocationAccuracy.medium,
     );
 
     _positionStreamSubscription =
@@ -166,6 +172,7 @@ class _MapScreenState extends State<MapScreen> {
 
           if (_isRecording && !_isPaused) {
             final lastPoint = _currentLocation;
+            _currentLocation = newPoint;
             if (lastPoint != null) {
               _distance += Geolocator.distanceBetween(
                 lastPoint.latitude,
@@ -174,9 +181,13 @@ class _MapScreenState extends State<MapScreen> {
                 newPoint.longitude,
               );
             }
-            if (_stopwatch.elapsed.inSeconds > 0) {
-              _avgSpeed = (_distance / _stopwatch.elapsed.inSeconds) * 3.6;
+
+            final elapsedSec = _stopwatch.elapsed.inSeconds;
+            if (_distance > 0 && elapsedSec > 0) {
+              _avgSpeed = (_distance / elapsedSec) * 3.6;
             }
+
+            if (currentSpeedKmh > _maxSpeed) _maxSpeed = currentSpeedKmh;
 
             if (_isSocketConnected) {
               final locationData = {
@@ -193,12 +204,8 @@ class _MapScreenState extends State<MapScreen> {
           }
 
           setState(() {
-            _currentLocation = newPoint;
             _currentSpeed = currentSpeedKmh;
-            if (_isRecording && currentSpeedKmh > _maxSpeed) {
-              _maxSpeed = currentSpeedKmh;
-            }
-            if (_isLoading) _isLoading = false;
+            _isLoading = false;
           });
 
           // Update camera position if following user

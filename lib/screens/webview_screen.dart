@@ -12,8 +12,6 @@ class WebViewScreen extends StatefulWidget {
 }
 
 class _WebViewScreenState extends State<WebViewScreen> {
-  bool _isRedirecting = false;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,41 +20,29 @@ class _WebViewScreenState extends State<WebViewScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-      body: Opacity(
-        opacity: _isRedirecting ? 0.0 : 1.0, // redirecting 여부로 해당 화면을 보여줄지 말지 결정
-        child: InAppWebView(
-          initialUrlRequest: URLRequest(url: WebUri(widget.url)),
-          onLoadStart: (controller, url) {
-            if (url != null && url.toString().contains("callback")) {
-              setState(() {
-                _isRedirecting = true;
-              });
-            }
-          },
-          onLoadStop: (controller, url) async {
-            if (_isRedirecting && url != null) {
-              // Get the page body
-              final body = await controller.evaluateJavascript(source: "document.body.innerText");
-              if (body != null) {
-                try {
-                  // The body is expected to be a JSON string, so we parse it.
-                  final jsonResponse = jsonDecode(body);
-                  if (jsonResponse is Map && jsonResponse.containsKey('access_token')) {
-                    final token = jsonResponse['access_token'];
-
-                    if (mounted) Navigator.pop(context, token);
-                  }
-                } catch (e) {
-                  // Could not parse JSON, ignore. This happens on the initial login page.
-                  debugPrint('Error parsing JSON from webview: $e');
-
-                  if (mounted) Navigator.pop(context, null);
+      // 추가 수정 필요 -> 웹뷰 잔상
+      body: InAppWebView(
+        initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+        onLoadStop: (controller, url) async {
+          if (url != null) {
+            // Get the page body
+            final body = await controller.evaluateJavascript(source: "document.body.innerText");
+            if (body != null) {
+              try {
+                // The body is expected to be a JSON string, so we parse it.
+                final jsonResponse = jsonDecode(body);
+                if (jsonResponse is Map && jsonResponse.containsKey('access_token')) {
+                  final token = jsonResponse['access_token'];
+                  Navigator.pop(context, token);
                 }
+              } catch (e) {
+                // Could not parse JSON, ignore. This happens on the initial login page.
+                debugPrint('Error parsing JSON from webview: $e');
               }
             }
-          },
-        ),
-      )
+          }
+        },
+      ),
     );
   }
 }
