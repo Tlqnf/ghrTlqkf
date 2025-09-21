@@ -51,7 +51,7 @@ class NavigationListModal extends StatelessWidget {
                   child: RouteCard(
                     routeName: '갤러리아 백화점 경로',
                     distance: '17.28 km',
-                    time: '1시간 03분',
+                    time: '01:03:23',
                     date: '2025.09.01',
                     onTap: () {
                       debugPrint('My Route ${index + 1} tapped!');

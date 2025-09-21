@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:pedal/config/api_config.dart';
 import 'package:pedal/widgets/bar/logo_bar.dart';
 
 class ProfileSetupPage extends StatefulWidget {
@@ -47,7 +48,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
       _isLoading = true;
     });
 
-    final uri = Uri.parse('http://172.30.1.14:8080/users/me');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/users/me');
     final request = http.MultipartRequest('PATCH', uri);
 
     // Add headers

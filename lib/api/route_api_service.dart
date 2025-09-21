@@ -1,0 +1,77 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:pedal/config/api_config.dart';
+
+class RouteApiService {
+  static Future<void> updateRoute(
+      String routeName, List<String>? tagList, String token, int routeId) async {
+    final response = await http.patch(
+      Uri.parse("${ApiConfig.baseUrl}/routes/${routeId}"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "name": routeName,
+        "tags": tagList ?? [],
+      })
+    );
+
+    if (response.statusCode == 200) {
+      return ;
+    } else {
+      throw Exception('Failed to update route: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> getRouteById(String token, String routeId) async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}/routes/$routeId"),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else {
+      throw Exception('Failed to load route: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> getMyRoutes(String token) async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}/routes/me"),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else {
+      throw Exception('Failed to load my routes: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> getRoutesByFilter(List<String> tags, String token) async {
+    final uri = Uri.parse("${ApiConfig.baseUrl}/routes").replace(
+      queryParameters: {
+        'tags': tags,
+      },
+    );
+    final response = await http.get(
+      uri,
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else {
+      throw Exception('Failed to load routes by filter: ${response.statusCode}');
+    }
+  }
+}

@@ -1,34 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/card.dart';
+import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/widgets/card/record_card.dart';
 import 'package:pedal/screens/all_records_screen.dart';
 import 'package:pedal/api/user_api_service.dart';
 import 'package:pedal/models/user.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
-class MyPageScreen extends StatefulWidget {
-  final String token;
-  const MyPageScreen({super.key, required this.token});
+class MyPageScreen extends StatelessWidget {
+  const MyPageScreen({super.key});
 
-  @override
-  State<MyPageScreen> createState() => _MyPageScreenState();
-}
-
-class _MyPageScreenState extends State<MyPageScreen> {
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token!;
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ProfileHeader(token: widget.token), // Pass token to _ProfileHeader
+            ProfileHeader(token: token),
             const SizedBox(height: 16),
-            _SectionHeader(title: '내 기록', showMoreButton: true),
-            _RecordListHeader(token: widget.token),
+            SectionHeader(title: '내 기록', showMoreButton: true),
+            _RecordListHeader(token: token),
             const SizedBox(height: 16),
-            _SectionHeader(title: '북마크 경로', showMoreButton: true),
-            _RecordListBookHeader(token: widget.token),
+            SectionHeader(title: '북마크 경로', showMoreButton: true),
+            _RecordListBookHeader(token: token),
             const SizedBox(height: 80), // Space for bottom navigation
           ],
         ),
@@ -37,15 +37,15 @@ class _MyPageScreenState extends State<MyPageScreen> {
   }
 }
 
-class _ProfileHeader extends StatefulWidget {
+class ProfileHeader extends StatefulWidget {
   final String token;
-  const _ProfileHeader({required this.token});
+  const ProfileHeader({super.key, required this.token});
 
   @override
-  State<_ProfileHeader> createState() => _ProfileHeaderState();
+  State<ProfileHeader> createState() => _ProfileHeaderState();
 }
 
-class _ProfileHeaderState extends State<_ProfileHeader> {
+class _ProfileHeaderState extends State<ProfileHeader> {
   User? _user;
   bool _isLoading = true;
   String? _error;
@@ -53,6 +53,7 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
   @override
   void initState() {
     super.initState();
+    debugPrint(widget.token);
     _fetchUserData();
   }
 
@@ -63,10 +64,13 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
     });
     try {
       final user = await UserApiService.fetchUserProfile(widget.token);
+      debugPrint('Fetched user: $user');
       setState(() {
         _user = user;
       });
-    } catch (e) {
+    } catch (e, s) {
+      debugPrint('Error fetching user profile: $e');
+      debugPrint('Stack trace: $s');
       setState(() {
         _error = e.toString();
       });
@@ -91,11 +95,11 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
               : _user?.profilePic != null && _user!.profilePic.isNotEmpty
                   ? CircleAvatar(
                       radius: 30,
-                      backgroundImage: NetworkImage('http://172.30.1.14:8080' + _user!.profilePic),
+                      backgroundImage: NetworkImage(ApiConfig.baseUrl + _user!.profilePic),
                     )
                   : const CircleAvatar(
                       radius: 30,
-                      backgroundImage: AssetImage('assets/google.png'), // Fallback placeholder
+                      backgroundImage: AssetImage('assets/image/google.png'), // Fallback placeholder
                     ),
           const SizedBox(width: 16),
           Expanded(
@@ -140,13 +144,11 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
   }
 }
 
-
-
-class _SectionHeader extends StatelessWidget {
+class SectionHeader extends StatelessWidget {
   final String title;
   final bool showMoreButton;
 
-  const _SectionHeader({
+  const SectionHeader({
     required this.title,
     this.showMoreButton = false,
   });
@@ -177,7 +179,7 @@ class _SectionHeader extends StatelessWidget {
 
 class _RecordListHeader extends StatefulWidget {
   final String token;
-  const _RecordListHeader({super.key, required this.token});
+  const _RecordListHeader({required this.token});
 
   @override
   State<_RecordListHeader> createState() => _RecordListHeaderState();
@@ -197,12 +199,13 @@ class _RecordListHeaderState extends State<_RecordListHeader> {
   }
 
   String _formatImage(String image) {
-    final final_url = 'http://172.30.1.14:8080' + image;
+    final final_url = ApiConfig.baseUrl + image;
     return final_url;
   }
 
   @override
   Widget build(BuildContext context) {
+
     return FutureBuilder<List<CardSummary>>(
       future: UserApiService.getRecentCard(widget.token), // ← 서버 호출
       builder: (context, snap) {
@@ -257,7 +260,7 @@ class _RecordListHeaderState extends State<_RecordListHeader> {
 
 class _RecordListBookHeader extends StatefulWidget {
   final String token;
-  const _RecordListBookHeader({super.key, required this.token});
+  const _RecordListBookHeader({required this.token});
 
   @override
   State<_RecordListBookHeader> createState() => _RecordListBookHeaderState();
@@ -277,7 +280,7 @@ class _RecordListBookHeaderState extends State<_RecordListBookHeader> {
   }
 
   String _formatImage(String image) {
-    final final_url = 'http://172.30.1.14:8080' + image;
+    final final_url = ApiConfig.baseUrl + image;
     return final_url;
   }
 

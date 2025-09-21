@@ -38,10 +38,6 @@ class RouteCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(8),
-                  image: const DecorationImage(
-                    image: AssetImage('assets/image/map_placeholder.png'), // Placeholder image
-                    fit: BoxFit.cover,
-                  ),
                 ),
                 child: const Icon(Icons.map, color: Colors.grey, size: 40),
               ),

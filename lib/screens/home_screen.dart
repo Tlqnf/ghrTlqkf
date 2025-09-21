@@ -2,36 +2,44 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedal/api/user_api_service.dart';
+import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/analyze.dart';
 import 'package:pedal/models/post.dart';
+import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/widgets/card/activity_card.dart';
 import 'package:pedal/widgets/card/activity_summary_card.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
-  final String token;
-  const HomePage({super.key, required this.token});
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  late Future<List<Post>> _postsFuture;
+  Future<List<Post>>? _postsFuture;
   Analyze? _analyze;
 
   @override
-  void initState() {
-    super.initState();
-    _postsFuture = _fetchPosts();
-    _fetchAnalyze();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_postsFuture == null) {
+      final token = Provider.of<AuthProvider>(context, listen: false).token;
+      if (token != null) {
+        _postsFuture = _fetchPosts(token);
+        _fetchAnalyze(token);
+      } else {
+        _postsFuture = Future.error('Not authenticated');
+      }
+    }
   }
 
-  //TODO 추후 서비스로 분리하기.
-  Future<List<Post>> _fetchPosts() async {
+  Future<List<Post>> _fetchPosts(String token) async {
     final response = await http.get(
-      Uri.parse('http://172.30.1.14:8080/post'),
+      Uri.parse('${ApiConfig.baseUrl}/post'),
       headers: {
-        'Authorization': 'Bearer ${widget.token}',
+        'Authorization': 'Bearer $token',
       },
     );
 
@@ -43,14 +51,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _fetchAnalyze() async {
-    final analyze = await UserApiService.analyzeUser(widget.token);
-    setState(() {
-      _analyze = analyze;
-    });
+  Future<void> _fetchAnalyze(String token) async {
+    final analyze = await UserApiService.analyzeUser(token);
+    if (mounted) {
+      setState(() {
+        _analyze = analyze;
+      });
+    }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +191,7 @@ class _HomePageState extends State<HomePage> {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      return ActivityCard(post: posts[index],token: widget.token,);
+                      return ActivityCard(post: posts[index]);
                     },
                     childCount: posts.length,
                   ),

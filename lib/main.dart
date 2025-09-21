@@ -1,18 +1,17 @@
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:pedal/api/user_api_service.dart';
-import 'package:pedal/firebase_options.dart';
+import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/login_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
-import 'dart:convert';
-
+import 'package:pedal/api/user_api_service.dart';
+import 'package:pedal/firebase_options.dart';
 import 'package:pedal/services/fcm_service.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -27,21 +26,25 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(FCMService().backgroundMessageHandler);
 
   await FlutterNaverMap().init(
-    clientId: dotenv.env["CLIENT_ID"],
-    onAuthFailed: (ex) {
-      switch (ex) {
-        case NQuotaExceededException(:final message):
-          debugPrint("사용량 초과 (message: $message)");
-          break;
-        case NUnauthorizedClientException() ||
-        NClientUnspecifiedException() ||
-        NAnotherAuthFailedException():
-          debugPrint("인증 실패: $ex");
-          break;
-      }
-    }
+      clientId: dotenv.env["CLIENT_ID"],
+      onAuthFailed: (ex) {
+        switch (ex) {
+          case NQuotaExceededException(:final message):
+            debugPrint("사용량 초과 (message: $message)");
+            break;
+          case NUnauthorizedClientException() ||
+              NClientUnspecifiedException() ||
+              NAnotherAuthFailedException():
+            debugPrint("인증 실패: $ex");
+            break;
+        }
+      });
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthProvider(),
+      child: const PedalApp(),
+    ),
   );
-  runApp(const PedalApp());
 }
 
 // 1. ThemeExtension을 사용하여 커스텀 색상 클래스 정의
@@ -112,7 +115,7 @@ const appColors = AppColors(
   highlight: Color(0xFFFF6B00),
 );
 
-class PedalApp extends StatefulWidget {
+class PedalApp extends StatelessWidget {
   const PedalApp({super.key});
 
   @override
@@ -204,18 +207,39 @@ class _PedalAppState extends State<PedalApp> {
           cursorColor: colorScheme.onSurface,
         ),
       ),
-      home: _buildHome(),
-    );
-  }
+      home: FutureBuilder(
+        future: Provider.of<AuthProvider>(context, listen: false).tryAutoLogin(),
+        builder: (ctx, snapshot) {
+          // While waiting for auto-login to complete, show a loading screen
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
 
-  Widget _buildHome() {
-    switch (_authState) {
-      case AuthState.loggedIn:
-        return MainNavigationScreen(token: _token!);
-      case AuthState.needsProfileSetup:
-        return ProfileSetupPage(token: _token!, onSetupComplete: _onProfileSetupComplete);
-      case AuthState.loggedOut:
-        return LoginPage(onLogin: _handleLogin);
-    }
+          return Consumer<AuthProvider>(
+            builder: (context, auth, _) {
+              switch (auth.authState) {
+                case AuthState.loggedIn:
+                  return MainNavigationScreen();
+                case AuthState.needsProfileSetup:
+                  return ProfileSetupPage(
+                    token: auth.token!,
+                    onSetupComplete: () {
+                      auth.completeProfileSetup();
+                    },
+                  );
+                case AuthState.loggedOut:
+                  return LoginPage(
+                    onLogin: (token) {
+                      Provider.of<AuthProvider>(context, listen: false).login(token);
+                    },
+                  );
+                case AuthState.loading:
+                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+              }
+            },
+          );
+        },
+      ),
+    );
   }
 }

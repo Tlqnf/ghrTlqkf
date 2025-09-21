@@ -4,12 +4,13 @@ import 'package:pedal/api/post_api_service.dart';
 import 'package:pedal/models/comment.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/api/user_api_service.dart';
+import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/widgets/modal/comment_modal.dart';
+import 'package:provider/provider.dart';
 
 class ActivityCard extends StatefulWidget {
   final Post post;
-  final String token;
-  const ActivityCard({super.key, required this.post, required this.token});
+  const ActivityCard({super.key, required this.post});
 
   @override
   State<ActivityCard> createState() => _ActivityCardState();
@@ -22,19 +23,26 @@ class _ActivityCardState extends State<ActivityCard> {
   @override
   void initState() {
     super.initState();
-    _isLiked = false; 
+    _isLiked = false;
     _likeCount = widget.post.likeCount;
   }
-
-
+  
   Future<void> _addThumbsUp(int postId) =>
       UserApiService.addThumbsUp(widget.token, postId);
 
-  Future<void> _removeThumbsUp(int postId) =>
-      UserApiService.removeThumbsUp(widget.token, postId);
-
-
   void _toggleLike() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+
+    if (token == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('로그인이 필요합니다.')),
+        );
+      }
+      return;
+    }
+
     final prevLiked = _isLiked;
     final prevCount = _likeCount;
 
@@ -45,9 +53,9 @@ class _ActivityCardState extends State<ActivityCard> {
 
     try {
       if (_isLiked) {
-        await _addThumbsUp(widget.post.id);
+        await UserApiService.addThumbsUp(token, widget.post.id);
       } else {
-        await _removeThumbsUp(widget.post.id);
+        await UserApiService.removeThumbsUp(token, widget.post.id);
       }
     } catch (e) {
       // 실패 시 롤백

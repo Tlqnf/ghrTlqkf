@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/analyze.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../models/card.dart';
 
 class UserApiService {
-  static const String _baseUrl = 'http://172.30.1.14:8080';
 
   static Future<User> fetchUserProfile(String token) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/users/me'),
+      Uri.parse('${ApiConfig.baseUrl}/users/me'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ class UserApiService {
 
   static Future<bool?> checkUserProfile(String token) async{
     final response = await http.get(
-      Uri.parse('$_baseUrl/users/me/profile-description-status'),
+      Uri.parse('${ApiConfig.baseUrl}/users/me/profile-description-status'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ class UserApiService {
 
   static void logoutUserProfile(String token) async {
     final response = await http.post(
-      Uri.parse('$_baseUrl/users/me/logout'),
+      Uri.parse('${ApiConfig.baseUrl}/users/me/logout'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ class UserApiService {
 
   static Future<Analyze> analyzeUser(String token) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/report/weekly_summary'),
+      Uri.parse('${ApiConfig.baseUrl}/report/weekly_summary'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ class UserApiService {
 
   static Future<List<CardSummary>> getRecentCard(String token) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/post/me/posts/recent'),
+      Uri.parse('${ApiConfig.baseUrl}/post/me/posts/recent'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ class UserApiService {
 
   static Future<List<CardSummary>> getRecentBookmarkCard(String token) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/post/me/bookmarked/recent'),
+      Uri.parse('${ApiConfig.baseUrl}/post/me/bookmarked/recent'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ class UserApiService {
 
   static Future<List<Post>> getRecentTenCard(String token, int page) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/post/me/posts?page=${page}&page_size=10'),
+      Uri.parse('${ApiConfig.baseUrl}/post/me/posts?page=${page}&page_size=10'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ class UserApiService {
 
   static Future<void> addThumbsUp(String token, int postId) async {
     final res = await http.post(
-      Uri.parse('$_baseUrl/post/$postId/like'),
+      Uri.parse('${ApiConfig.baseUrl}/post/$postId/like'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (res.statusCode != 200) {
@@ -166,7 +166,7 @@ class UserApiService {
 
   static Future<void> removeThumbsUp(String token, int postId) async {
     final res = await http.post(
-      Uri.parse('$_baseUrl/post/$postId/unlike'),
+      Uri.parse('${ApiConfig.baseUrl}/post/$postId/unlike'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (res.statusCode != 200) {

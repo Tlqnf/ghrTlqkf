@@ -41,7 +41,7 @@ class LoginPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             SocialLoginButton(
-              source: "assets/kakao.png",
+              source: "assets/image/kakao.png",
               text: 'Kakao 계정으로 로그인',
               type: 'kakao',
               onLogin: onLogin,

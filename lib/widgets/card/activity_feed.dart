@@ -89,7 +89,7 @@ class _ActivityFeedState extends State<ActivityFeed> {
         itemBuilder: (context, index) {
           if (index < _posts.length) {
             final p = _posts[index];
-            return ActivityCard(post: p, token: widget.token);
+            return ActivityCard(post: p);
           } else {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
