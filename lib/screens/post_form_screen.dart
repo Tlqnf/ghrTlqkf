@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
 
@@ -6,6 +8,7 @@ class PostFormScreen extends StatefulWidget {
   final String? initialDistance;
   final String? initialTime;
   final String? initialAvgSpeed;
+  final String? mapImagePath;
 
   const PostFormScreen({
     super.key,
@@ -13,6 +16,7 @@ class PostFormScreen extends StatefulWidget {
     this.initialDistance,
     this.initialTime,
     this.initialAvgSpeed,
+    this.mapImagePath,
   });
 
   @override
@@ -72,17 +76,24 @@ class _PostFormScreenState extends State<PostFormScreen> {
               // Stack for Map and Floating Button
               Stack(
                 children: [
-                  Container(
-                    height: 300,
-                    color: Colors.grey[300],
-                    child: const Center(child: Text('Map Placeholder')),
-                  ),
+                  widget.mapImagePath != null
+                      ? Image.file(
+                          File(widget.mapImagePath!),
+                          height: 300,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          height: 300,
+                          color: Colors.grey[300],
+                          child: const Center(child: Text('Map Placeholder')),
+                        ),
                   Positioned(
                     top: 40, // Adjust position as needed, considering status bar
                     left: 16,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(

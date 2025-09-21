@@ -11,14 +11,16 @@ class SocketService {
   SocketService({required this.url});
 
   Stream<dynamic> get stream => _streamController.stream;
+  bool get isConnected => _isConnected;
 
-  void connect() {
+  Future<bool> connect() async {
     if (_isConnected) {
       debugPrint("Socket is already connected.");
-      return;
+      return true;
     }
     try {
       _channel = WebSocketChannel.connect(Uri.parse(url));
+      await _channel!.ready;
       _isConnected = true;
       debugPrint("Socket connected to $url");
 
@@ -31,14 +33,18 @@ class SocketService {
           debugPrint("Socket disconnected.");
         },
         onError: (error) {
-          _isConnected = false;
-          debugPrint("Socket error: $error");
-          _streamController.addError(error);
+          if (_isConnected) {
+            _isConnected = false;
+            debugPrint("Socket error: $error");
+            _streamController.addError(error);
+          }
         },
       );
+      return true;
     } catch (e) {
       debugPrint("Error connecting to socket: $e");
       _isConnected = false;
+      return false;
     }
   }
 

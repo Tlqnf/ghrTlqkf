@@ -6,6 +6,7 @@ class RecordCard extends StatelessWidget {
   final String time;
   final String date;
   final VoidCallback? onTap;
+  final String image_url;
 
   const RecordCard({
     super.key,
@@ -13,6 +14,7 @@ class RecordCard extends StatelessWidget {
     required this.distance,
     required this.time,
     required this.date,
+    required this.image_url,
     this.onTap,
   });
 

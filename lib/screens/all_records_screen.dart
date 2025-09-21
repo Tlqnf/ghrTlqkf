@@ -48,6 +48,7 @@ class AllRecordsScreen extends StatelessWidget {
                   distance: '17.28 km',
                   time: '1시간 03분',
                   date: '2025.09.01',
+                  image_url: '',
                   onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => PostFormScreen(
                       initialRouteName: '갤러리아 백화점 경로',

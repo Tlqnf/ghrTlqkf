@@ -3,6 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:pedal/api/user_api_service.dart';
 import 'package:pedal/firebase_options.dart';
 import 'package:pedal/screens/login_screen.dart';
@@ -13,7 +15,9 @@ import 'dart:convert';
 import 'package:pedal/services/fcm_service.dart';
 
 void main() async {
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
+
   await initializeDateFormatting('ko_KR', null);
 
   // firebase 설정
@@ -22,6 +26,21 @@ void main() async {
   );
   FirebaseMessaging.onBackgroundMessage(FCMService().backgroundMessageHandler);
 
+  await FlutterNaverMap().init(
+    clientId: dotenv.env["CLIENT_ID"],
+    onAuthFailed: (ex) {
+      switch (ex) {
+        case NQuotaExceededException(:final message):
+          debugPrint("사용량 초과 (message: $message)");
+          break;
+        case NUnauthorizedClientException() ||
+        NClientUnspecifiedException() ||
+        NAnotherAuthFailedException():
+          debugPrint("인증 실패: $ex");
+          break;
+      }
+    }
+  );
   runApp(const PedalApp());
 }
 
@@ -110,7 +129,9 @@ class _PedalAppState extends State<PedalApp> {
     setState(() {
       _token = token;
     });
-    print('Logged in with token: $_token');
+    debugPrint('Logged in with token: $_token');
+    bool? is_null = await UserApiService.checkUserProfile(token);
+    print(is_null);
 
     try {
       final response = await http.get(
@@ -132,11 +153,11 @@ class _PedalAppState extends State<PedalApp> {
           print('Error sending FCM token: $e');
         }
 
-        if (await UserApiService.checkUserProfile('$_token') == false) {
+
+        if(await UserApiService.checkUserProfile('$_token') == false) {
           setState(() {
             _authState = AuthState.loggedIn;
-          }
-        );
+          });
         } else {
           setState(() {
             _authState = AuthState.needsProfileSetup;
@@ -144,7 +165,7 @@ class _PedalAppState extends State<PedalApp> {
         }
       }
     } catch (e) {
-      print('Error checking user profile: $e');
+      debugPrint('Error checking user profile: $e');
       setState(() {
         _authState = AuthState.loggedOut;
         _token = null;
@@ -176,7 +197,7 @@ class _PedalAppState extends State<PedalApp> {
             borderSide: BorderSide(color: colorScheme.onSurface),
           ),
           enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.5)),
+            borderSide: BorderSide(color: colorScheme.outline.withValues(alpha: 0.5)),
           ),
         ),
         textSelectionTheme: TextSelectionThemeData(
