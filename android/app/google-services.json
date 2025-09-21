@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "955347166552",
+    "project_id": "pedal-1e999",
+    "storage_bucket": "pedal-1e999.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:955347166552:android:827bf4bbb6be1dbc57f12d",
+        "android_client_info": {
+          "package_name": "com.example.pedal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkVyyjZCTacKAEmpob5C6lpxbHJLKn85Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:955347166552:android:5ced99eb663cd00657f12d",
+        "android_client_info": {
+          "package_name": "com.pedal.nucl"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkVyyjZCTacKAEmpob5C6lpxbHJLKn85Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

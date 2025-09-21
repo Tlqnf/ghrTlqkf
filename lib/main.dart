@@ -1,18 +1,31 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:pedal/api/user_api_service.dart';
+import 'package:pedal/firebase_options.dart';
 import 'package:pedal/screens/login_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
+import 'dart:convert';
+
+import 'package:pedal/services/fcm_service.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('ko_KR', null);
+
+  // firebase 설정
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseMessaging.onBackgroundMessage(FCMService().backgroundMessageHandler);
+
   await FlutterNaverMap().init(
     clientId: dotenv.env["CLIENT_ID"],
     onAuthFailed: (ex) {
@@ -129,6 +142,18 @@ class _PedalAppState extends State<PedalApp> {
       );
 
       if (response.statusCode == 200) {
+        await FCMService().initialize();
+        // Send FCM token to the server
+        try {
+          final fcmToken = await FCMService().getToken();
+          if (fcmToken != null) {
+            await FCMService().updateUserFcmToken(_token, fcmToken);
+          }
+        } catch (e) {
+          print('Error sending FCM token: $e');
+        }
+
+
         if(await UserApiService.checkUserProfile('$_token') == false) {
           setState(() {
             _authState = AuthState.loggedIn;
