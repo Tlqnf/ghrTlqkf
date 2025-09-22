@@ -1,4 +1,6 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiConfig {
-  static const String baseUrl = 'http://172.30.1.96:8080';
-  static const String socketUrl = 'ws://172.30.1.96:8080';
+  static final String baseUrl = dotenv.get('SERVER_ADDRESS');
+  static final String socketUrl = baseUrl.replaceFirst('http', 'ws');
 }

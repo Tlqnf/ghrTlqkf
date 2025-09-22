@@ -8,9 +8,9 @@ class NavigationListModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(16),
         ),
       ),
@@ -26,7 +26,7 @@ class NavigationListModal extends StatelessWidget {
                 height: 4,
                 width: 40,
                 decoration: BoxDecoration(
-                  color: Colors.grey[400],
+                  color: Theme.of(context).colorScheme.outline,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -66,9 +66,9 @@ class NavigationListModal extends StatelessWidget {
                 onPressed: () {
                   debugPrint('2개 경로 더보기 tapped!');
                 },
-                child: const Text(
+                child: Text(
                   '2개 경로 더보기',
-                  style: TextStyle(color: Colors.blue, fontSize: 16),
+                  style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 16),
                 ),
               ),
             ),

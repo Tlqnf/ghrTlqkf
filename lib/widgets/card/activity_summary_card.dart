@@ -14,50 +14,50 @@ class ActivitySummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface, // 테마의 surface 색상 사용 (Sub Bg)
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Theme.of(context).colorScheme.outline, width: 0.5), // 테두리 색상
       ),
-      child: Column(
+      color: Theme.of(context).colorScheme.surface, // 카드 배경색
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
-              ),
-            ),
-            const SizedBox(height: 8),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
               children: [
-                Flexible(
-                  child: Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                    overflow: TextOverflow.ellipsis, // Prevent long text from breaking layout
-                  ),
-                ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 8),
                 Text(
-                  unit,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant, // 제목 색상
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface, // 값 색상
+              ),
+            ),
+            Text(
+              unit,
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant, // 단위 색상
+              ),
+            ),
           ],
         ),
+      ),
     );
   }
 }

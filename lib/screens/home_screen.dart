@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:pedal/api/user_api_service.dart';
-import 'package:pedal/config/api_config.dart';
+import 'package:pedal/api/post_api.dart';
+import 'package:pedal/api/user_api.dart';
 import 'package:pedal/models/analyze.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
@@ -27,27 +25,11 @@ class _HomePageState extends State<HomePage> {
     if (_postsFuture == null) {
       final token = Provider.of<AuthProvider>(context, listen: false).token;
       if (token != null) {
-        _postsFuture = _fetchPosts(token);
+        _postsFuture = PostApiService.getPosts(token);
         _fetchAnalyze(token);
       } else {
         _postsFuture = Future.error('Not authenticated');
       }
-    }
-  }
-
-  Future<List<Post>> _fetchPosts(String token) async {
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/post'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-      return data.map((json) => Post.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load posts');
     }
   }
 
@@ -92,7 +74,7 @@ class _HomePageState extends State<HomePage> {
                             width: MediaQuery.of(context).size.width / 3,
                             child: ActivitySummaryCard(
                               label: '활동 횟수',
-                              value: '${_analyze?.routes_taken_count}',
+                              value: '${_analyze?.routesTakenCount}',
                               unit: '회',
                             ),
                           ),
@@ -124,7 +106,7 @@ class _HomePageState extends State<HomePage> {
                                         .min, // Prevent row from expanding unnecessarily
                                     children: [
                                       Text(
-                                          '${_analyze?.total_activity_time_hours}',
+                                          '${_analyze?.totalActivityTimeHours}',
                                           style: TextStyle(
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold,
@@ -132,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                                       SizedBox(width: 4),
                                       Text('시간', style: TextStyle(fontSize: 16)),
                                       SizedBox(width: 8),
-                                      Text('${_analyze?.total_activity_time_remaining_minutes}',
+                                      Text('${_analyze?.totalActivityTimeRemainingMinutes}',
                                           style: TextStyle(
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold,
@@ -150,7 +132,7 @@ class _HomePageState extends State<HomePage> {
                             width: MediaQuery.of(context).size.width / 3,
                             child: ActivitySummaryCard(
                               label: '활동',
-                              value: '${_analyze?.total_activity_distance_km}',
+                              value: '${_analyze?.totalActivityDistanceKm}',
                               unit: 'km',
                             ),
                           ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/analyze.dart';
@@ -8,6 +9,7 @@ import 'package:pedal/models/user.dart';
 import 'package:pedal/models/card.dart';
 
 class UserApiService {
+  // get - users/me
   static Future<User> fetchUserProfile(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/users/me'),
@@ -24,6 +26,11 @@ class UserApiService {
     }
   }
 
+  // patch - users/me
+
+  // get - users/mention/check
+
+  // get - users/me/profile-description-status
   static Future<bool?> checkUserProfile(String token) async{
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/users/me/profile-description-status'),
@@ -42,6 +49,7 @@ class UserApiService {
     }
   }
 
+  // post - users/me/logout
   static void logoutUserProfile(String token) async {
     final response = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/users/me/logout'),
@@ -58,6 +66,7 @@ class UserApiService {
     }
   }
 
+  // get - report/weekly_summary
   static Future<Analyze> analyzeUser(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/report/weekly_summary'),
@@ -76,7 +85,8 @@ class UserApiService {
 
   }
 
-  static Future<List<CardSummary>> getRecentCard(String token) async {
+  // get - post/me/posts/recent
+  static Future<List<CardSummary>> getRecentPosts(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post/me/posts/recent'),
       headers: {
@@ -101,7 +111,35 @@ class UserApiService {
     }
   }
 
-  static Future<List<CardSummary>> getRecentBookmarkCard(String token) async {
+  // get - post/me/posts?page={}
+  static Future<List<Post>> getPosts(String token, int page) async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/post/me/posts?page=$page&page_size=10'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+
+      // 응답이 List<Map<String, dynamic>> 형태라고 가정
+      if (decoded is List) {
+        return decoded
+            .map((e) => Post.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Unexpected response format (not a List)');
+      }
+    } else {
+      throw Exception('Failed to load user profile: ${response.statusCode}');
+    }
+  }
+
+  // get - post/me/bookmarked/recent
+  static Future<List<CardSummary>> getRecentBookmarks(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post/me/bookmarked/recent'),
       headers: {
@@ -126,14 +164,14 @@ class UserApiService {
     }
   }
 
-  static Future<List<Post>> getRecentTenCard(String token, int page) async {
+  // get - post/me/bookmarked?page={}
+  static Future<List<CardSummary>> getBookmarks(String token, int page) async {
     final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/post/me/posts?page=${page}&page_size=10'),
+      Uri.parse('${ApiConfig.baseUrl}/post/me/bookmarked?page=$page&page_size=10'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-
     );
 
     if (response.statusCode == 200) {
@@ -142,7 +180,7 @@ class UserApiService {
       // 응답이 List<Map<String, dynamic>> 형태라고 가정
       if (decoded is List) {
         return decoded
-            .map((e) => Post.fromJson(e as Map<String, dynamic>))
+            .map((e) => CardSummary.fromJson(e as Map<String, dynamic>))
             .toList();
       } else {
         throw Exception('Unexpected response format (not a List)');
@@ -151,26 +189,4 @@ class UserApiService {
       throw Exception('Failed to load user profile: ${response.statusCode}');
     }
   }
-
-  static Future<void> addThumbsUp(String token, int postId) async {
-    final res = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/post/$postId/like'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    if (res.statusCode != 200) {
-      throw Exception('like failed: ${res.statusCode}');
-    }
-  }
-
-  static Future<void> removeThumbsUp(String token, int postId) async {
-    final res = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/post/$postId/unlike'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    if (res.statusCode != 200) {
-      throw Exception('unlike failed: ${res.statusCode}');
-    }
-  }
-
 }
-

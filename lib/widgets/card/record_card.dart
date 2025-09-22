@@ -6,7 +6,7 @@ class RecordCard extends StatelessWidget {
   final String time;
   final String date;
   final VoidCallback? onTap;
-  final String image_url;
+  final String imageUrl;
 
   const RecordCard({
     super.key,
@@ -14,7 +14,7 @@ class RecordCard extends StatelessWidget {
     required this.distance,
     required this.time,
     required this.date,
-    required this.image_url,
+    required this.imageUrl,
     this.onTap,
   });
 
@@ -31,9 +31,9 @@ class RecordCard extends StatelessWidget {
             Container(
               width: 80,
               height: 80,
-              color: Colors.grey[300], // Placeholder for map image
-              child: const Center(
-                child: Icon(Icons.map, color: Colors.grey),
+              color: Theme.of(context).colorScheme.surface, // Placeholder for map image
+              child: Center(
+                child: Icon(Icons.map, color: Theme.of(context).colorScheme.outline),
               ),
             ),
             const SizedBox(width: 16),
@@ -50,19 +50,19 @@ class RecordCard extends StatelessWidget {
                     children: [
                       Text(
                         distance,
-                        style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         time,
-                        style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     date,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

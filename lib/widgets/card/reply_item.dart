@@ -10,9 +10,9 @@ class ReplyItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 16, // Slightly smaller avatar for replies
-            backgroundColor: Colors.grey,
+            backgroundColor: Theme.of(context).colorScheme.outline,
           ),
           const SizedBox(width: 12),
           Expanded(

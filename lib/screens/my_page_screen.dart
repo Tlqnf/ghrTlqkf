@@ -4,7 +4,7 @@ import 'package:pedal/models/card.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/widgets/card/record_card.dart';
 import 'package:pedal/screens/all_records_screen.dart';
-import 'package:pedal/api/user_api_service.dart';
+import 'package:pedal/api/user_api.dart';
 import 'package:pedal/models/user.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -191,8 +191,8 @@ class _RecordListHeaderState extends State<_RecordListHeader> {
   String _formatDistance(double km) => '${km.toStringAsFixed(2)} km';
 
   String _formatTime(int h, int m) {
-    if (h > 0) return '${h}시간 ${m.toString().padLeft(2, '0')}분';
-    return '${m}분';
+    if (h > 0) return '$h시간 ${m.toString().padLeft(2, '0')}분';
+    return '$m분';
   }
 
   String _formatDate(String raw) {
@@ -201,15 +201,15 @@ class _RecordListHeaderState extends State<_RecordListHeader> {
   }
 
   String _formatImage(String image) {
-    final final_url = ApiConfig.baseUrl + image;
-    return final_url;
+    final finalUrl = ApiConfig.baseUrl + image;
+    return finalUrl;
   }
 
   @override
   Widget build(BuildContext context) {
 
     return FutureBuilder<List<CardSummary>>(
-      future: UserApiService.getRecentCard(widget.token), // ← 서버 호출
+      future: UserApiService.getRecentPosts(widget.token), // ← 서버 호출
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return const Padding(
@@ -240,9 +240,9 @@ class _RecordListHeaderState extends State<_RecordListHeader> {
             final c = items[index];
 
             final distance = _formatDistance(c.distance);
-            final time = _formatTime(c.time_hour, c.time_minute);
-            final date     = _formatDate(c.created_at);
-            final image_url = _formatImage(c.map_image_url);
+            final time = _formatTime(c.timeHour, c.timeMinute);
+            final date     = _formatDate(c.createdAt);
+            final imageUrl = _formatImage(c.mapImageUrl);
 
             // ⚠️ const 제거! (실데이터 바인딩)
             return RecordCard(
@@ -250,7 +250,7 @@ class _RecordListHeaderState extends State<_RecordListHeader> {
               distance: distance,
               time: time,
               date: date,
-              image_url: image_url,    // 위젯이 image_url(String) 받는다면 그대로
+              imageUrl: imageUrl,    // 위젯이 image_url(String) 받는다면 그대로
               // imageUrl로 받는 위젯이면 키 이름만 바꿔주면 됩니다.
             );
           },
@@ -272,8 +272,8 @@ class _RecordListBookHeaderState extends State<_RecordListBookHeader> {
   String _formatDistance(double km) => '${km.toStringAsFixed(2)} km';
 
   String _formatTime(int h, int m) {
-    if (h > 0) return '${h}시간 ${m.toString().padLeft(2, '0')}분';
-    return '${m}분';
+    if (h > 0) return '$h시간 ${m.toString().padLeft(2, '0')}분';
+    return '$m분';
   }
 
   String _formatDate(String raw) {
@@ -282,14 +282,14 @@ class _RecordListBookHeaderState extends State<_RecordListBookHeader> {
   }
 
   String _formatImage(String image) {
-    final final_url = ApiConfig.baseUrl + image;
-    return final_url;
+    final finalUrl = ApiConfig.baseUrl + image;
+    return finalUrl;
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<CardSummary>>(
-      future: UserApiService.getRecentBookmarkCard(widget.token), // ← 서버 호출
+      future: UserApiService.getRecentBookmarks(widget.token), // ← 서버 호출
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return const Padding(
@@ -320,9 +320,9 @@ class _RecordListBookHeaderState extends State<_RecordListBookHeader> {
             final c = items[index];
 
             final distance = _formatDistance(c.distance);
-            final time = _formatTime(c.time_hour, c.time_minute);
-            final date     = _formatDate(c.created_at);
-            final image_url = _formatImage(c.map_image_url);
+            final time = _formatTime(c.timeHour, c.timeMinute);
+            final date     = _formatDate(c.createdAt);
+            final imageUrl = _formatImage(c.mapImageUrl);
 
             // ⚠️ const 제거! (실데이터 바인딩)
             return RecordCard(
@@ -330,7 +330,7 @@ class _RecordListBookHeaderState extends State<_RecordListBookHeader> {
               distance: distance,
               time: time,
               date: date,
-              image_url: image_url,    // 위젯이 image_url(String) 받는다면 그대로
+              imageUrl: imageUrl,    // 위젯이 image_url(String) 받는다면 그대로
               // imageUrl로 받는 위젯이면 키 이름만 바꿔주면 됩니다.
             );
           },

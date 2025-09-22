@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:pedal/api/post_api_service.dart';
+import 'package:pedal/api/post_api.dart';
 import 'package:pedal/models/comment.dart';
 import 'package:pedal/widgets/card/reply_item.dart';
 
@@ -15,7 +15,6 @@ class CommentModal extends StatefulWidget {
 
 class _CommentModalState extends State<CommentModal> {
   final TextEditingController _commentController = TextEditingController();
-  final CommentApiService _commentApiService = CommentApiService(); // Instantiate service
 
   // State for comments list
   List<Comment> _comments = [];
@@ -58,7 +57,7 @@ class _CommentModalState extends State<CommentModal> {
 
     } catch (e) {
       _errorMessage = '댓글을 불러오는데 실패했습니다: $e';
-      print(_errorMessage);
+      debugPrint(_errorMessage);
     } finally {
       setState(() {
         _isLoading = false;
@@ -83,7 +82,7 @@ class _CommentModalState extends State<CommentModal> {
     }
 
     try {
-      await _commentApiService.createComment(
+      await CommentApiService.createComment(
         widget.token,
         Comment(
           content: commentContent,
@@ -101,7 +100,6 @@ class _CommentModalState extends State<CommentModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('댓글 등록 실패: $e')),
       );
-      print('댓글 등록 실패: $e');
     }
   }
 
@@ -121,7 +119,7 @@ class _CommentModalState extends State<CommentModal> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Theme.of(context).colorScheme.outline,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -142,14 +140,14 @@ class _CommentModalState extends State<CommentModal> {
                                 },
                               ),
               ),
-              const Divider(color: Colors.grey, thickness: 0.5),
+              const Divider(thickness: 0.5),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 18,
-                      backgroundColor: Colors.grey,
+                      backgroundColor: Theme.of(context).colorScheme.outline,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -198,9 +196,9 @@ class _CommentItemState extends State<CommentItem> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 20,
-                backgroundColor: Colors.grey,
+                backgroundColor: Theme.of(context).colorScheme.outline,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -240,7 +238,7 @@ class _CommentItemState extends State<CommentItem> {
                       },
                       child: Text(
                         _showReplies ? '댓글 숨기기' : '댓글 3개 더보기', // 실제 답글 수로 변경
-                        style: const TextStyle(color: Colors.blue),
+                        style: TextStyle(color: Theme.of(context).colorScheme.secondary),
                       ),
                     )
                   ],

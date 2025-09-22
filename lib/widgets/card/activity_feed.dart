@@ -1,7 +1,7 @@
 // lib/widgets/activity_feed.dart
 import 'package:flutter/material.dart';
 import 'package:pedal/models/post.dart';
-import 'package:pedal/api/user_api_service.dart';
+import 'package:pedal/api/user_api.dart';
 import 'activity_card.dart';
 
 class ActivityFeed extends StatefulWidget {
@@ -48,7 +48,7 @@ class _ActivityFeedState extends State<ActivityFeed> {
     try {
       final nextPage = refresh ? 1 : _page;
       final fetched =
-      await UserApiService.getRecentTenCard(widget.token, nextPage);
+      await UserApiService.getPosts(widget.token, nextPage);
 
       setState(() {
         if (refresh) {

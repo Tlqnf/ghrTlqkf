@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:pedal/api/post_api_service.dart';
-import 'package:pedal/api/route_api_service.dart';
+import 'package:pedal/api/post_api.dart';
+import 'package:pedal/api/route_api.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';

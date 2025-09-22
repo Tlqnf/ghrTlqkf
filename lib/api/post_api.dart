@@ -8,6 +8,26 @@ import 'package:pedal/models/post.dart';
 import 'package:pedal/models/comment.dart';
 
 class PostApiService {
+  // get - post
+  // 게시글 목록 수집
+  static Future<List<Post>> getPosts(String token) async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/post'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+      return data.map((json) => Post.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load posts');
+    }
+  }
+
+  // post - post (수정 필요 반환값)
+  // 게시글 만들기 (실질적인 리스트 표시)
   static Future<http.Response> createPost(
       String postData, List<String> imagePaths, String token) async {
     try {
@@ -43,17 +63,19 @@ class PostApiService {
       return response;
     } catch (e) {
       // You might want to handle exceptions more gracefully
-      print('Error creating post: $e');
+      debugPrint('Error creating post: $e');
       rethrow;
     }
   }
 
+  // patch - post (수정 필요 createPost와 똑같은 구조)
+  // 게시글 수정
   static Future<http.Response> updatePost(UpdatePost postData, String token) {
     try {
       final response = http.post(
         Uri.parse("${ApiConfig.baseUrl}/post/${postData.postId}"),
         headers: {
-          'Authorization': 'Bearer ${token}',
+          'Authorization': 'Bearer $token',
           'Content-type': 'application/json'
         },
         body: jsonEncode({
@@ -64,15 +86,17 @@ class PostApiService {
       return response;
 
     } catch (e) {
-      print('Error creating post: $e');
+      debugPrint('Error creating post: $e');
       rethrow;
     }
   }
 
+  // delete - post/{postId}
+  // 게시글 삭제
   static Future<http.Response> deletePost(int postId, String token) {
     try {
       final response = http.delete(
-        Uri.parse('${ApiConfig.baseUrl}/post/${postId}'),
+        Uri.parse('${ApiConfig.baseUrl}/post/$postId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-type': "application/json"
@@ -80,16 +104,48 @@ class PostApiService {
       );
       return response;
     } catch (e) {
-      print('Error creating post: $e');
+      debugPrint('Error creating post: $e');
       rethrow;
     }
   }
+
+  // post - post/{postId}/post-like
+  // 게시글 좋아요
+  static Future<void> addThumbsUp(String token, int postId) async {
+    final res = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/post/$postId/post-like'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (res.statusCode != 200) {
+      throw Exception('like failed: ${res.statusCode}');
+    }
+  }
+
+  // post - post/{postId}/post-unlike
+  // 게시글 좋아요 취소
+  static Future<void> removeThumbsUp(String token, int postId) async {
+    final res = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/post/$postId/post-unlike'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (res.statusCode != 200) {
+      throw Exception('unlike failed: ${res.statusCode}');
+    }
+  }
+
+  // post - post/{postId}/bookmark
+  // 게시글 북마크 추가
+
+  // delete - post/{postId}/bookmark
+  // 게시글 북마크 삭제
 }
 
 class CommentApiService{
-  Future<void> getPostComments(String token, int postId) async {
+  // get - post/{postId}/comments
+  // 댓글 리스트 표시
+  static Future<void> getPostComments(String token, int postId) async {
     dynamic response = await http.get(
-        Uri.parse("${ApiConfig.baseUrl}/post/${postId}/comments"),
+        Uri.parse("${ApiConfig.baseUrl}/post/$postId/comments"),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -97,9 +153,11 @@ class CommentApiService{
     );
   }
 
-  Future<void> getPostChildComments(int commentId, String token) async {
+  // get - post/comments/{commentId}
+  // 대댓글 리스트 표시
+  static Future<void> getPostChildComments(int commentId, String token) async {
     dynamic response = await http.get(
-        Uri.parse("${ApiConfig.baseUrl}/post/comments/${commentId}"),
+        Uri.parse("${ApiConfig.baseUrl}/post/comments/$commentId"),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -107,8 +165,9 @@ class CommentApiService{
     );
   }
 
-  // 댓글 등록 (POST /post/{post_id}/comments)
-  Future<void> createComment(String token, Comment comment) async {
+  // post - post/{post_id}/comments
+  // 댓글 작성하기
+  static Future<void> createComment(String token, Comment comment) async {
     final url = Uri.parse("${ApiConfig.baseUrl}/post/${comment.postId}/comments");
     final body = jsonEncode(comment.toJson()); // Comment 모델을 JSON으로 변환
 
@@ -126,10 +185,10 @@ class CommentApiService{
     debugPrint('Create Comment Response Body: ${response.body}');
   }
 
-  // 댓글 업데이트 (PATCH /post/comments/{comment_id})
-  Future<void> updateComment(
-      String token, int commentId, String content, {List<String>? mentions}) async {
-    final url = Uri.parse("${ApiConfig.baseUrl}/post/comments/${commentId}");
+  // patch - post/comments/{commentId}
+  // 댓글 수정하기
+  static Future<void> updateComment(String token, int commentId, String content, {List<String>? mentions}) async {
+    final url = Uri.parse("${ApiConfig.baseUrl}/post/comments/$commentId");
     final body = jsonEncode({
       "content": content,
       "mentions": mentions ?? [], // body에도 mentions 추가
@@ -148,4 +207,13 @@ class CommentApiService{
     debugPrint('Update Comment Response Status: ${response.statusCode}');
     debugPrint('Update Comment Response Body: ${response.body}');
   }
+
+  // delete - post/comments/{commentId}
+  // 댓글 삭제하기
+
+  // post - post/{commentId}/comment-like
+  // (대)댓글 좋아요
+
+  // post - post/{commentId}/comment-unlike
+  // (대)댓글 좋아요 취소
 }

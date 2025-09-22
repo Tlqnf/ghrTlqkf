@@ -79,11 +79,13 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
       } else {
         // Error
         final responseBody = await response.stream.bytesToString();
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('프로필 업데이트 실패: ${response.statusCode} $responseBody')),
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('오류 발생: $e')),
       );

@@ -9,7 +9,7 @@ class Post {
   final int userId;
   final DateTime createdAt;
   final List<String> images;
-  final String map_image_url;
+  final String mapImageUrl;
 
   Post({
     required this.id,
@@ -20,7 +20,7 @@ class Post {
     required this.userId,
     required this.createdAt,
     required this.images,
-    required this.map_image_url,
+    required this.mapImageUrl,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -38,7 +38,7 @@ class Post {
       userId: json['user_id'] ?? 0,
       createdAt: DateTime.tryParse(json['created_at'] ?? '')?.toLocal() ?? DateTime.now(),
       images: imgs,
-      map_image_url: json['map_image_url'] ?? '',
+      mapImageUrl: json['map_image_url'] ?? '',
     );
   }
 }

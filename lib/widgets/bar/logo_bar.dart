@@ -8,8 +8,8 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.white, // 스크롤 시 색상 변경 방지
+      backgroundColor: Theme.of(context).colorScheme.background,
+      surfaceTintColor: Theme.of(context).colorScheme.background, // 스크롤 시 색상 변경 방지
       title: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -24,7 +24,6 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
           const Text(
             'PEDAL',
             style: TextStyle(
-              color: Colors.black,
               fontWeight: FontWeight.bold,
             ),
           ),

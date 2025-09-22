@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pedal/api/post_api.dart';
 import 'package:pedal/models/post.dart';
-import 'package:pedal/api/user_api_service.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/widgets/modal/comment_modal.dart';
 import 'package:provider/provider.dart';
@@ -36,9 +36,9 @@ class _ActivityCardState extends State<ActivityCard> {
 
     try {
       if (_isLiked) {
-        await UserApiService.addThumbsUp(token, widget.post.id);
+        await PostApiService.addThumbsUp(token, widget.post.id);
       } else {
-        await UserApiService.removeThumbsUp(token, widget.post.id);
+        await PostApiService.removeThumbsUp(token, widget.post.id);
       }
     } catch (e) {
       // 실패 시 롤백
@@ -75,9 +75,9 @@ class _ActivityCardState extends State<ActivityCard> {
             // 헤더
             Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 20,
-                  backgroundColor: Colors.grey,
+                  backgroundColor: theme.colorScheme.outline,
                 ),
                 const SizedBox(width: 8),
                 Column(
@@ -92,8 +92,8 @@ class _ActivityCardState extends State<ActivityCard> {
                     ),
                     Text(
                       formattedDate,
-                      style: const TextStyle(
-                        color: Colors.grey,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
                         fontSize: 14,
                       ),
                     ),
@@ -146,7 +146,7 @@ class _ActivityCardState extends State<ActivityCard> {
                             : Icons.thumb_up_alt_outlined,
                         color: _isLiked
                             ? theme.colorScheme.secondary
-                            : Colors.black54,
+                            : theme.colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 4),
                       Text(_likeCount.toString()),
@@ -167,9 +167,9 @@ class _ActivityCardState extends State<ActivityCard> {
                         minChildSize: 0.4,
                         //채팅 불러와지는 곳
                         builder: (context, scrollController) => Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(16.0),
                               topRight: Radius.circular(16.0),
                             ),

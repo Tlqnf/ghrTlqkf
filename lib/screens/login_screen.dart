@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:pedal/widgets/button/social_login_button.dart';
 import 'package:pedal/widgets/bar/logo_bar.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginScreen extends StatelessWidget {
   final Function(String) onLogin;
 
-  const LoginPage({super.key, required this.onLogin});
+  const LoginScreen({super.key, required this.onLogin});
 
   @override
   Widget build(BuildContext context) {

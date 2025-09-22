@@ -36,10 +36,10 @@ class RouteCard extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.map, color: Colors.grey, size: 40),
+                child: Icon(Icons.map, color: Theme.of(context).colorScheme.outline, size: 40),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -59,25 +59,25 @@ class RouteCard extends StatelessWidget {
                       children: [
                         Text(
                           distance,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: Colors.blue,
+                            color: Theme.of(context).colorScheme.secondary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           time,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: Colors.black87,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    if (date != null) Text(date!, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                    if (user != null) Text(user!, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    if (date != null) Text(date!, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    if (user != null) Text(user!, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),

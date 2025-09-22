@@ -20,7 +20,7 @@ class RecordListModal extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withAlpha(10),
                 blurRadius: 10,
               ),
             ],
@@ -65,10 +65,9 @@ class RecordListModal extends StatelessWidget {
                         distance: '${(index + 1) * 5.5} km',
                         time: '${(index + 1) * 30} 분',
                         date: '2023.0${index + 1}.15',
-                        image_url: '',
+                        imageUrl: '',
                         onTap: () {
                           // Handle tap on record card
-                          print('Record Card ${index + 1} tapped!');
                         },
                       ),
                     );
