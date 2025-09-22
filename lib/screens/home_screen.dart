@@ -4,8 +4,8 @@ import 'package:pedal/api/user_api.dart';
 import 'package:pedal/models/analyze.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
-import 'package:pedal/widgets/card/activity_card.dart';
-import 'package:pedal/widgets/card/activity_summary_card.dart';
+import 'package:pedal/widgets/post/card/activity_card.dart';
+import 'package:pedal/widgets/home/card/activity_summary_card.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {

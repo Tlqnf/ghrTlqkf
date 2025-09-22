@@ -1,0 +1,121 @@
+import 'package:flutter/material.dart';
+import 'package:pedal/widgets/post/card/post_card.dart'; // Use the new PostCard
+
+class NavigationListModal extends StatelessWidget {
+  final ScrollController scrollController;
+  // You might want to pass a list of route data here
+  // final List<Map<String, dynamic>> routeData;
+
+  const NavigationListModal({
+    super.key,
+    required this.scrollController,
+    // required this.routeData,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(16),
+        ),
+      ),
+      child: SingleChildScrollView(
+        controller: scrollController,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 위쪽 회색 핸들바
+            Center(
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 16),
+                height: 4,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                '내 경로',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+            ListView.builder(
+              physics: const NeverScrollableScrollPhysics(), // Handled by SingleChildScrollView
+              shrinkWrap: true,
+              itemCount: 2, // Dummy data for "My Routes"
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                  child: PostCard( // Use PostCard
+                    routeName: '갤러리아 백화점 경로',
+                    distance: '17.28 km',
+                    time: '01:03:23',
+                    date: '2025.09.01',
+                    user: 'Seprogramd', // Example user
+                    onTap: () {
+                      debugPrint('My Route ${index + 1} tapped!');
+                    },
+                    imageUrl: null, // No image for now
+                  ),
+                );
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: TextButton(
+                onPressed: () {
+                  debugPrint('2개 경로 더보기 tapped!');
+                },
+                child: Text(
+                  '2개 경로 더보기',
+                  style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 16),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Text(
+                '저장한 경로',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+            ListView.builder(
+              physics: const NeverScrollableScrollPhysics(), // Handled by SingleChildScrollView
+              shrinkWrap: true,
+              itemCount: 2, // Dummy data for "Saved Routes"
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                  child: PostCard( // Use PostCard
+                    routeName: '시청역 근처 경로',
+                    distance: '9.98 km',
+                    time: '47분',
+                    user: 'Seprogramd${index + 1}',
+                    onTap: () {
+                      debugPrint('Saved Route ${index + 1} tapped!');
+                    },
+                    imageUrl: null, // No image for now
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

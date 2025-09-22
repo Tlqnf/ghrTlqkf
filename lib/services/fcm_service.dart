@@ -60,6 +60,6 @@ class FCMService {
 
   @pragma('vm:entry-point')
   Future<void> backgroundMessageHandler(RemoteMessage remote) async{
-    debugPrint("background message ${remote}");
+    debugPrint("background message $remote");
   }
 }

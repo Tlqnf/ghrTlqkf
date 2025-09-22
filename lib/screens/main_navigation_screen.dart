@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pedal/screens/home_screen.dart';
 import 'package:pedal/screens/my_page_screen.dart';
 import 'package:pedal/screens/map_screen.dart'; // Import MapScreen
-import 'package:pedal/widgets/bar/custom_bottom_nav_bar.dart';
-import 'package:pedal/widgets/bar/logo_bar.dart';
+import 'package:pedal/widgets/bar/bottom_nav_bar.dart';
+import 'package:pedal/widgets/bar/logo_app_bar.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});

@@ -43,10 +43,4 @@ class NavigationApi {
       throw Exception('Failed to load navigator route: ${response.statusCode}');
     }
   }
-
-  // get - navigation/geocode
-  // 지역 장소로 네비게이션
-  static Future<Map<String, double>> getGeocode(String keyword, String token) async {
-    return {"lat": 0.0, "lon": 0.0};
-  }
 }

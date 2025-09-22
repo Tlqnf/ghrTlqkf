@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pedal/widgets/button/social_login_button.dart';
-import 'package:pedal/widgets/bar/logo_bar.dart';
+import 'package:pedal/widgets/login/button/social_login_button.dart';
+import 'package:pedal/widgets/bar/logo_app_bar.dart';
 
 class LoginScreen extends StatelessWidget {
   final Function(String) onLogin;

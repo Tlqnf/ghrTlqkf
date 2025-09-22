@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:pedal/widgets/map/map_control_button.dart';
-import 'package:pedal/widgets/map/record_button.dart';
-import 'package:pedal/widgets/modal/navigation_list_modal.dart';
+import 'package:pedal/widgets/map/button/map_control_button.dart';
+import 'package:pedal/widgets/map/button/record_button.dart';
+import 'package:pedal/widgets/map/modal/navigation_list_modal.dart';
 
 class PreRecordingOverlay extends StatelessWidget {
   final VoidCallback onBackPressed;

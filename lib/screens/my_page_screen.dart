@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/card.dart';
 import 'package:pedal/providers/auth_provider.dart';
-import 'package:pedal/widgets/card/record_card.dart';
+import 'package:pedal/widgets/post/card/post_card.dart';
 import 'package:pedal/screens/all_records_screen.dart';
 import 'package:pedal/api/user_api.dart';
 import 'package:pedal/models/user.dart';
@@ -244,8 +244,7 @@ class _RecordListHeaderState extends State<_RecordListHeader> {
             final date     = _formatDate(c.createdAt);
             final imageUrl = _formatImage(c.mapImageUrl);
 
-            // ⚠️ const 제거! (실데이터 바인딩)
-            return RecordCard(
+            return PostCard(
               routeName: c.title,       // 서버의 title을 경로명으로 사용(필요시 변경)
               distance: distance,
               time: time,
@@ -324,8 +323,7 @@ class _RecordListBookHeaderState extends State<_RecordListBookHeader> {
             final date     = _formatDate(c.createdAt);
             final imageUrl = _formatImage(c.mapImageUrl);
 
-            // ⚠️ const 제거! (실데이터 바인딩)
-            return RecordCard(
+            return PostCard(
               routeName: c.title,       // 서버의 title을 경로명으로 사용(필요시 변경)
               distance: distance,
               time: time,

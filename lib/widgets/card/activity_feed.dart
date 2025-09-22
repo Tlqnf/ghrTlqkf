@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/api/user_api.dart';
-import 'activity_card.dart';
+import '../post/card/activity_card.dart';
 
 class ActivityFeed extends StatefulWidget {
   final String token;

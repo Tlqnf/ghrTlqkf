@@ -1,37 +1,36 @@
 import 'package:flutter/material.dart';
 
-class RouteCard extends StatelessWidget {
+class PostCard extends StatelessWidget {
   final String routeName;
   final String distance;
   final String time;
   final String? date;
   final String? user;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final String? imageUrl; // Optional image URL
 
-  const RouteCard({
+  const PostCard({
     super.key,
     required this.routeName,
     required this.distance,
     required this.time,
     this.date,
     this.user,
-    required this.onTap,
+    this.onTap,
+    this.imageUrl,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(12.0),
           child: Row(
             children: [
-              // Map Image Placeholder
+              // Image or Map Placeholder
               Container(
                 width: 80,
                 height: 80,
@@ -39,7 +38,22 @@ class RouteCard extends StatelessWidget {
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.map, color: Theme.of(context).colorScheme.outline, size: 40),
+                child: imageUrl != null && imageUrl!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          imageUrl!,
+                          fit: BoxFit.cover,
+                          width: 80,
+                          height: 80,
+                          errorBuilder: (context, error, stackTrace) => Center(
+                            child: Icon(Icons.broken_image, color: Theme.of(context).colorScheme.outline),
+                          ),
+                        ),
+                      )
+                    : Center(
+                        child: Icon(Icons.map, color: Theme.of(context).colorScheme.outline),
+                      ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -48,10 +62,7 @@ class RouteCard extends StatelessWidget {
                   children: [
                     Text(
                       routeName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
@@ -59,19 +70,12 @@ class RouteCard extends StatelessWidget {
                       children: [
                         Text(
                           distance,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           time,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),

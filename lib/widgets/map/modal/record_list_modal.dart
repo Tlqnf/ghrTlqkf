@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pedal/widgets/card/record_card.dart'; // Import RecordCard
+import 'package:pedal/widgets/post/card/post_card.dart'; // Import PostCard
 
 class RecordListModal extends StatelessWidget {
   const RecordListModal({super.key});
@@ -20,7 +20,7 @@ class RecordListModal extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha(10),
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(10),
                 blurRadius: 10,
               ),
             ],
@@ -35,19 +35,20 @@ class RecordListModal extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Theme.of(context).colorScheme.outline,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               // Title
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
                   '내 경로',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -60,7 +61,7 @@ class RecordListModal extends StatelessWidget {
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                      child: RecordCard(
+                      child: PostCard(
                         routeName: '경로 ${index + 1}',
                         distance: '${(index + 1) * 5.5} km',
                         time: '${(index + 1) * 30} 분',

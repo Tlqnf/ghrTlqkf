@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedal/api/post_api.dart';
 import 'package:pedal/models/comment.dart';
-import 'package:pedal/widgets/card/reply_item.dart';
+import 'package:pedal/widgets/card/reply_card.dart';
 
 class CommentModal extends StatefulWidget {
   final String token;

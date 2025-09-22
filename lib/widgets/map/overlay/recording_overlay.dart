@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:pedal/widgets/map/map_control_button.dart';
-import 'package:pedal/widgets/map/no_map_recording_view.dart';
-import 'package:pedal/widgets/map/stat_card.dart';
+import 'package:pedal/widgets/map/button/map_control_button.dart';
+import 'package:pedal/screens/no_map_recording_screen.dart';
+import 'package:pedal/widgets/map/card/stat_card.dart';
 
 class RecordingOverlay extends StatelessWidget {
   final bool isMapVisible;

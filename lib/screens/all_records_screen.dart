@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pedal/widgets/bar/logo_bar.dart';
-import 'package:pedal/widgets/card/record_card.dart';
+import 'package:pedal/widgets/bar/logo_app_bar.dart';
+import 'package:pedal/widgets/post/card/post_card.dart';
 import 'package:pedal/screens/post_form_screen.dart';
 
 class AllRecordsScreen extends StatelessWidget {
@@ -43,7 +43,7 @@ class AllRecordsScreen extends StatelessWidget {
             child: ListView.builder(
               itemCount: 10, // Dummy count for all records
               itemBuilder: (context, index) {
-                return RecordCard(
+                return PostCard(
                   routeName: '갤러리아 백화점 경로',
                   distance: '17.28 km',
                   time: '01:03:48',

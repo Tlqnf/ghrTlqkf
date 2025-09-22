@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:pedal/config/api_config.dart';
-import 'package:pedal/widgets/bar/logo_bar.dart';
+import 'package:pedal/api/user_api.dart'; // New import
+import 'package:pedal/widgets/bar/logo_app_bar.dart';
 
 class ProfileSetupPage extends StatefulWidget {
   final VoidCallback onSetupComplete;
@@ -48,52 +46,26 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
       _isLoading = true;
     });
 
-    final uri = Uri.parse('${ApiConfig.baseUrl}/users/me');
-    final request = http.MultipartRequest('PATCH', uri);
-
-    // Add headers
-    request.headers['Authorization'] = 'Bearer ${widget.token}';
-
-    // Add user data as a JSON string field
-    final userData = {
-      'username': _usernameController.text,
-      'profile_description': _descriptionController.text,
-    };
-    request.fields['user_data'] = jsonEncode(userData);
-
-    // Add image file if selected
-    if (_imageFile != null) {
-      final file = await http.MultipartFile.fromPath(
-        'profile_pic_file',
-        _imageFile!.path,
-      );
-      request.files.add(file);
-    }
-
     try {
-      final response = await request.send();
+      await UserApiService.updateUserProfile(
+        token: widget.token,
+        username: _usernameController.text,
+        profileDescription: _descriptionController.text,
+        profilePicFile: _imageFile,
+      );
 
-      if (response.statusCode == 200) {
-        // Success
-        widget.onSetupComplete();
-      } else {
-        // Error
-        final responseBody = await response.stream.bytesToString();
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('프로필 업데이트 실패: ${response.statusCode} $responseBody')),
-        );
-      }
+      // Success
+      widget.onSetupComplete();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('오류 발생: $e')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   @override

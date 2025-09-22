@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:pedal/api/post_api.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
-import 'package:pedal/widgets/modal/comment_modal.dart';
+import 'package:pedal/widgets/post/modal/comment_modal.dart';
 import 'package:provider/provider.dart';
 
 class ActivityCard extends StatefulWidget {

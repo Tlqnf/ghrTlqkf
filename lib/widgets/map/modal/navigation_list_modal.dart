@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pedal/widgets/card/route_card.dart';
+import 'package:pedal/widgets/post/card/post_card.dart';
 
 class NavigationListModal extends StatelessWidget {
   final ScrollController scrollController;
@@ -48,7 +48,7 @@ class NavigationListModal extends StatelessWidget {
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                  child: RouteCard(
+                  child: PostCard(
                     routeName: '갤러리아 백화점 경로',
                     distance: '17.28 km',
                     time: '01:03:23',
@@ -89,7 +89,7 @@ class NavigationListModal extends StatelessWidget {
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                  child: RouteCard(
+                  child: PostCard(
                     routeName: '시청역 근처 경로',
                     distance: '9.98 km',
                     time: '47분',

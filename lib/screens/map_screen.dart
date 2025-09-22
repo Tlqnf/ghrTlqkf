@@ -10,8 +10,9 @@ import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/post_form_screen.dart';
 import 'package:pedal/services/socket_service.dart';
 import 'package:pedal/utils/time_formatter.dart';
-import 'package:pedal/widgets/map/pre_recording_overlay.dart';
-import 'package:pedal/widgets/map/recording_overlay.dart';
+import 'package:pedal/widgets/map/modal/navigation_list_modal.dart';
+import 'package:pedal/widgets/map/overlay/pre_recording_overlay.dart';
+import 'package:pedal/widgets/map/overlay/recording_overlay.dart';
 import 'package:provider/provider.dart';
 
 class MapScreen extends StatefulWidget {
@@ -511,13 +512,43 @@ class _MapScreenState extends State<MapScreen> {
               top: false,
               child: Container(
                 height: 60,
-                color: Colors.grey[300],
-                child: const Center(
+                color: Theme.of(context).colorScheme.surface,
+                child: Center(
                   child: Text(
                     'Ad Placeholder',
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
+              ),
+            ),
+          ),
+          // Navigation List Modal Handle
+          Positioned(
+            bottom: 60, // Above the ad banner
+            left: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => DraggableScrollableSheet(
+                    expand: false,
+                    initialChildSize: 0.5, // Adjust as needed
+                    maxChildSize: 0.9,
+                    minChildSize: 0.2,
+                    builder: (context, scrollController) => NavigationListModal(
+                      scrollController: scrollController,
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                height: 30, // Height of the handle
+                color: Theme.of(context).colorScheme.surface.withAlpha(80), // Semi-transparent handle
+                alignment: Alignment.center,
+                child: Icon(Icons.keyboard_arrow_up, color: Theme.of(context).colorScheme.onSurface),
               ),
             ),
           ),
