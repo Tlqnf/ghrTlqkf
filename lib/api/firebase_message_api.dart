@@ -6,11 +6,11 @@ import 'package:pedal/config/api_config.dart';
 class FcmApiService {
   // patch - users/me/fcm-token
   // 사용자 FCM 토큰을 업데이트
-  static Future<void> updateUserFcmToken(_token, fcmToken) async {
+  static Future<void> updateUserFcmToken(token, fcmToken) async {
     final fcmResponse = await http.patch(
       Uri.parse('${ApiConfig.baseUrl}/users/me/fcm-token'),
       headers: {
-        'Authorization': 'Bearer $_token',
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'fcm_token': fcmToken}),

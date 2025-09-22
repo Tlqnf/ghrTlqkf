@@ -1,4 +1,3 @@
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -34,9 +33,9 @@ class FCMService {
       sound: true,
     );
 
-    // Get the FCM token
-    final String? token = await _firebaseMessaging.getToken();
-    debugPrint("FCM Token: \$token");
+    // Get the FCM token (for debugging/logging purposes within the service)
+    final String? fcmToken = await _firebaseMessaging.getToken();
+    debugPrint("FCM Token: $fcmToken");
 
     // Set up the background message handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);

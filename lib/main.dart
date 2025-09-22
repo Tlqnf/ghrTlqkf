@@ -125,6 +125,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   FirebaseMessaging.onBackgroundMessage(FCMService().backgroundMessageHandler);
+  await FCMService().initialize(); // Initialize FCM service once at startup
 
   await FlutterNaverMap().init(
       clientId: dotenv.env["CLIENT_ID"],
@@ -161,7 +162,6 @@ class _PedalAppState extends State<PedalApp> {
   Future<void> _updateFcmToken(String token) async {
     try {
       final fcmService = FCMService();
-      await fcmService.initialize();
       final fcmToken = await fcmService.getToken();
       if (fcmToken != null) {
         await FcmApiService.updateUserFcmToken(token, fcmToken);
