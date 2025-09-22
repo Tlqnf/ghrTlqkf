@@ -150,7 +150,7 @@ class SectionHeader extends StatelessWidget {
   final String title;
   final bool showMoreButton;
 
-  const SectionHeader({
+  const SectionHeader({super.key,
     required this.title,
     this.showMoreButton = false,
   });

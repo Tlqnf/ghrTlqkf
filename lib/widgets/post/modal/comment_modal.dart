@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:pedal/api/post_api.dart';
+import 'package:pedal/api/comment_api.dart';
 import 'package:pedal/models/comment.dart';
 import 'package:pedal/widgets/card/reply_card.dart';
 
@@ -17,7 +17,7 @@ class _CommentModalState extends State<CommentModal> {
   final TextEditingController _commentController = TextEditingController();
 
   // State for comments list
-  List<Comment> _comments = [];
+  List<CreateComment> _comments = [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -50,9 +50,9 @@ class _CommentModalState extends State<CommentModal> {
       // Dummy data for now, as getPostComments returns void
       await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
       _comments = [
-        Comment(content: '와 엄청난데요? 저도 저렇게 라이딩 잘하고 싶습니다. 혹시 실례가 안된다면 같이 라이딩 가능하실까요...? 같이 해주신다면 정말 영광일 것 같습니다!!', postId: widget.postId, mentions: []),
-        Comment(content: '댓글 2', postId: widget.postId, mentions: []),
-        Comment(content: '댓글 3', postId: widget.postId, mentions: []),
+        CreateComment(content: '와 엄청난데요? 저도 저렇게 라이딩 잘하고 싶습니다. 혹시 실례가 안된다면 같이 라이딩 가능하실까요...? 같이 해주신다면 정말 영광일 것 같습니다!!', postId: widget.postId, mentions: []),
+        CreateComment(content: '댓글 2', postId: widget.postId, mentions: []),
+        CreateComment(content: '댓글 3', postId: widget.postId, mentions: []),
       ];
 
     } catch (e) {
@@ -84,7 +84,7 @@ class _CommentModalState extends State<CommentModal> {
     try {
       await CommentApiService.createComment(
         widget.token,
-        Comment(
+        CreateComment(
           content: commentContent,
           parentId: null, // Assuming top-level comment
           postId: widget.postId,
@@ -177,7 +177,7 @@ class _CommentModalState extends State<CommentModal> {
 }
 
 class CommentItem extends StatefulWidget {
-  final Comment comment; // Add comment data
+  final CreateComment comment; // Add comment data
   const CommentItem({super.key, required this.comment});
 
   @override

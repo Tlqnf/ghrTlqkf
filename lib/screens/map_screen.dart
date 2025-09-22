@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pedal/config/api_config.dart';
-import 'package:pedal/models/report.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/post_form_screen.dart';
 import 'package:pedal/services/socket_service.dart';
@@ -28,7 +27,6 @@ class _MapScreenState extends State<MapScreen> {
   StreamSubscription<Position>? _positionStreamSubscription;
   bool _isLoading = true;
   NaverMapController? _mapController;
-  DateTime? _lastLocationUpdateTime;
   List<List<NLatLng>> _routeChunks = [[]];
   final int _chunkSize = 25; // 경로 생성 조작
   bool _isFollowingUser = true;
@@ -270,15 +268,33 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
-    // For offline testing
     setState(() {
-      _isSocketConnected = false;
+      _isSocketConnected = false; // Reset before attempting connection
     });
-    debugPrint('Forcing offline mode for testing.');
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('[테스트] 오프라인 모드로 주행을 기록합니다.')),
-      );
+
+    try {
+      _initializeSocket(token); // Initialize socket service and listener
+      // Assume connected if _initializeSocket doesn't throw immediately.
+      // The onError callback in _initializeSocket will set _isSocketConnected to false if connection fails later.
+      setState(() {
+        _isSocketConnected = true;
+      });
+      debugPrint('Attempting socket connection...');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('소켓을 통해 주행을 기록합니다. (연결 시도 중)')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Socket initialization failed: $e. Falling back to offline mode.');
+      setState(() {
+        _isSocketConnected = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('소켓 연결 실패. 오프라인 모드로 주행을 기록합니다.')),
+        );
+      }
     }
 
     _mapController?.clearOverlays();

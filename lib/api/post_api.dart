@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/post.dart';
-import 'package:pedal/models/comment.dart';
 
 class PostApiService {
   // get - post
@@ -162,128 +161,6 @@ class PostApiService {
     );
     if (res.statusCode != 204) {
       throw Exception('delete bookmark failed: ${res.statusCode}');
-    }
-  }
-}
-
-class CommentApiService{
-  // get - post/{postId}/comments
-  // 댓글 리스트 표시
-  static Future<void> getPostComments(String token, int postId) async {
-    dynamic response = await http.get(
-        Uri.parse("${ApiConfig.baseUrl}/post/$postId/comments"),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-    );
-  }
-
-  // get - post/comments/{commentId}
-  // 대댓글 리스트 표시
-  static Future<void> getPostChildComments(int commentId, String token) async {
-    dynamic response = await http.get(
-        Uri.parse("${ApiConfig.baseUrl}/post/comments/$commentId"),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-    );
-  }
-
-  // post - post/{post_id}/comments
-  // 댓글 작성하기
-  static Future<void> createComment(String token, Comment comment) async {
-    final response = await http.post(
-      Uri.parse("${ApiConfig.baseUrl}/post/${comment.postId}/comments"),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(comment.toJson()),
-    );
-    if (response.statusCode != 200) {
-      throw Exception('create comment failed: $response');
-    }
-  }
-
-  // patch - post/comments/{commentId}
-  // 댓글 수정하기
-  static Future<void> updateComment(String token, int commentId, String content, {List<String>? mentions}) async {
-    final url = Uri.parse("${ApiConfig.baseUrl}/post/comments/$commentId");
-    final body = jsonEncode({
-      "content": content,
-      "mentions": mentions ?? [], // body에도 mentions 추가
-    });
-
-    dynamic response = await http.patch(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: body,
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('update comment failed: $response');
-    }
-  }
-
-  // delete - post/comments/{commentId}
-  // 댓글 삭제하기
-  static Future<void> deleteComment(String token, int postId, int commentId) async {
-    final res = await http.delete(
-      Uri.parse('${ApiConfig.baseUrl}/post/comments/$commentId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'postId': postId,
-        'commentId': commentId,
-      }),
-    );
-    if (res.statusCode != 200) {
-      throw Exception('delete comment failed: ${res.statusCode}');
-    }
-  }
-
-  // post - post/{commentId}/comment-like
-  // (대)댓글 좋아요
-  static Future<void> likeComment(String token, int postId, int commentId) async {
-    final res = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/post/comments/$commentId/comment-like'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'postId': postId,
-        'commentId': commentId,
-      }),
-    );
-    if (res.statusCode != 200) {
-      throw Exception('like comment failed: ${res.statusCode}');
-    }
-  }
-
-  // post - post/{commentId}/comment-unlike
-  // (대)댓글 좋아요 취소
-  static Future<void> unlikeComment(String token, int postId, int commentId) async {
-    final res = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/post/comments/$commentId/comment-unlike'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'postId': postId,
-        'commentId': commentId,
-      }),
-    );
-    if (res.statusCode != 200) {
-      throw Exception('unlike comment failed: ${res.statusCode}');
     }
   }
 }
