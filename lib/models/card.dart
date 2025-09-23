@@ -1,21 +1,20 @@
 class CardSummary {
-
   final int id;
   final String title;
   final double distance;
   final String createdAt;
-  final int timeHour;
-  final int timeMinute;
+  final String time;
   final String mapImageUrl;
+  final int reportId;
 
   CardSummary({
     required this.id,
     required this.title,
     required this.distance,
     required this.createdAt,
-    required this.timeHour,
-    required this.timeMinute,
-    required this.mapImageUrl
+    required this.time,
+    required this.mapImageUrl,
+    required this.reportId,
   });
 
   factory CardSummary.fromJson(Map<String, dynamic> json) {
@@ -24,10 +23,9 @@ class CardSummary {
       title: json['title'] as String? ?? '',
       distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
       createdAt: json['created_at'] ?? '',
-      timeHour: json['time_hour'] as int? ?? 0,
-      timeMinute: json['time_minute'] as int? ?? 0,
-      mapImageUrl: json['image_url'] as String? ?? '',
+      time: json['time'] ?? '',
+      mapImageUrl: json['map_image_url'] as String? ?? '',
+      reportId: json['report_id'] as int? ?? 0,
     );
   }
-
 }

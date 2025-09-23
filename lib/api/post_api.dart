@@ -88,23 +88,45 @@ class PostApi {
 
   // patch - post (수정 필요 createPost와 똑같은 구조)
   // 게시글 수정 todo 데이터 구조 정리 필요
-  static Future<http.Response> updatePost(UpdatePost postData, String token) {
+  static Future<bool> updatePost(String postData, int postId, List<String> imagePaths, String token) async {
     try {
-      final response = http.post(
-        Uri.parse("${ApiConfig.baseUrl}/post/${postData.postId}"),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-type': 'application/json'
-        },
-        body: jsonEncode({
-          'title': postData.title,
-          'content': postData.content,
-        })
-      );
-      return response;
+      var uri = Uri.parse('${ApiConfig.baseUrl}/post/$postId');
+      var request = http.MultipartRequest('PATCH', uri);
 
+      // Headers
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Post data
+      request.fields['post_update'] = postData;
+
+      for (String path in imagePaths) {
+        if (path.isNotEmpty) {
+          File imageFile = File(path);
+          var stream = http.ByteStream(imageFile.openRead());
+          var length = await imageFile.length();
+          var multipartFile = http.MultipartFile(
+            'images', // FastAPI endpoint's expected field name for files
+            stream,
+            length,
+            filename: basename(imageFile.path),
+          );
+          request.files.add(multipartFile);
+        }
+      }
+
+      // Send request
+      var streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        debugPrint("수정 성공: ${response.body}");
+        return true;
+      } else {
+        debugPrint("수정 실패: ${response.body}");
+        return false;
+      }
     } catch (e) {
-      debugPrint('Error creating post: $e');
+      debugPrint('Error updating post: $e');
       rethrow;
     }
   }
@@ -154,18 +176,6 @@ class PostApi {
     }
   }
 
-  // post - post/{postId}/post-unlike
-  // 게시글 좋아요 취소 (완)
-  static Future<void> removeThumbsUp(String token, int postId) async {
-    final res = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/post/$postId/post-unlike'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    if (res.statusCode != 200) {
-      throw Exception('unlike failed: ${res.statusCode}');
-    }
-  }
-
   // post - post/{postId}/bookmark
   // 게시글 북마크 추가 (완)
   static Future<void> addBookmark(String token, int postId) async {
@@ -195,6 +205,21 @@ class PostApi {
     );
     if (res.statusCode != 204) {
       throw Exception('delete bookmark failed: ${res.statusCode}');
+    }
+  }
+
+  static Future<bool> checkBookmark(String token, int postId) async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}/post/$postId/is-bookmarked"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)["is_bookmarked"];
+    } else {
+      throw Exception("좋아요 호출 실패");
     }
   }
 }

@@ -67,7 +67,6 @@ class SocialLoginButton extends StatelessWidget {
   // Google 로그인
   Future<void> _signInWithGoogle() async {
     try {
-      debugPrint("구글 로그인 시작");
       final account = await GoogleSignInService().signIn();
       if (account == null) return; // 사용자가 취소한 경우
       final auth = account.authentication;
@@ -88,7 +87,6 @@ class SocialLoginButton extends StatelessWidget {
   Future<void> _signInWithKakao() async {
     try {
       OAuthToken token = await UserApi.instance.loginWithKakaoTalk();
-      debugPrint('카카오톡으로 로그인 성공 ${token.accessToken}');
       final accessToken = await OauthLoginApi.sendTokenKakao(token.accessToken);
       if (accessToken != null) {
         onLogin(accessToken);
@@ -96,7 +94,7 @@ class SocialLoginButton extends StatelessWidget {
         debugPrint('카카오 로그인 실패: accessToken이 null입니다.');
       }
     } catch (error) {
-      debugPrint('카카오톡으로 로그인 실패 $error');
+      debugPrint('카카오톡 로그인 실패 $error');
     }
   }
 }

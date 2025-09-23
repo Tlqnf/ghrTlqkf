@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pedal/api/user_api.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/all_records_screen.dart';
 import 'package:pedal/screens/payment_screen.dart';
@@ -6,13 +7,28 @@ import 'package:pedal/screens/post_form_screen.dart';
 import 'package:pedal/widgets/my/post_list.dart';
 import 'package:pedal/widgets/my/profile_header.dart';
 import 'package:pedal/widgets/my/section_header.dart';
-import 'package:pedal/mock/mock_card_summaries.dart';
 import 'package:provider/provider.dart';
-import 'package:pedal/screens/report_detail_screen.dart'; // Import the new screen
-import 'package:pedal/models/card.dart'; // Import CardSummary
+import 'package:pedal/screens/report_detail_screen.dart';
+import 'package:pedal/models/card.dart';
 
-class MyPageScreen extends StatelessWidget {
+class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
+
+  @override
+  State<MyPageScreen> createState() => _MyPageScreenState();
+}
+
+class _MyPageScreenState extends State<MyPageScreen> {
+  late Future<List<CardSummary>> _recentPostsFuture;
+  late Future<List<CardSummary>> _recentBookmarksFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _recentPostsFuture = UserApi.getRecentPosts(authProvider.token!);
+    _recentBookmarksFuture = UserApi.getRecentBookmarks(authProvider.token!);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,39 +65,48 @@ class MyPageScreen extends StatelessWidget {
                   );
                 },
               ),
-              PostList(
-                bookmarked: false,
-                mockData: mockMyRecords,
-                onItemTap: (CardSummary cardSummary) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ReportDetailScreen(
-                        time: '${cardSummary.timeHour.toString().padLeft(2, '0')}:${cardSummary.timeMinute.toString().padLeft(2, '0')}:00', // Assuming seconds are 00
-                        distance: cardSummary.distance.toStringAsFixed(2),
-                        maxSpeed: '24.7', // Hardcoded for now, as it's not in CardSummary
-                        avgSpeed: '20.67', // Hardcoded for now, as it's not in CardSummary
-                      ),
-                    ),
+              FutureBuilder<List<CardSummary>>(
+                future: _recentPostsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No data'));
+                  }
+                  return PostList(
+                    bookmarked: false,
+                    mockData: snapshot.data!,
+                    onItemTap: (CardSummary cardSummary) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ReportDetailScreen(
+                            reportId: cardSummary.reportId,
+                          ),
+                        ),
+                      );
+                    },
+                    onItemEdit: (CardSummary cardSummary) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PostFormScreen(
+                            postId: cardSummary.id,
+                            reportId: cardSummary.id, // Assuming reportId is the same as postId for now
+                            initialDistance: cardSummary.distance.toStringAsFixed(2),
+                            initialTime: cardSummary.time,
+                            mapImagePath: cardSummary.mapImageUrl,
+                            routeName: cardSummary.title,
+                            // tagList, title, content, imgUrls are not in CardSummary, so pass null
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
-                onItemEdit: (CardSummary cardSummary) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PostFormScreen(
-                        postId: cardSummary.id,
-                        reportId: cardSummary.id, // Assuming reportId is the same as postId for now
-                        initialDistance: cardSummary.distance.toStringAsFixed(2),
-                        initialTime: '${cardSummary.timeHour.toString().padLeft(2, '0')}:${cardSummary.timeMinute.toString().padLeft(2, '0')}:00',
-                        mapImagePath: cardSummary.mapImageUrl,
-                        routeName: cardSummary.title,
-                        // tagList, title, content, imgUrls are not in CardSummary, so pass null
-                      ),
-                    ),
-                  );
-                },
-              ), // Pass mock records
+              ),
               const SizedBox(height: 16),
               SectionHeader(
                 title: '북마크 경로',
@@ -98,11 +123,23 @@ class MyPageScreen extends StatelessWidget {
                   );
                 },
               ),
-              PostList(
-                bookmarked: true,
-                mockData: mockBookmarkedRoutes,
-                onItemTap: null,
-              ), // Pass mock bookmarked routes
+              FutureBuilder<List<CardSummary>>(
+                future: _recentBookmarksFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No data'));
+                  }
+                  return PostList(
+                    bookmarked: true,
+                    mockData: snapshot.data!,
+                    onItemTap: null,
+                  );
+                },
+              ),
             ],
           ),
         ),

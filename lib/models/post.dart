@@ -93,15 +93,3 @@ class CreatePost {
 
   String toJsonString() => json.encode(toJson());
 }
-
-class UpdatePost {
-  final int postId;
-  final String title;
-  final String content;
-
-  UpdatePost({
-    required this.postId,
-    required this.title,
-    required this.content,
-  });
-}

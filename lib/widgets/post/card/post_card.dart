@@ -98,7 +98,7 @@ class PostCard extends StatelessWidget {
                   itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                     const PopupMenuItem<String>(
                       value: 'edit',
-                      child: Text('수정하기'),
+                      child: Text('관리 하기'),
                     ),
                   ],
                 ),

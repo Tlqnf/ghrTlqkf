@@ -30,10 +30,7 @@ class _ReplyAreaState extends State<ReplyArea> {
   }
 
   Future<void> _getReplies() async {
-    debugPrint('_getReplies 호출');
-
     if (token == null) {
-      debugPrint('_getReplies - token null!');
       setState(() {
         _errorMessage = '로그인이 필요합니다.';
         _isLoading = false;
@@ -49,15 +46,12 @@ class _ReplyAreaState extends State<ReplyArea> {
     try {
       final replies =
       await CommentApi.getCommentReplies(widget.commentId, token!);
-      debugPrint('_getReplies - replies: $replies'); // API 결과 확인
 
       if (!mounted) return;
       setState(() {
         _replies = replies;
-        debugPrint('_getReplies - _replies length: ${_replies?.length}');
       });
     } catch (e) {
-      debugPrint('_getReplies - 에러 발생: $e');
       if (!mounted) return;
       setState(() {
         _errorMessage = '대댓글을 불러오는데 실패했습니다: $e';
@@ -66,7 +60,6 @@ class _ReplyAreaState extends State<ReplyArea> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          debugPrint('_getReplies - 로딩 종료');
         });
       }
     }
@@ -74,8 +67,6 @@ class _ReplyAreaState extends State<ReplyArea> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('build 호출 - _replies: $_replies, _isLoading: $_isLoading, _errorMessage: $_errorMessage');
-
     // 로딩 중
     if (_isLoading) {
       return const Padding(

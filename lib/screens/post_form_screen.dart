@@ -54,6 +54,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
   final ImagePicker _picker = ImagePicker();
   final List<XFile> _additionalImages = [];
+  final List<String> _additionalImageUrls = []; // 서버 이미지 URL
   bool _isLoading = false;
   bool _isEditing = false;
 
@@ -63,7 +64,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
   @override
   void initState() {
     super.initState();
-    _routeNameController.text = widget.routeName ?? widget.routeName ?? '';
+    _routeNameController.text = widget.routeName ?? '';
     _titleController.text = widget.title ?? '';
     _bodyController.text = widget.content ?? '';
 
@@ -79,6 +80,11 @@ class _PostFormScreenState extends State<PostFormScreen> {
     if (widget.initialDistance != null) {
       _isCommunityUploadEnabled = true;
     }
+
+    // 서버에서 받은 이미지 URL이 있으면 리스트에 추가
+    if (widget.imgUrls != null) {
+      _additionalImageUrls.addAll(widget.imgUrls!);
+    }
   }
 
   @override
@@ -92,14 +98,14 @@ class _PostFormScreenState extends State<PostFormScreen> {
   }
 
   Future<void> _pickImage() async {
-    if (_additionalImages.length >= 2) {
+    if (_additionalImages.length + _additionalImageUrls.length >= 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('최대 2장의 사진만 추가할 수 있습니다.')),
       );
       return;
     }
     final XFile? selectedImage =
-        await _picker.pickImage(source: ImageSource.gallery);
+    await _picker.pickImage(source: ImageSource.gallery);
     if (selectedImage != null) {
       setState(() {
         _additionalImages.add(selectedImage);
@@ -172,10 +178,11 @@ class _PostFormScreenState extends State<PostFormScreen> {
       final List<String> additionalImagePaths =
       _additionalImages.map((xfile) => xfile.path).toList();
 
-      await RouteApi.updateRoute(_routeNameController.text,
+      await RouteApi.updateRoute(
+        _routeNameController.text,
         _tags,
         token,
-        widget.routeId!
+        widget.routeId!,
       );
 
       final isSuccess = await PostApi.createPost(
@@ -186,8 +193,17 @@ class _PostFormScreenState extends State<PostFormScreen> {
       );
 
       if (isSuccess) {
+        for (var img in _additionalImages) {
+          final file = File(img.path);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        }
+        _additionalImages.clear();
+
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('성공적으로 저장되었습니다.')),
+          const SnackBar(content: Text('성공적으로 생성되었습니다.')),
         );
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
@@ -195,12 +211,9 @@ class _PostFormScreenState extends State<PostFormScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('저장에 실패했습니다.')),
+          const SnackBar(content: Text('생성에 실패했습니다.')),
         );
       }
-
-      if (!mounted) return;
-
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -216,33 +229,101 @@ class _PostFormScreenState extends State<PostFormScreen> {
   }
 
   Future<void> _updatePost() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-
-    if (token == null || widget.postId == null) return;
-    final postData = UpdatePost(
-      postId: widget.postId ?? -1,
-      title: _titleController.text,
-      content: _bodyController.text,
-    );
-
-    final response = await PostApi.updatePost(postData, token);
-
-    if (!mounted) return;
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (_routeNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('성공적으로 저장되었습니다.')),
+        const SnackBar(content: Text('경로 이름은 필수입니다.')),
       );
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-            (Route<dynamic> route) => false,
-      );
-    } else {
-      final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
-      final errorMessage = responseBody['detail'] ?? '수정에 실패했습니다.';
+      return;
+    }
+    if (_isCommunityUploadEnabled && _titleController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('오류: ${response.statusCode} - $errorMessage')),
+        const SnackBar(content: Text('커뮤니티에 업로드하려면 게시글 제목이 필요합니다.')),
       );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final token = authProvider.token;
+      if (token == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('인증 정보가 없습니다. 다시 로그인해주세요.')),
+          );
+        }
+        setState(() => _isLoading = false);
+        return;
+      } else if (widget.routeId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('경로 ID가 없습니다.')),
+        );
+        return;
+      }
+
+      final postData = CreatePost(
+        title: _isCommunityUploadEnabled
+            ? _titleController.text
+            : _routeNameController.text,
+        content: _isCommunityUploadEnabled ? _bodyController.text : '',
+        hashTag: _tags,
+        reportId: widget.reportId,
+        public: _isCommunityUploadEnabled,
+      );
+
+      final List<String> additionalImagePaths =
+      _additionalImages.map((xfile) => xfile.path).toList();
+
+      await RouteApi.updateRoute(
+        _routeNameController.text,
+        _tags,
+        token,
+        widget.routeId!,
+      );
+
+      final isSuccess = await PostApi.updatePost(
+        postData.toJsonString(),
+        widget.postId!,
+        additionalImagePaths,
+        token,
+      );
+
+      if (isSuccess) {
+        for (var img in _additionalImages) {
+          final file = File(img.path);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        }
+        _additionalImages.clear();
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('성공적으로 생성되었습니다.')),
+        );
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+              (Route<dynamic> route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('생성에 실패했습니다.')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -255,7 +336,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
     if (!mounted) return;
     if (response.statusCode >= 200 && response.statusCode < 300) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('성공적으로 저장되었습니다.')),
+        const SnackBar(content: Text('성공적으로 삭제되었습니다.')),
       );
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
@@ -274,16 +355,16 @@ class _PostFormScreenState extends State<PostFormScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final imageCount =
-        (widget.mapImagePath != null ? 1 : 0) + _additionalImages.length;
+        (widget.mapImagePath != null ? 1 : 0) + _additionalImages.length + _additionalImageUrls.length;
 
     return Scaffold(
       body: SafeArea(
-        top: false, // Allow content to go under the status bar, but respect bottom safe area
+        top: false,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Stack for Map and Floating Button
+              // Map + Image Stack
               Stack(
                 alignment: Alignment.bottomCenter,
                 children: [
@@ -300,7 +381,13 @@ class _PostFormScreenState extends State<PostFormScreen> {
                         },
                         children: [
                           if (widget.mapImagePath != null)
-                            Image.file(
+                            widget.mapImagePath!.startsWith('http')
+                                ? Image.network(
+                              widget.mapImagePath!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            )
+                                : Image.file(
                               File(widget.mapImagePath!),
                               fit: BoxFit.cover,
                               width: double.infinity,
@@ -311,16 +398,21 @@ class _PostFormScreenState extends State<PostFormScreen> {
                               child: const Center(child: Text('Map Placeholder')),
                             ),
                           ..._additionalImages.map((image) => Image.file(
-                                File(image.path),
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              )),
+                            File(image.path),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          )),
+                          ..._additionalImageUrls.map((url) => Image.network(
+                            url,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          )),
                         ],
                       ),
                     ),
                   ),
                   Positioned(
-                    top: 40, // Adjust position as needed, considering status bar
+                    top: 40,
                     left: 16,
                     child: Container(
                       decoration: BoxDecoration(
@@ -330,10 +422,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                       width: 50,
                       height: 50,
                       child: IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                        ),
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
                         iconSize: 20.0,
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -348,7 +437,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
                           imageCount,
-                          (index) => Container(
+                              (index) => Container(
                             width: 8,
                             height: 8,
                             margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -364,32 +453,26 @@ class _PostFormScreenState extends State<PostFormScreen> {
                     ),
                 ],
               ),
-              // Padding for the rest of the content
+
+              // Rest of the form (stats, route name, tags, photos, community switch)
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Stats Summary
+                    // Stats
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildStatItem(
-                            '거리', widget.initialDistance ?? '0.00', 'km'),
-                        _buildStatItem(
-                            '평균 속력', widget.initialAvgSpeed ?? '0.0', 'km/h'),
-                        _buildStatItem(
-                            '총 시간', widget.initialTime ?? '00:00:00', ''),
+                        _buildStatItem('거리', widget.initialDistance ?? '0.00', 'km'),
+                        _buildStatItem('평균 속력', widget.initialAvgSpeed ?? '0.0', 'km/h'),
+                        _buildStatItem('총 시간', widget.initialTime ?? '00:00:00', ''),
                       ],
                     ),
                     const SizedBox(height: 24),
 
-                    // Route Name Input
-                    const Text(
-                      '경로 이름 *',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
+                    // Route Name
+                    const Text('경로 이름 *', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _routeNameController,
@@ -405,12 +488,8 @@ class _PostFormScreenState extends State<PostFormScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Tags Input
-                    const Text(
-                      '태그',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
+                    // Tags
+                    const Text('태그', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _tagController,
@@ -429,30 +508,20 @@ class _PostFormScreenState extends State<PostFormScreen> {
                     Wrap(
                       spacing: 8.0,
                       runSpacing: 4.0,
-                      children: _tags
-                          .map((tag) => Chip(
-                                label: Text('#$tag'),
-                                onDeleted: () => _removeTag(tag),
-                              ))
-                          .toList(),
+                      children: _tags.map((tag) => Chip(label: Text('#$tag'), onDeleted: () => _removeTag(tag))).toList(),
                     ),
                     const SizedBox(height: 24),
 
-                    // Add Photos
-                    const Text(
-                      '추가 사진',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
+                    // Additional Photos
+                    const Text('추가 사진', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     SizedBox(
                       height: 100,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        itemCount: _additionalImages.length +
-                            (_additionalImages.length < 2 ? 1 : 0),
+                        itemCount: _additionalImages.length + _additionalImageUrls.length + (_additionalImages.length + _additionalImageUrls.length < 2 ? 1 : 0),
                         itemBuilder: (context, index) {
-                          if (index == _additionalImages.length) {
+                          if (index == _additionalImages.length + _additionalImageUrls.length) {
                             return GestureDetector(
                               onTap: _pickImage,
                               child: Container(
@@ -466,72 +535,99 @@ class _PostFormScreenState extends State<PostFormScreen> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.add_a_photo_outlined,
-                                        color: Colors.grey, size: 30),
+                                    const Icon(Icons.add_a_photo_outlined, color: Colors.grey, size: 30),
                                     const SizedBox(height: 8),
-                                    Text(
-                                        '사진 추가 (${_additionalImages.length}/2)',
-                                        style: const TextStyle(
-                                            color: Colors.grey)),
+                                    Text('사진 추가 (${_additionalImages.length + _additionalImageUrls.length}/2)',
+                                        style: const TextStyle(color: Colors.grey)),
                                   ],
                                 ),
                               ),
                             );
                           }
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 16.0),
-                            child: Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: Image.file(
-                                    File(_additionalImages[index].path),
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 4,
-                                  right: 4,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _additionalImages.removeAt(index);
-                                      });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.6),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(Icons.close,
-                                          color: Colors.white, size: 18),
+
+                          if (index < _additionalImages.length) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 16.0),
+                              child: Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    child: Image.file(
+                                      File(_additionalImages[index].path),
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          );
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _additionalImages.removeAt(index);
+                                        });
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(alpha: 0.6),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.close, color: Colors.white, size: 18),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            final urlIndex = index - _additionalImages.length;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 16.0),
+                              child: Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    child: Image.network(
+                                      _additionalImageUrls[urlIndex],
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _additionalImageUrls.removeAt(urlIndex);
+                                        });
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(alpha: 0.6),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.close, color: Colors.white, size: 18),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
                         },
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      '상단에서 추가된 사진을 드래그로 확인 가능',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                    const SizedBox(height: 24),
+                    const Text('상단에서 추가된 사진을 드래그로 확인 가능', style: TextStyle(color: Colors.grey, fontSize: 12)),
 
-                    // Community Upload Switch
+                    // Community Upload
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '커뮤니티 업로드',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                        const Text('커뮤니티 업로드', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         Switch(
                           value: _isCommunityUploadEnabled,
                           onChanged: (value) {
@@ -550,11 +646,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            '게시글 제목',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          const Text('게시글 제목', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _titleController,
@@ -568,14 +660,8 @@ class _PostFormScreenState extends State<PostFormScreen> {
                               fillColor: Colors.grey[200],
                             ),
                           ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          const Text(
-                            '게시글 내용',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          const SizedBox(height: 16),
+                          const Text('게시글 내용', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _bodyController,
@@ -595,86 +681,74 @@ class _PostFormScreenState extends State<PostFormScreen> {
                           const SizedBox(height: 32),
                         ],
                       ),
+
+                    // Buttons
                     _isEditing
                         ? Row(
-                            children: [
-                              // 삭제
-                              ElevatedButton(
-                                onPressed: _isLoading ? null : _deletePost,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red, // Example color
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  disabledBackgroundColor: Colors.grey[400],
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.red,
-                                    strokeWidth: 3,
-                                  ),
-                                )
-                                    : const Text('삭제', style: TextStyle(fontSize: 18)),
-                              ),
-                              const Spacer(),
-                              // 수정
-                              ElevatedButton(
-                                onPressed: _isLoading ? null : _updatePost,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue, // Example color
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  disabledBackgroundColor: Colors.grey[400],
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 3,
-                                  ),
-                                )
-                                    : const Text('수정', style: TextStyle(fontSize: 18)),
-                              ),
-                            ],
+                      children: [
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _deletePost,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            disabledBackgroundColor: Colors.grey[400],
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(color: Colors.red, strokeWidth: 3),
+                          )
+                              : const Text('삭제', style: TextStyle(fontSize: 18)),
+                        ),
+                        const Spacer(),
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _updatePost,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            disabledBackgroundColor: Colors.grey[400],
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                          )
+                              : const Text('수정', style: TextStyle(fontSize: 18)),
+                        ),
+                      ],
                     )
                         : SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : () {
-                                // 라우터 + 경로 한 번에 저장
-                                _savePost();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue, // Example color
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                disabledBackgroundColor: Colors.grey[400],
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 3,
-                                ),
-                              )
-                                  : const Text('저장', style: TextStyle(fontSize: 18)),
-                            ),
-                          )
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _savePost,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          disabledBackgroundColor: Colors.grey[400],
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                        )
+                            : const Text('저장', style: TextStyle(fontSize: 18)),
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -688,28 +762,16 @@ class _PostFormScreenState extends State<PostFormScreen> {
   Widget _buildStatItem(String label, String value, String unit) {
     return Column(
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.grey, fontSize: 14),
-        ),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
         const SizedBox(height: 4),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            Text(
-              value,
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue),
-            ),
+            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
             if (unit.isNotEmpty) ...[
               const SizedBox(width: 4),
-              Text(
-                unit,
-                style: const TextStyle(fontSize: 14, color: Colors.blue),
-              ),
+              Text(unit, style: const TextStyle(fontSize: 14, color: Colors.blue)),
             ],
           ],
         ),

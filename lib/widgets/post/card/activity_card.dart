@@ -73,11 +73,7 @@ class _ActivityCardState extends State<ActivityCard>
     });
 
     try {
-      if (_isLiked) {
-        await PostApi.addThumbsUp(token, widget.post.id);
-      } else {
-        await PostApi.removeThumbsUp(token, widget.post.id);
-      }
+      await PostApi.addThumbsUp(token, widget.post.id);
     } catch (e) {
       setState(() {
         _isLiked = prevLiked;
@@ -97,9 +93,9 @@ class _ActivityCardState extends State<ActivityCard>
     });
     try {
       if (_isBookmark) {
-        await PostApi.removeBookmark(token, widget.post.id);
-      } else {
         await PostApi.addBookmark(token, widget.post.id);
+      } else {
+        await PostApi.removeBookmark(token, widget.post.id);
       }
     } catch (e) {
       setState(() {
@@ -134,7 +130,7 @@ class _ActivityCardState extends State<ActivityCard>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // 🔹 AutomaticKeepAliveClientMixin 적용 시 필요
+    super.build(context);
     final theme = Theme.of(context);
     final formattedDate = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR')
         .format(widget.post.createdAt.toLocal());
@@ -161,34 +157,29 @@ class _ActivityCardState extends State<ActivityCard>
             Row(
               children: [
                 _user != null &&
-                    _user!.profilePic != null &&
-                    _user!.profilePic!.isNotEmpty
-                    ? Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.grey,
-                      width: 3,
-                    ),
-                  ),
-                  child: CircleAvatar(
-                    radius: 37,
-                    backgroundColor: Colors.transparent,
-                    backgroundImage: NetworkImage(_user!.profilePic!),
-                    child: _user!.profilePic == null
-                        ? const Icon(Icons.person, size: 30)
-                        : null,
-                  ),
-                )
+                  _user!.profilePic != null &&
+                  _user!.profilePic!.isNotEmpty
+                    ? CircleAvatar(
+                        radius: 25,
+                        backgroundColor: Colors.transparent,
+                        child: _user!.profilePic != null
+                          ? ClipOval(
+                              child: Image.network(
+                                _user!.profilePic!,
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                            : const Icon(Icons.person, size: 30),
+                      )
                     : const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.transparent,
-                  backgroundImage:
-                  AssetImage('assets/image/not_profile.png'),
-                ),
-                const SizedBox(width: 8),
+                        radius: 30,
+                        backgroundColor: Colors.transparent,
+                        backgroundImage:
+                        AssetImage('assets/image/not_profile.png'),
+                      ),
+                const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -218,7 +209,7 @@ class _ActivityCardState extends State<ActivityCard>
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 _buildStatColumn(
-                    '거리', '${widget.post.distance.toStringAsFixed(2)} km'),
+                    '거리', '${(widget.post.distance).toStringAsFixed(2)} km'),
                 const SizedBox(width: 20),
                 _buildStatColumn('평균 속력',
                     '${widget.post.speed.toStringAsFixed(2)} km/h'),

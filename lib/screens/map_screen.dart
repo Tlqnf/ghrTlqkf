@@ -30,7 +30,6 @@ class _MapScreenState extends State<MapScreen> {
   bool _isMapVisible = true; // 맵 표시
   bool _isLoading = true; // 데이터 로딩
   bool _isMapReady = false; // Variable to control map loading
-  NMarker? _currentMarker; // 사용자 위치 마커
 
   // Recording State
   bool _isRecording = false;
@@ -299,7 +298,14 @@ class _MapScreenState extends State<MapScreen> {
     if (fullRoute.isNotEmpty && _mapController != null) {
       final bounds = NLatLngBounds.from(fullRoute);
       final cameraUpdate = NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(40));
-      cameraUpdate.setAnimation(animation: NCameraAnimation.none);
+      // 경로 길이에 따라 duration 계산 (예: 0.5초 ~ 3초 사이)
+      final double distanceMeters = _calculateRouteDistance(fullRoute);
+      int durationMs = (distanceMeters / 500).clamp(500, 3000).toInt();
+
+      cameraUpdate.setAnimation(
+        animation: NCameraAnimation.linear,
+        duration: Duration(milliseconds: durationMs),
+      );
 
       await _mapController!.updateCamera(cameraUpdate);
     } else {
@@ -316,10 +322,10 @@ class _MapScreenState extends State<MapScreen> {
     final reportId = await ReportApi.createReport(
       ReportCreate(
         routeId: _currentRouteId!,
-        healthTime: timeToIntMinute(_elapsedTime),
-        distance: _distance,
-        averageSpeed: _avgSpeed,
-        highestSpeed: _maxSpeed,
+        healthTime: timeToInt(_elapsedTime), // seconds
+        distance: _distance / 1000, // km
+        averageSpeed: _avgSpeed, // km/h
+        highestSpeed: _maxSpeed, // km/h
       ),
       token!
     );
@@ -528,5 +534,13 @@ class _MapScreenState extends State<MapScreen> {
         ],
       ),
     );
+  }
+
+  double _calculateRouteDistance(List<NLatLng> points) {
+    double total = 0.0;
+    for (int i = 0; i < points.length - 1; i++) {
+      total += points[i].distanceTo(points[i + 1]); // NLatLng 확장 메서드로 가능
+    }
+    return total;
   }
 }

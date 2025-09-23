@@ -27,13 +27,6 @@ class PostList extends StatefulWidget {
 class _PostListState extends State<PostList> {
   String _formatDistance(double km) => '${km.toStringAsFixed(2)} km';
 
-  String _formatTime(int h, int m) {
-    final String hours = h.toString().padLeft(2, '0');
-    final String minutes = m.toString().padLeft(2, '0');
-    const String seconds = '00'; // Assuming seconds are always 00 as not provided
-    return '$hours:$minutes:$seconds';
-  }
-
   String _formatDate(String raw) {
     final parsed = DateTime.parse(raw).toLocal();
     return DateFormat('yyyy.MM.dd').format(parsed);
@@ -58,14 +51,13 @@ class _PostListState extends State<PostList> {
           final c = items[index];
 
           final distance = _formatDistance(c.distance);
-          final time = _formatTime(c.timeHour, c.timeMinute);
           final date = _formatDate(c.createdAt);
           final imageUrl = c.mapImageUrl;
 
           return PostCard(
             routeName: c.title,
             distance: distance,
-            time: time,
+            time: c.time,
             date: date,
             imageUrl: imageUrl,
             onTap: widget.onItemTap != null ? () => widget.onItemTap!(c) : null, // Pass tap event
@@ -113,7 +105,7 @@ class _PostListState extends State<PostList> {
             final c = items[index];
 
             final distance = _formatDistance(c.distance);
-            final time = _formatTime(c.timeHour, c.timeMinute);
+            final time = c.time;
             final date = _formatDate(c.createdAt);
             final imageUrl = c.mapImageUrl;
 

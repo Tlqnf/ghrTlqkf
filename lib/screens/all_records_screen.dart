@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:pedal/widgets/my/post_list.dart'; // New import
-import 'package:pedal/mock/mock_card_summaries.dart'; // New import
-import 'package:pedal/models/card.dart'; // New import
-import 'package:pedal/screens/report_detail_screen.dart'; // New import
-import 'package:pedal/screens/post_form_screen.dart'; // Used in PostList callbacks
+import 'package:pedal/api/user_api.dart';
+import 'package:pedal/models/card.dart';
+import 'package:pedal/providers/auth_provider.dart';
+import 'package:pedal/screens/post_form_screen.dart';
+import 'package:pedal/screens/report_detail_screen.dart';
+import 'package:pedal/widgets/my/post_list.dart';
+import 'package:provider/provider.dart';
 
-class AllRecordsScreen extends StatelessWidget {
+class AllRecordsScreen extends StatefulWidget {
   final bool bookmarked;
   final String title;
 
@@ -16,64 +18,140 @@ class AllRecordsScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final List<CardSummary> data = bookmarked ? mockBookmarkedRoutes : mockMyRecords;
+  State<AllRecordsScreen> createState() => _AllRecordsScreenState();
+}
 
+class _AllRecordsScreenState extends State<AllRecordsScreen> {
+  final List<CardSummary> _records = [];
+  int _page = 1;
+  bool _isLoading = false;
+  bool _hasMore = true;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRecords();
+    _scrollController.addListener(() {
+      if (!_isLoading &&
+          _scrollController.position.pixels >=
+              _scrollController.position.maxScrollExtent - 200 &&
+          _hasMore) {
+        _fetchRecords();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchRecords() async {
+    if (_isLoading || !_hasMore) return;
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final List<CardSummary> newRecords = widget.bookmarked
+          ? await UserApi.getBookmarks(authProvider.token!, _page)
+          : await UserApi.getPosts(authProvider.token!, _page);
+
+      setState(() {
+        if (newRecords.isNotEmpty) {
+          _records.addAll(newRecords);
+          _page++;
+        } else {
+          _hasMore = false;
+        }
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      // Optional: Show an error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load records: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text(widget.title),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        flexibleSpace: Container(color: Theme.of(context).colorScheme.surface),
       ),
-      body: Column(
+      body: _records.isEmpty && _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                const Spacer(),
                 OutlinedButton(
                   onPressed: () {
                     // Handle sorting by latest
                   },
                   child: const Text('최신순'),
                 ),
+                const Spacer(),
               ],
             ),
           ),
           Expanded(
-            child: PostList(
-              bookmarked: bookmarked,
-              mockData: data,
-              onItemTap: bookmarked ? null : (CardSummary cardSummary) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ReportDetailScreen(
-                      time: '${cardSummary.timeHour.toString().padLeft(2, '0')}:${cardSummary.timeMinute.toString().padLeft(2, '0')}:00',
-                      distance: cardSummary.distance.toStringAsFixed(2),
-                      maxSpeed: '24.7', // Hardcoded for now
-                      avgSpeed: '20.67', // Hardcoded for now
-                    ),
+            child: ListView(
+              controller: _scrollController,
+              children: [
+                PostList(
+                  bookmarked: widget.bookmarked,
+                  mockData: _records,
+                  onItemTap: widget.bookmarked
+                      ? null
+                      : (CardSummary cardSummary) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReportDetailScreen(
+                          reportId: cardSummary.reportId,
+                        ),
+                      ),
+                    );
+                  },
+                  onItemEdit: widget.bookmarked
+                      ? null
+                      : (CardSummary cardSummary) {
+                    // Only allow edit for non-bookmarked (my records)
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PostFormScreen(
+                          postId: cardSummary.id,
+                          initialDistance: cardSummary.distance
+                              .toStringAsFixed(2),
+                          initialTime: cardSummary.time,
+                          mapImagePath: cardSummary.mapImageUrl,
+                          routeName: cardSummary.title,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                if (_isLoading && _records.isNotEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Center(child: CircularProgressIndicator()),
                   ),
-                );
-              },
-              onItemEdit: bookmarked ? null : (CardSummary cardSummary) { // Only allow edit for non-bookmarked (my records)
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PostFormScreen(
-                      postId: cardSummary.id,
-                      initialDistance: cardSummary.distance.toStringAsFixed(2),
-                      initialTime: '${cardSummary.timeHour.toString().padLeft(2, '0')}:${cardSummary.timeMinute.toString().padLeft(2, '0')}:00',
-                      mapImagePath: cardSummary.mapImageUrl,
-                      routeName: cardSummary.title,
-                    ),
-                  ),
-                );
-              },
+              ],
             ),
           ),
         ],

@@ -40,7 +40,6 @@ class RouteApi {
     if (response.statusCode == 200) {
       return ;
     } else {
-      debugPrint("$routeId");
       throw Exception('Failed to update route: ${response.body}');
     }
   }

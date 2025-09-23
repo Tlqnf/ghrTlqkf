@@ -5,12 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/analyze.dart';
-import 'package:pedal/models/post.dart';
 import 'package:pedal/models/user.dart';
 import 'package:pedal/models/card.dart';
 import 'package:image_picker/image_picker.dart';
-
-// Mock data import
 
 class UserApi {
   // get - users/me
@@ -86,7 +83,7 @@ class UserApi {
   }
 
   // get - users/mention/check
-  // 유저 멘션 여부 todo
+  // 유저 멘션 여부 (완)
   static Future<bool?> checkUserMention(String user, String token) async {
     final response = await http.get(
       Uri.parse("${ApiConfig.baseUrl}/users/mention/check?user=$user"),
@@ -206,7 +203,7 @@ class UserApi {
 
   // get - post/me/posts?page={}
   // 유저가 작성한 모든 게시글 반환 (완)
-  static Future<List<Post>> getPosts(String token, int page) async {
+  static Future<List<CardSummary>> getPosts(String token, int page) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post/me/posts?page=$page&page_size=10'),
       headers: {
@@ -221,7 +218,7 @@ class UserApi {
       // 응답이 List<Map<String, dynamic>> 형태라고 가정
       if (decoded is List) {
         return decoded
-            .map((e) => Post.fromJson(e as Map<String, dynamic>))
+            .map((e) => CardSummary.fromJson(e as Map<String, dynamic>))
             .toList();
       } else {
         throw Exception('Unexpected response format (not a List)');

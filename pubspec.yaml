@@ -43,6 +43,7 @@ dependencies:
   firebase_core: ^4.1.0
   firebase_messaging: ^16.0.1
   flutter_local_notifications: ^19.4.2
+  path: ^1.9.1
 
   flutter_naver_map: ^1.4.1+1
   flutter_dotenv: ^6.0.0

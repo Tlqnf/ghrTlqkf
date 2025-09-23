@@ -71,31 +71,28 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                       backgroundColor: Colors.transparent,
                       child: CircularProgressIndicator(),
                     )
-                  : _user?.profilePic != null && _user!.profilePic!.isNotEmpty
-                  ? Container(
-                      width: 80, // 전체 크기
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.grey, // 테두리 색
-                          width: 3,           // 테두리 두께
-                        ),
-                      ),
-                      child: CircleAvatar(
-                        radius: 37, // Container보다 border 두께만큼 작게
-                        backgroundColor: Colors.transparent,
-                        backgroundImage: _user?.profilePic != null
-                            ? NetworkImage(_user!.profilePic!)
-                            : null,
-                        child: _user?.profilePic == null ? Icon(Icons.person, size: 40) : null,
-                      ),
-                    )
-                  : const CircleAvatar(
+                  : _user!.profilePic != null &&
+                    _user!.profilePic!.isNotEmpty
+                    ? CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.transparent,
-                      backgroundImage: AssetImage('assets/image/not_profile.png'), // Fallback placeholder
-                    ),
+                      child: _user!.profilePic != null
+                        ? ClipOval(
+                            child: Image.network(
+                              _user!.profilePic!,
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : const Icon(Icons.person, size: 30),
+                      )
+                    : const CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.transparent,
+                        backgroundImage:
+                        AssetImage('assets/image/not_profile.png'),
+                      ),
               const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

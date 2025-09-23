@@ -297,7 +297,7 @@ class _CommentItemState extends State<CommentItem> {
 
   void _handleReply() {
     if (token == null) return;
-    final TextEditingController _replyController = TextEditingController();
+    final TextEditingController replyController = TextEditingController();
 
     showModalBottomSheet(
       isScrollControlled: true,
@@ -319,7 +319,7 @@ class _CommentItemState extends State<CommentItem> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    controller: _replyController,
+                    controller: replyController,
                     autofocus: true,
                     decoration: const InputDecoration(
                       hintText: '대댓글을 입력해주세요.',
@@ -330,7 +330,7 @@ class _CommentItemState extends State<CommentItem> {
                 IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: () async {
-                    final content = _replyController.text.trim();
+                    final content = replyController.text.trim();
                     if (content.isEmpty) return;
 
                     try {
@@ -396,7 +396,7 @@ class _CommentItemState extends State<CommentItem> {
 
   void _handleEdit() {
     if (token == null) return;
-    final TextEditingController _editController =
+    final TextEditingController editController =
     TextEditingController(text: widget.comment.content);
 
     showModalBottomSheet(
@@ -426,7 +426,7 @@ class _CommentItemState extends State<CommentItem> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    controller: _editController,
+                    controller: editController,
                     autofocus: true,
                     decoration: const InputDecoration(
                       hintText: '댓글을 수정해주세요.',
@@ -437,7 +437,7 @@ class _CommentItemState extends State<CommentItem> {
                 IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: () async {
-                    final newContent = _editController.text.trim();
+                    final newContent = editController.text.trim();
                     if (newContent.isEmpty) return;
 
                     try {
