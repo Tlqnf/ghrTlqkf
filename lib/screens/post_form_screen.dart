@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 class PostFormScreen extends StatefulWidget {
   final int? postId;
   final int? reportId;
+  final int? routeId;
   final String? initialDistance;
   final String? initialTime;
   final String? initialAvgSpeed;
@@ -27,6 +28,7 @@ class PostFormScreen extends StatefulWidget {
     super.key,
     this.postId,
     this.reportId,
+    this.routeId,
     this.initialDistance,
     this.initialTime,
     this.initialAvgSpeed,
@@ -149,14 +151,12 @@ class _PostFormScreenState extends State<PostFormScreen> {
         }
         setState(() => _isLoading = false);
         return;
+      } else if (widget.routeId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('경로 ID가 없습니다.')),
+        );
+        return;
       }
-
-      final double? distance = double.tryParse(widget.initialDistance ?? '');
-      final double? avgSpeed = double.tryParse(widget.initialAvgSpeed ?? '');
-      List<String>? format = widget.initialTime?.split(":");
-      final double time = double.parse(
-          (int.parse(format![0]) * 3600 + int.parse(format[1]) * 60 + int.parse(format[2])) as String
-      );
 
       final postData = CreatePost(
         title: _isCommunityUploadEnabled
@@ -166,40 +166,41 @@ class _PostFormScreenState extends State<PostFormScreen> {
         hashTag: _tags,
         reportId: widget.reportId,
         public: _isCommunityUploadEnabled,
-        distance: distance,
-        speed: avgSpeed,
-        time: time,
       );
 
-      final List<String> imagePaths = [];
-      if (widget.mapImagePath != null) {
-        imagePaths.add(widget.mapImagePath!);
-      }
-      imagePaths.addAll(_additionalImages.map((xfile) => xfile.path));
+      final String? mapImagePath = widget.mapImagePath;
+      final List<String> additionalImagePaths =
+      _additionalImages.map((xfile) => xfile.path).toList();
 
-      final response = await PostApiService.createPost(
+      await RouteApi.updateRoute(_routeNameController.text,
+        _tags,
+        token,
+        widget.routeId!
+      );
+
+      final isSuccess = await PostApi.createPost(
         postData.toJsonString(),
-        imagePaths,
+        mapImagePath,
+        additionalImagePaths,
         token,
       );
 
-      if (!mounted) return;
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (isSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('성공적으로 저장되었습니다.')),
         );
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-          (Route<dynamic> route) => false,
+              (Route<dynamic> route) => false,
         );
       } else {
-        final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
-        final errorMessage = responseBody['detail'] ?? '저장에 실패했습니다.';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('오류: ${response.statusCode} - $errorMessage')),
+          SnackBar(content: Text('저장에 실패했습니다.')),
         );
       }
+
+      if (!mounted) return;
+
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -214,19 +215,6 @@ class _PostFormScreenState extends State<PostFormScreen> {
     }
   }
 
-  Future<void> _saveRoute() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token;
-
-    if (token == null) return;
-    await RouteApiService.updateRoute(
-      _routeNameController.text,
-      _tags,
-      token,
-      1
-    );
-  }
-
   Future<void> _updatePost() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
@@ -238,7 +226,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
       content: _bodyController.text,
     );
 
-    final response = await PostApiService.updatePost(postData, token);
+    final response = await PostApi.updatePost(postData, token);
 
     if (!mounted) return;
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -262,7 +250,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null || widget.postId == null) return;
-    final response = await PostApiService.deletePost(widget.postId!, token);
+    final response = await PostApi.deletePost(widget.postId!, token);
 
     if (!mounted) return;
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -391,7 +379,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                         _buildStatItem(
                             '평균 속력', widget.initialAvgSpeed ?? '0.0', 'km/h'),
                         _buildStatItem(
-                            '총 시간', widget.initialTime ?? '0시간 00분', ''),
+                            '총 시간', widget.initialTime ?? '00:00:00', ''),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -663,10 +651,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : () {
-                                // 경로로 저장
-                                _saveRoute();
-
-                                // 게시글로 저장
+                                // 라우터 + 경로 한 번에 저장
                                 _savePost();
                               },
                               style: ElevatedButton.styleFrom(

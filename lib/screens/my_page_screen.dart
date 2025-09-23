@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:pedal/config/api_config.dart';
-import 'package:pedal/models/card.dart';
 import 'package:pedal/providers/auth_provider.dart';
-import 'package:pedal/widgets/post/card/post_card.dart';
 import 'package:pedal/screens/all_records_screen.dart';
-import 'package:pedal/api/user_api.dart';
-import 'package:pedal/models/user.dart';
-import 'package:intl/intl.dart';
+import 'package:pedal/screens/payment_screen.dart';
+import 'package:pedal/screens/post_form_screen.dart';
+import 'package:pedal/widgets/my/post_list.dart';
+import 'package:pedal/widgets/my/profile_header.dart';
+import 'package:pedal/widgets/my/section_header.dart';
+import 'package:pedal/mock/mock_card_summaries.dart';
 import 'package:provider/provider.dart';
+import 'package:pedal/screens/report_detail_screen.dart'; // Import the new screen
+import 'package:pedal/models/card.dart'; // Import CardSummary
 
 class MyPageScreen extends StatelessWidget {
   const MyPageScreen({super.key});
@@ -15,325 +17,96 @@ class MyPageScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final token = authProvider.token!;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ProfileHeader(token: token),
-            const SizedBox(height: 16),
-            SectionHeader(title: '내 기록', showMoreButton: true),
-            _RecordListHeader(token: token),
-            const SizedBox(height: 16),
-            SectionHeader(title: '북마크 경로', showMoreButton: true),
-            _RecordListBookHeader(token: token),
-            const SizedBox(height: 80), // Space for bottom navigation
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ProfileHeader extends StatefulWidget {
-  final String token;
-  const ProfileHeader({super.key, required this.token});
-
-  @override
-  State<ProfileHeader> createState() => _ProfileHeaderState();
-}
-
-class _ProfileHeaderState extends State<ProfileHeader> {
-  User? _user;
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserData();
-  }
-
-  Future<void> _fetchUserData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-    try {
-      final user = await UserApiService.fetchUserProfile(widget.token);
-      debugPrint('Fetched user: $user');
-      setState(() {
-        _user = user;
-      });
-    } catch (e, s) {
-      debugPrint('Error fetching user profile: $e');
-      debugPrint('Stack trace: $s');
-      setState(() {
-        _error = e.toString();
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          Row(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _isLoading
-                  ? const CircleAvatar(
-                radius: 30,
-                child: CircularProgressIndicator(), // Loading indicator
-              )
-                  : _user?.profilePic != null && _user!.profilePic!.isNotEmpty
-                  ? CircleAvatar(
-                radius: 30,
-                backgroundImage: NetworkImage(ApiConfig.baseUrl + _user!.profilePic!),
-              )
-                  : const CircleAvatar(
-                radius: 30,
-                backgroundImage: AssetImage('assets/image/google.png'), // Fallback placeholder
+              ProfileHeader(
+                token: authProvider.token!,
+                onRemoveAdsTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PaymentScreen()),
+                  );
+                },
               ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _isLoading
-                      ? const Text(
-                    'Loading...',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  )
-                      : Text(
-                    _user?.username ?? 'Guest',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  _isLoading
-                      ? const Text(
-                    'Loading...',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  )
-                      : Text(
-                    _user?.profileDescription ?? 'No description',
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  if (_error != null)
-                    Text(
-                      'Error: $_error',
-                      style: const TextStyle(fontSize: 12, color: Colors.red),
+              const SizedBox(height: 16),
+              SectionHeader(
+                title: '내 기록',
+                showMoreButton: true,
+                onMoreTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AllRecordsScreen(
+                        bookmarked: false,
+                        title: '내 전체 기록',
+                      ),
                     ),
-                ],
+                  );
+                },
               ),
+              PostList(
+                bookmarked: false,
+                mockData: mockMyRecords,
+                onItemTap: (CardSummary cardSummary) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReportDetailScreen(
+                        time: '${cardSummary.timeHour.toString().padLeft(2, '0')}:${cardSummary.timeMinute.toString().padLeft(2, '0')}:00', // Assuming seconds are 00
+                        distance: cardSummary.distance.toStringAsFixed(2),
+                        maxSpeed: '24.7', // Hardcoded for now, as it's not in CardSummary
+                        avgSpeed: '20.67', // Hardcoded for now, as it's not in CardSummary
+                      ),
+                    ),
+                  );
+                },
+                onItemEdit: (CardSummary cardSummary) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PostFormScreen(
+                        postId: cardSummary.id,
+                        reportId: cardSummary.id, // Assuming reportId is the same as postId for now
+                        initialDistance: cardSummary.distance.toStringAsFixed(2),
+                        initialTime: '${cardSummary.timeHour.toString().padLeft(2, '0')}:${cardSummary.timeMinute.toString().padLeft(2, '0')}:00',
+                        mapImagePath: cardSummary.mapImageUrl,
+                        routeName: cardSummary.title,
+                        // tagList, title, content, imgUrls are not in CardSummary, so pass null
+                      ),
+                    ),
+                  );
+                },
+              ), // Pass mock records
+              const SizedBox(height: 16),
+              SectionHeader(
+                title: '북마크 경로',
+                showMoreButton: true,
+                onMoreTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AllRecordsScreen(
+                        bookmarked: true,
+                        title: '북마크된 경로',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              PostList(
+                bookmarked: true,
+                mockData: mockBookmarkedRoutes,
+                onItemTap: null,
+              ), // Pass mock bookmarked routes
             ],
           ),
-          const Spacer(),
-          OutlinedButton(
-            onPressed: () {
-              UserApiService.logoutUserProfile(widget.token);
-            },
-            child: const Text('로그아웃'),
-          ),
-        ],
+        ),
       ),
-    );
-  }
-}
-
-class SectionHeader extends StatelessWidget {
-  final String title;
-  final bool showMoreButton;
-
-  const SectionHeader({super.key,
-    required this.title,
-    this.showMoreButton = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          if (showMoreButton)
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AllRecordsScreen()));
-              },
-              child: const Text('더보기'),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecordListHeader extends StatefulWidget {
-  final String token;
-  const _RecordListHeader({required this.token});
-
-  @override
-  State<_RecordListHeader> createState() => _RecordListHeaderState();
-}
-
-class _RecordListHeaderState extends State<_RecordListHeader> {
-  String _formatDistance(double km) => '${km.toStringAsFixed(2)} km';
-
-  String _formatTime(int h, int m) {
-    if (h > 0) return '$h시간 ${m.toString().padLeft(2, '0')}분';
-    return '$m분';
-  }
-
-  String _formatDate(String raw) {
-    final parsed = DateTime.parse(raw).toLocal();
-    return DateFormat('yyyy.MM.dd').format(parsed);
-  }
-
-  String _formatImage(String image) {
-    final finalUrl = ApiConfig.baseUrl + image;
-    return finalUrl;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-
-    return FutureBuilder<List<CardSummary>>(
-      future: UserApiService.getRecentPosts(widget.token), // ← 서버 호출
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (snap.hasError) {
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text('불러오기 실패: ${snap.error}'),
-          );
-        }
-
-        final items = snap.data ?? [];
-        if (items.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('최근 기록이 없습니다.'),
-          );
-        }
-
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: items.length, // ← 서버에서 온 개수만큼
-          itemBuilder: (context, index) {
-            final c = items[index];
-
-            final distance = _formatDistance(c.distance);
-            final time = _formatTime(c.timeHour, c.timeMinute);
-            final date     = _formatDate(c.createdAt);
-            final imageUrl = _formatImage(c.mapImageUrl);
-
-            return PostCard(
-              routeName: c.title,       // 서버의 title을 경로명으로 사용(필요시 변경)
-              distance: distance,
-              time: time,
-              date: date,
-              imageUrl: imageUrl,    // 위젯이 image_url(String) 받는다면 그대로
-              // imageUrl로 받는 위젯이면 키 이름만 바꿔주면 됩니다.
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class _RecordListBookHeader extends StatefulWidget {
-  final String token;
-  const _RecordListBookHeader({required this.token});
-
-  @override
-  State<_RecordListBookHeader> createState() => _RecordListBookHeaderState();
-}
-
-class _RecordListBookHeaderState extends State<_RecordListBookHeader> {
-  String _formatDistance(double km) => '${km.toStringAsFixed(2)} km';
-
-  String _formatTime(int h, int m) {
-    if (h > 0) return '$h시간 ${m.toString().padLeft(2, '0')}분';
-    return '$m분';
-  }
-
-  String _formatDate(String raw) {
-    final parsed = DateTime.parse(raw).toLocal();
-    return DateFormat('yyyy.MM.dd').format(parsed);
-  }
-
-  String _formatImage(String image) {
-    final finalUrl = ApiConfig.baseUrl + image;
-    return finalUrl;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<CardSummary>>(
-      future: UserApiService.getRecentBookmarks(widget.token), // ← 서버 호출
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (snap.hasError) {
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text('불러오기 실패: ${snap.error}'),
-          );
-        }
-
-        final items = snap.data ?? [];
-        if (items.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('최근 기록이 없습니다.'),
-          );
-        }
-
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: items.length, // ← 서버에서 온 개수만큼
-          itemBuilder: (context, index) {
-            final c = items[index];
-
-            final distance = _formatDistance(c.distance);
-            final time = _formatTime(c.timeHour, c.timeMinute);
-            final date     = _formatDate(c.createdAt);
-            final imageUrl = _formatImage(c.mapImageUrl);
-
-            return PostCard(
-              routeName: c.title,       // 서버의 title을 경로명으로 사용(필요시 변경)
-              distance: distance,
-              time: time,
-              date: date,
-              imageUrl: imageUrl,    // 위젯이 image_url(String) 받는다면 그대로
-              // imageUrl로 받는 위젯이면 키 이름만 바꿔주면 됩니다.
-            );
-          },
-        );
-      },
     );
   }
 }

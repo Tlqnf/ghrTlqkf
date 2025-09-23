@@ -1,12 +1,15 @@
-// lib/widgets/activity_feed.dart
 import 'package:flutter/material.dart';
-import 'package:pedal/models/post.dart';
 import 'package:pedal/api/user_api.dart';
-import '../post/card/activity_card.dart';
+import 'package:pedal/models/post.dart';
+import 'package:pedal/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
+
+import 'card/activity_card.dart';
 
 class ActivityFeed extends StatefulWidget {
-  final String token;
-  const ActivityFeed({super.key, required this.token});
+  final bool bookmarked;
+
+  const ActivityFeed({super.key, required this.bookmarked});
 
   @override
   State<ActivityFeed> createState() => _ActivityFeedState();
@@ -17,17 +20,22 @@ class _ActivityFeedState extends State<ActivityFeed> {
   final List<Post> _posts = [];
   bool _isLoading = false;
   bool _hasMore = true; // 다음 페이지 존재 여부
-  int _page = 1;        // 1부터 시작
+  int _page = 1; // 1부터 시작
 
   @override
   void initState() {
     super.initState();
-    _loadNext(); // 첫 페이지 로드
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadNext(); // 첫 페이지 로드
+      }
+    });
     _scroll.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    _scroll.removeListener(_onScroll);
     _scroll.dispose();
     super.dispose();
   }
@@ -35,8 +43,7 @@ class _ActivityFeedState extends State<ActivityFeed> {
   void _onScroll() {
     if (!_scroll.hasClients || _isLoading || !_hasMore) return;
     const threshold = 300.0; // 끝에서 300px 남으면 다음 로드
-    if (_scroll.position.pixels >=
-        _scroll.position.maxScrollExtent - threshold) {
+    if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - threshold) {
       _loadNext();
     }
   }
@@ -45,19 +52,35 @@ class _ActivityFeedState extends State<ActivityFeed> {
     if (_isLoading) return;
     setState(() => _isLoading = true);
 
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+
+    if (token == null) {
+      setState(() {
+        _isLoading = false;
+        _hasMore = false;
+      });
+      return;
+    }
+
     try {
       final nextPage = refresh ? 1 : _page;
-      final fetched =
-      await UserApiService.getPosts(widget.token, nextPage);
+
+      // `post_list.dart`의 로직에 따라, bookmarked 값으로 API를 선택합니다.
+      // bookmarked: true => 사용자 게시물, false => 북마크 (post_list.dart 기준)
+      // 북마크를 위한 페이지네이션 API로 `UserApi.getBookmarks`를 가정합니다.
+      final fetched = widget.bookmarked
+          ? await UserApi.getPosts(token, nextPage)
+          : await UserApi.getBookmarks(token, nextPage);
 
       setState(() {
         if (refresh) {
           _posts
             ..clear()
-            ..addAll(fetched);
+            ..addAll(fetched as Iterable<Post>);
           _page = 2;
         } else {
-          _posts.addAll(fetched);
+          _posts.addAll(fetched as Iterable<Post>);
           _page += 1;
         }
         _hasMore = fetched.length == 10; // 10개 미만이면 마지막 페이지로 판단
@@ -79,6 +102,23 @@ class _ActivityFeedState extends State<ActivityFeed> {
   Widget build(BuildContext context) {
     if (_posts.isEmpty && _isLoading) {
       return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_posts.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _refresh,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: const Center(child: Text('게시글이 없습니다.')),
+              ),
+            );
+          },
+        ),
+      );
     }
 
     return RefreshIndicator(

@@ -6,10 +6,17 @@ class Post {
   final String content;
   final int likeCount;
   final int readCount;
+  final int commentCount;
   final int userId;
+  final int reportId;
   final DateTime createdAt;
   final List<String> images;
+  final List<String> hashTag;
+  final bool public;
   final String mapImageUrl;
+  final double speed;
+  final double distance;
+  final String time;
 
   Post({
     required this.id,
@@ -17,10 +24,17 @@ class Post {
     required this.content,
     required this.likeCount,
     required this.readCount,
+    required this.commentCount,
     required this.userId,
+    required this.reportId,
     required this.createdAt,
     required this.images,
+    required this.hashTag,
+    required this.public,
     required this.mapImageUrl,
+    required this.speed,
+    required this.distance,
+    required this.time,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -35,10 +49,17 @@ class Post {
       content: json['content'] ?? '',
       likeCount: json['like_count'] ?? 0,
       readCount: json['read_count'] ?? 0,
+      commentCount: json['comment_count'] ?? 0,
       userId: json['user_id'] ?? 0,
+      reportId: json['report_id'] ?? 0,
       createdAt: DateTime.tryParse(json['created_at'] ?? '')?.toLocal() ?? DateTime.now(),
       images: imgs,
+      hashTag: List<String>.from(json['hash_tag'] ?? []),
+      public: json['public'] ?? false,
       mapImageUrl: json['map_image_url'] ?? '',
+      speed: (json['speed'] as num?)?.toDouble() ?? 0.0,
+      distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+      time: json['time'] ?? '',
     );
   }
 }
@@ -49,9 +70,6 @@ class CreatePost {
   final int? reportId;
   final List<String> hashTag;
   final bool public;
-  final double? speed;
-  final double? distance;
-  final double? time; // in seconds
 
   CreatePost({
     required this.title,
@@ -59,9 +77,6 @@ class CreatePost {
     this.reportId,
     required this.hashTag,
     required this.public,
-    this.speed,
-    this.distance,
-    this.time,
   });
 
   Map<String, dynamic> toJson() {
@@ -73,9 +88,6 @@ class CreatePost {
     };
     // Add optional fields only if they are not null
     if (reportId != null) data['report_id'] = reportId;
-    if (speed != null) data['speed'] = speed;
-    if (distance != null) data['distance'] = distance;
-    if (time != null) data['time'] = time;
     return data;
   }
 

@@ -52,7 +52,7 @@ class Comment {
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
-      commentId: json["comment_id"] as int,
+      commentId: json["id"] as int,
       content: json["content"] as String,
       userId: json["user_id"] as int,
       postId: json["post_id"] as int,
@@ -63,42 +63,46 @@ class Comment {
 }
 
 class Reply {
-  final int id;
-  final int userId;
-  final String content;
-  final int likeCount;
-  final int postId;
-  final int parentId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final String username;
-  final String profilePic;
+  final int? id;
+  final int? userId;
+  final String? content;
+  final int? likeCount;
+  final int? postId;
+  final int? parentId;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final String? username;
+  final String? profilePic;
 
   Reply({
-    required this.id,
-    required this.userId,
-    required this.content,
-    required this.likeCount,
-    required this.postId,
-    required this.parentId,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.username,
-    required this.profilePic,
+    this.id,
+    this.userId,
+    this.content,
+    this.likeCount,
+    this.postId,
+    this.parentId,
+    this.createdAt,
+    this.updatedAt,
+    this.username,
+    this.profilePic,
   });
 
   factory Reply.fromJson(Map<String, dynamic> json) {
     return Reply(
-      id: json['id'] as int,
-      userId: json['user_id'] as int,
-      content: json['content'] as String,
-      likeCount: json['like_count'] as int,
-      postId: json['post_id'] as int,
-      parentId: json['parent_id'] as int,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      username: json['username'] as String,
-      profilePic: json['profile_pic'] as String,
+      id: json['id'] as int?,
+      userId: json['user_id'] as int?,
+      content: json['content'] as String?,
+      likeCount: json['like_count'] as int?,
+      postId: json['post_id'] as int?,
+      parentId: json['parent_id'] as int?,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'] as String)
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'] as String)
+          : null,
+      username: json['username'] as String?,
+      profilePic: json['profile_pic'] as String?,
     );
   }
 }

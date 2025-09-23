@@ -16,20 +16,33 @@ class ReportCreate {
 
   ReportCreate({
     required this.routeId,
-    this.healthTime,
-    this.halfTime,
-    this.distance,
-    this.kcal,
-    this.averageSpeed,
-    this.highestSpeed,
-    this.averageFace,
-    this.highestFace,
-    this.cumulativeHigh,
-    this.highestHigh,
-    this.lowestHigh,
-    this.increaseSlope,
-    this.decreaseSlope,
-  });
+    int? healthTime,
+    int? halfTime,
+    double? distance,
+    int? kcal,
+    double? averageSpeed,
+    double? highestSpeed,
+    double? averageFace,
+    double? highestFace,
+    int? cumulativeHigh,
+    int? highestHigh,
+    int? lowestHigh,
+    double? increaseSlope,
+    double? decreaseSlope,
+  })  : healthTime = healthTime ?? 0,
+        halfTime = halfTime ?? 0,
+        distance = distance ?? 0.0,
+        kcal = kcal ?? 0,
+        averageSpeed = averageSpeed ?? 0.0,
+        highestSpeed = highestSpeed ?? 0.0,
+        averageFace = averageFace ?? 0.0,
+        highestFace = highestFace ?? 0.0,
+        cumulativeHigh = cumulativeHigh ?? 0,
+        highestHigh = highestHigh ?? 0,
+        lowestHigh = lowestHigh ?? 0,
+        increaseSlope = increaseSlope ?? 0.0,
+        decreaseSlope = decreaseSlope ?? 0.0;
+
 
   factory ReportCreate.fromJson(Map<String, dynamic> json) {
     return ReportCreate(

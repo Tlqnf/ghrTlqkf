@@ -34,8 +34,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
-      HomePage(),
-      MyPageScreen(),
+      const HomePage(),
+      const MyPageScreen(),
     ];
 
     return Scaffold(
@@ -46,8 +46,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         onTap: _onItemTapped,
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.red,
         onPressed: _onMapButtonPressed,
-        child: const Icon(Icons.map),
+        child: const Icon(Icons.map, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );

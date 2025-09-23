@@ -1,18 +1,17 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:pedal/config/api_config.dart';
+import 'package:pedal/api/report_api.dart';
+import 'package:pedal/api/route_api.dart';
+import 'package:pedal/models/report.dart';
 import 'package:pedal/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:pedal/screens/post_form_screen.dart';
-import 'package:pedal/services/socket_service.dart';
 import 'package:pedal/utils/time_formatter.dart';
 import 'package:pedal/widgets/map/modal/navigation_list_modal.dart';
 import 'package:pedal/widgets/map/overlay/pre_recording_overlay.dart';
 import 'package:pedal/widgets/map/overlay/recording_overlay.dart';
-import 'package:provider/provider.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -22,21 +21,16 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  // Map and Location State
-  NLatLng? _currentLocation;
-  StreamSubscription<Position>? _positionStreamSubscription;
-  bool _isLoading = true;
-  NaverMapController? _mapController;
-  List<List<NLatLng>> _routeChunks = [[]];
+  NLatLng? _currentLocation; // 최근 경로
+  NaverMapController? _mapController;//네이버 지도 컨트롤러
+  StreamSubscription<Position>? _positionStreamSubscription; // 이벤트 구독
   final int _chunkSize = 25; // 경로 생성 조작
-  bool _isFollowingUser = true;
-  bool _isMapVisible = true;
+  List<List<NLatLng>> _routeChunks = [[]]; // route 저장
+  bool _isFollowingUser = true; // 유저 표시
+  bool _isMapVisible = true; // 맵 표시
+  bool _isLoading = true; // 데이터 로딩
   bool _isMapReady = false; // Variable to control map loading
-
-  // Socket State
-  SocketService? _socketService;
-  StreamSubscription<dynamic>? _socketStreamSubscription;
-  bool _isSocketConnected = false;
+  NMarker? _currentMarker; // 사용자 위치 마커
 
   // Recording State
   bool _isRecording = false;
@@ -49,13 +43,16 @@ class _MapScreenState extends State<MapScreen> {
   double _currentSpeed = 0.0; // in km/h
   double _maxSpeed = 0.0; // in km/h
 
+  // Save Route
+  int? _currentRouteId;
+
   @override
   void initState() {
     super.initState();
     _initializeLocationStream();
 
     // Delay map loading to prevent transition animation conflicts
-    Future.delayed(const Duration(milliseconds: 400), () {
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         setState(() {
           _isMapReady = true;
@@ -67,42 +64,12 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
-    _socketStreamSubscription?.cancel();
-    _socketService?.disconnect();
     _timer?.cancel();
     _mapController?.dispose();
     super.dispose();
   }
 
-  void _initializeSocket(String token) {
-    _socketStreamSubscription?.cancel();
-    String socketUrl = '${ApiConfig.socketUrl}/ws/record-route?token=$token';
-    _socketService = SocketService(url: socketUrl);
-    _socketStreamSubscription = _socketService!.stream.listen((data) {
-      if (mounted && _isSocketConnected) {
-        try {
-          debugPrint('Socket received data: $data');
-          final decoded = jsonDecode(data);
-          if (decoded is Map &&
-              decoded.containsKey('lat') &&
-              decoded.containsKey('lon')) {
-            final calibratedPoint = NLatLng(decoded['lat'], decoded['lon']);
-            if (_isRecording && !_isPaused) {
-              _addPointToRoute(calibratedPoint);
-            }
-          }
-        } catch (e) {
-          debugPrint("Error processing socket message: $e");
-        }
-      }
-    }, onError: (error) {
-      debugPrint("Socket stream error: $error");
-      setState(() {
-        _isSocketConnected = false;
-      });
-    });
-  }
-
+  // 사용자 위치 정보 불러오기 (권한 허용)
   Future<void> _initializeLocationStream() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -127,101 +94,94 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
-    // 첫 화면 로딩 속도 증가 -> 마지막 기록 GPS
-    Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
-    if (lastKnownPosition != null && mounted) {
-      setState(() {
-        _currentLocation =
-            NLatLng(lastKnownPosition.latitude, lastKnownPosition.longitude);
-        _isLoading = false;
-      });
-    }
-
-    // 백그라운드에서 최신 위치 정보 수집
+    // 사용자의 최신 위치 가져오기
     Position? currentPosition = await Geolocator.getCurrentPosition();
-    setState(() {
-      _currentLocation = NLatLng(currentPosition.latitude, currentPosition.longitude);
-    });
+    if (!mounted) return;
+    _currentLocation = NLatLng(currentPosition.latitude, currentPosition.longitude);
 
+    // 실시간 위치 스트림 시작하기
     _startLocationStream();
   }
 
   void _startLocationStream() {
     const locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.medium,
+      accuracy: LocationAccuracy.best,
+      distanceFilter: 10, // 10m 마다 GPS 가져오기
     );
 
+    // 위치 스트림 구독
     _positionStreamSubscription =
-      Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-            (Position position) async {
-          if (!mounted) return;
+        Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+              (Position position) async {
+            if (!mounted) return;
+            final newPoint = NLatLng(position.latitude, position.longitude);
 
-          final newPoint = NLatLng(position.latitude, position.longitude);
-          final currentSpeedKmh = position.speed * 3.6;
+            // 현재 속도 (m/s → km/h)
+            final currentSpeedKmh =
+            (position.speed >= 0 && position.speed < 150) ? position.speed * 3.6 : 0.0;
 
-          // Update marker on the map
-          final marker = NMarker(
-            id: 'current_location',
-            position: newPoint,
-            icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
-            size: const Size(15, 15),
-            anchor: const NPoint(0.5, 0.5),
-          );
-          _mapController?.addOverlay(marker);
+            // 내 위치 마커 업데이트
+            final marker = NMarker(
+              id: 'current_location',
+              position: newPoint,
+              icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
+              size: const Size(15, 15),
+              anchor: const NPoint(0.5, 0.5),
+            );
+            _mapController?.addOverlay(marker);
 
-          if (_isRecording && !_isPaused) {
-            final lastPoint = _currentLocation;
-            _currentLocation = newPoint;
-            if (lastPoint != null) {
-              _distance += Geolocator.distanceBetween(
-                lastPoint.latitude,
-                lastPoint.longitude,
-                newPoint.latitude,
-                newPoint.longitude,
-              );
-            }
+            // 이동 기록 및 속도 계산
+            if (_isRecording && !_isPaused) {
+              final lastPoint = _currentLocation;
 
-            final elapsedSec = _stopwatch.elapsed.inSeconds;
-            if (_distance > 0 && elapsedSec > 0) {
-              _avgSpeed = (_distance / elapsedSec) * 3.6;
-            }
+              // 이동 거리 계산, 이상치 필터링 (100m 이상 무시)
+              if (lastPoint != null) {
+                final distance = Geolocator.distanceBetween(
+                  lastPoint.latitude,
+                  lastPoint.longitude,
+                  newPoint.latitude,
+                  newPoint.longitude,
+                );
+                if (distance >= 0 && distance < 100) {
+                  _distance += distance;
+                }
+              }
 
-            if (currentSpeedKmh > _maxSpeed) _maxSpeed = currentSpeedKmh;
+              _currentLocation = newPoint;
 
-            if (_isSocketConnected) {
-              final locationData = {
-                'lat': position.latitude,
-                'lon': position.longitude,
-              };
-              final message = jsonEncode(locationData);
-              _socketService!.sendMessage(message);
-              debugPrint('Socket sent data: $message');
-            } else {
-              // Offline mode: draw route directly from GPS
+              // 평균 속도 계산
+              final elapsedSec = _stopwatch.elapsed.inSeconds;
+              if (_distance > 0 && elapsedSec > 0) {
+                _avgSpeed = (_distance / elapsedSec) * 3.6;
+              }
+
+              // 최고 속도 업데이트
+              if (currentSpeedKmh > _maxSpeed) _maxSpeed = currentSpeedKmh;
+
+              // Offline mode: 경로 그리기
               _addPointToRoute(newPoint);
             }
-          }
 
-          setState(() {
-            _currentSpeed = currentSpeedKmh;
-            _isLoading = false;
-          });
+            setState(() {
+              _currentSpeed = currentSpeedKmh;
+              _isLoading = false;
+            });
 
-          // Update camera position if following user
-          if (_isFollowingUser && _isMapVisible && _mapController != null) {
-            final cameraUpdate = NCameraUpdate.scrollAndZoomTo(
-              target: newPoint,
-              zoom: await _mapController!.getCameraPosition().then((p) => p.zoom),
-            );
-            _mapController!.updateCamera(cameraUpdate);
-          }
-        },
-        onError: (error) {
-          if (_isLoading) {
-            _showError('Failed to get location: $error');
-          }
-        },
-      );
+            // 카메라 따라가기
+            if (_isFollowingUser && _isMapVisible && _mapController != null) {
+              final cameraUpdate = NCameraUpdate.scrollAndZoomTo(
+                target: newPoint,
+                zoom: await _mapController!.getCameraPosition().then((p) => p.zoom),
+              );
+              _mapController!.updateCamera(cameraUpdate);
+            }
+          },
+          onError: (error) {
+            if (_isLoading) {
+              _showError('Failed to get location: $error');
+            }
+          },
+        );
   }
 
   void _addPointToRoute(NLatLng point) {
@@ -244,9 +204,9 @@ class _MapScreenState extends State<MapScreen> {
           NPathOverlay(
             id: 'route_chunk_$chunkIndex',
             coords: lastChunk,
-            width: 4,
+            width: 6,
             color: Colors.blue,
-            outlineWidth: 1,
+            outlineWidth: 2,
             outlineColor: Colors.white,
           ),
         );
@@ -255,46 +215,31 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _startRecording() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('주행을 기록합니다.')),
+    );
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
 
     if (token == null) {
-      debugPrint("Authentication token not found. Cannot connect to socket.");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('인증 정보가 없습니다. 다시 로그인해주세요.')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('인증 정보가 없습니다. 다시 로그인해주세요.')),
+      );
       return;
     }
 
+    final int newRouteId = await RouteApi.getRouteId(token);
     setState(() {
-      _isSocketConnected = false; // Reset before attempting connection
+      _currentRouteId = newRouteId;
     });
 
-    try {
-      _initializeSocket(token); // Initialize socket service and listener
-      // Assume connected if _initializeSocket doesn't throw immediately.
-      // The onError callback in _initializeSocket will set _isSocketConnected to false if connection fails later.
-      setState(() {
-        _isSocketConnected = true;
-      });
-      debugPrint('Attempting socket connection...');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('소켓을 통해 주행을 기록합니다. (연결 시도 중)')),
-        );
-      }
-    } catch (e) {
-      debugPrint('Socket initialization failed: $e. Falling back to offline mode.');
-      setState(() {
-        _isSocketConnected = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('소켓 연결 실패. 오프라인 모드로 주행을 기록합니다.')),
-        );
-      }
+    if (_currentRouteId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('경로 ID를 가져오지 못했습니다. 다시 시도해주세요.')),
+      );
+      return;
     }
 
     _mapController?.clearOverlays();
@@ -307,6 +252,7 @@ class _MapScreenState extends State<MapScreen> {
         anchor: const NPoint(0.5, 0.5),
       );
       _mapController!.addOverlay(marker);
+
     }
 
     setState(() {
@@ -334,9 +280,8 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _stopRecordingAndNavigate(BuildContext context) async {
+    final token = context.read<AuthProvider>().token;
     if (!_isRecording) return;
-    _socketService?.disconnect();
-    debugPrint('Socket disconnected.');
 
     _isMapVisible = true;
 
@@ -368,13 +313,25 @@ class _MapScreenState extends State<MapScreen> {
     snapshotPath = imageFile.path;
     // --- 스크린샷 로직 끝 ---
 
+    final reportId = await ReportApi.createReport(
+      ReportCreate(
+        routeId: _currentRouteId!,
+        healthTime: timeToIntMinute(_elapsedTime),
+        distance: _distance,
+        averageSpeed: _avgSpeed,
+        highestSpeed: _maxSpeed,
+      ),
+      token!
+    );
+
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => PostFormScreen(
+        reportId: reportId,
+        routeId: _currentRouteId,
         initialDistance: distanceInKm,
         initialTime: elapsedTime,
         initialAvgSpeed: avgSpeed,
         mapImagePath: snapshotPath,
-        reportId: 1,
       ),
     ));
 

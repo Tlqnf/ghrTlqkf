@@ -5,7 +5,7 @@ import 'package:pedal/config/api_config.dart';
 
 class FcmApiService {
   // patch - users/me/fcm-token
-  // 사용자 FCM 토큰을 업데이트
+  // 사용자 FCM 토큰을 업데이트 (완)
   static Future<void> updateUserFcmToken(token, fcmToken) async {
     final fcmResponse = await http.patch(
       Uri.parse('${ApiConfig.baseUrl}/users/me/fcm-token'),

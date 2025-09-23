@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/comment.dart';
 
-class CommentApiService{
+class CommentApi{
   // get - post/{postId}/comments
   // 댓글 리스트 표시
   static Future<List<Comment>> getPostComments(String token, int postId) async {
@@ -17,6 +17,8 @@ class CommentApiService{
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
       return data.map((json) => Comment.fromJson(json)).toList();
+    } else if (response.statusCode == 404){
+      return [];
     } else {
       throw Exception('Failed to load comments for post $postId: ${response.statusCode}');
     }
@@ -35,6 +37,8 @@ class CommentApiService{
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
       return data.map((json) => Reply.fromJson(json)).toList();
+    } else if (response.statusCode == 404){
+      throw Exception("댓글이 없습니다.");
     } else {
       throw Exception('Failed to load replies for comment $commentId: ${response.statusCode}');
     }
@@ -59,19 +63,16 @@ class CommentApiService{
   // patch - post/comments/{commentId}
   // 댓글 수정하기
   static Future<void> updateComment(String token, int commentId, String content, {List<String>? mentions}) async {
-    final url = Uri.parse("${ApiConfig.baseUrl}/post/comments/$commentId");
-    final body = jsonEncode({
-      "content": content,
-      "mentions": mentions ?? [], // body에도 mentions 추가
-    });
-
-    dynamic response = await http.patch(
-      url,
+    final response = await http.patch(
+      Uri.parse("${ApiConfig.baseUrl}/post/comments/$commentId"),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: body,
+      body: jsonEncode({
+        "content": content,
+        "mentions": mentions ?? [], // body에도 mentions 추가
+      }),
     );
 
     if (response.statusCode != 200) {
@@ -81,55 +82,60 @@ class CommentApiService{
 
   // delete - post/comments/{commentId}
   // 댓글 삭제하기
-  static Future<void> deleteComment(String token, int postId, int commentId) async {
+  static Future<void> deleteComment(String token, int commentId) async {
     final res = await http.delete(
       Uri.parse('${ApiConfig.baseUrl}/post/comments/$commentId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'postId': postId,
-        'commentId': commentId,
-      }),
     );
     if (res.statusCode != 200) {
       throw Exception('delete comment failed: ${res.statusCode}');
     }
   }
 
-  // post - post/{commentId}/comment-like
+  // post - post/{commentId}/like
   // (대)댓글 좋아요
-  static Future<void> likeComment(String token, int postId, int commentId) async {
+  static Future<void> likeComment(String token, int commentId) async {
     final res = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/post/comments/$commentId/comment-like'),
+      Uri.parse('${ApiConfig.baseUrl}/post/comments/$commentId/like'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'postId': postId,
-        'commentId': commentId,
-      }),
     );
     if (res.statusCode != 200) {
       throw Exception('like comment failed: ${res.statusCode}');
     }
   }
 
-  // post - post/{commentId}/comment-unlike
-  // (대)댓글 좋아요 취소
-  static Future<void> unlikeComment(String token, int postId, int commentId) async {
-    final res = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/post/comments/$commentId/comment-unlike'),
+  // 댓글 좋아요 체크
+  static Future<bool> checkLikeComment(String token, int commentId) async {
+    final res = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/post/comments/$commentId/is_liked'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'postId': postId,
-        'commentId': commentId,
-      }),
+    );
+
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body)["is_liked"];
+    } else {
+      throw Exception('like comment failed: ${res.statusCode}');
+    }
+  }
+
+  // post - post/{commentId}/unlike
+  // (대)댓글 좋아요 취소
+  static Future<void> unlikeComment(String token, int commentId) async {
+    final res = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/post/comments/$commentId/unlike'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
     );
     if (res.statusCode != 200) {
       throw Exception('unlike comment failed: ${res.statusCode}');

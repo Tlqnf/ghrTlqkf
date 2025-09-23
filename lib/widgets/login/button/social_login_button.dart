@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:pedal/api/oauth_login_auth.dart';
 import 'package:pedal/config/api_config.dart';
+import 'package:pedal/services/google_sign_in_service.dart';
 import 'package:pedal/screens/webview_screen.dart';
 
 class SocialLoginButton extends StatelessWidget {
@@ -16,32 +19,29 @@ class SocialLoginButton extends StatelessWidget {
     required this.onLogin,
   });
 
-  String _getUrlForType(String type) {
-    switch (type) {
-      case 'google':
-        return '${ApiConfig.baseUrl}/oauth/google/login';
-      case 'naver':
-        return '${ApiConfig.baseUrl}/oauth/naver/login';
-      case 'kakao':
-        return '${ApiConfig.baseUrl}/oauth/kakao/login';
-      default:
-        throw Exception('Unknown login type: $type');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () async {
-        final url = _getUrlForType(type);
-        final token = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => WebViewScreen(url: url),
-          ),
-        );
-        if (token != null && token is String) {
-          onLogin(token);
+        switch (type) {
+          case 'google':
+            await _signInWithGoogle();
+            break;
+          case 'naver':
+            final url = '${ApiConfig.baseUrl}/oauth/naver/login';
+            final token = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => WebViewScreen(url: url),
+              ),
+            );
+            if (token != null && token is String) {
+              onLogin(token);
+            }
+            break;
+          case 'kakao':
+            await _signInWithKakao();
+            break;
         }
       },
       style: ElevatedButton.styleFrom(
@@ -55,7 +55,6 @@ class SocialLoginButton extends StatelessWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Image.asset(source, height: 30),
           const SizedBox(width: 10),
@@ -63,5 +62,41 @@ class SocialLoginButton extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // Google 로그인
+  Future<void> _signInWithGoogle() async {
+    try {
+      debugPrint("구글 로그인 시작");
+      final account = await GoogleSignInService().signIn();
+      if (account == null) return; // 사용자가 취소한 경우
+      final auth = account.authentication;
+      final idToken = auth.idToken;
+
+      if (idToken != null) {
+        final token = await OauthLoginApi.sendTokenGoogle(idToken);
+        onLogin(token!);
+      } else {
+        debugPrint("토큰 없음");
+      }
+    } catch (e) {
+      debugPrint('Google 로그인 실패: $e');
+    }
+  }
+
+  // Kakao 로그인
+  Future<void> _signInWithKakao() async {
+    try {
+      OAuthToken token = await UserApi.instance.loginWithKakaoTalk();
+      debugPrint('카카오톡으로 로그인 성공 ${token.accessToken}');
+      final accessToken = await OauthLoginApi.sendTokenKakao(token.accessToken);
+      if (accessToken != null) {
+        onLogin(accessToken);
+      } else {
+        debugPrint('카카오 로그인 실패: accessToken이 null입니다.');
+      }
+    } catch (error) {
+      debugPrint('카카오톡으로 로그인 실패 $error');
+    }
   }
 }

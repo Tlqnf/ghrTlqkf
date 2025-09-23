@@ -12,36 +12,61 @@ class WebViewScreen extends StatefulWidget {
 }
 
 class _WebViewScreenState extends State<WebViewScreen> {
+  InAppWebViewController? _controller;
+
+  @override
+  void dispose() {
+    _controller?.clearCache();
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  Future<bool> _onWillPop() async {
+    // 웹뷰가 로딩 중이면 취소
+    if (_controller != null) {
+      await _controller!.stopLoading();
+    }
+    return true; // true를 반환하면 화면이 닫힘
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('소셜 로그인'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-      ),
-      // 추가 수정 필요 -> 웹뷰 잔상
-      body: InAppWebView(
-        initialUrlRequest: URLRequest(url: WebUri(widget.url)),
-        onLoadStop: (controller, url) async {
-          if (url != null) {
-            // Get the page body
-            final body = await controller.evaluateJavascript(source: "document.body.innerText");
-            if (body != null) {
-              try {
-                // The body is expected to be a JSON string, so we parse it.
-                final jsonResponse = jsonDecode(body);
-                if (jsonResponse is Map && jsonResponse.containsKey('access_token')) {
-                  final token = jsonResponse['access_token'];
-                  Navigator.pop(context, token);
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('소셜 로그인'),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+        ),
+        body: Container(
+          color: Colors.white,
+          child: InAppWebView(
+            initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+            onWebViewCreated: (controller) {
+              _controller = controller;
+            },
+            onLoadStop: (controller, url) async {
+              if (url != null) {
+                final body = await controller.evaluateJavascript(
+                    source: "document.body.innerText");
+                if (body != null) {
+                  try {
+                    final jsonResponse = jsonDecode(body);
+                    if (jsonResponse is Map &&
+                        jsonResponse.containsKey('access_token')) {
+                      final token = jsonResponse['access_token'];
+                      if (!mounted) return;
+                      Navigator.pop(context, token);
+                    }
+                  } catch (e) {
+                    debugPrint('Error parsing JSON from webview: $e');
+                  }
                 }
-              } catch (e) {
-                // Could not parse JSON, ignore. This happens on the initial login page.
-                debugPrint('Error parsing JSON from webview: $e');
               }
-            }
-          }
-        },
+            },
+          ),
+        ),
       ),
     );
   }

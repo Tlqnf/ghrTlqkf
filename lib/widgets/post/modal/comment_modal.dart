@@ -1,13 +1,15 @@
-
 import 'package:flutter/material.dart';
 import 'package:pedal/api/comment_api.dart';
+import 'package:pedal/api/user_api.dart';
 import 'package:pedal/models/comment.dart';
-import 'package:pedal/widgets/card/reply_card.dart';
+import 'package:pedal/models/user.dart';
+import 'package:pedal/providers/auth_provider.dart';
+import 'package:pedal/widgets/post/card/reply_card.dart';
+import 'package:provider/provider.dart';
 
 class CommentModal extends StatefulWidget {
-  final String token;
   final int postId;
-  const CommentModal({super.key, required this.token, required this.postId});
+  const CommentModal({super.key, required this.postId});
 
   @override
   State<CommentModal> createState() => _CommentModalState();
@@ -15,19 +17,16 @@ class CommentModal extends StatefulWidget {
 
 class _CommentModalState extends State<CommentModal> {
   final TextEditingController _commentController = TextEditingController();
+  late final String? token = context.read<AuthProvider>().token;
 
-  // State for comments list
-  List<CreateComment> _comments = [];
+  List<Comment> _comments = [];
   bool _isLoading = true;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _commentController.addListener(() {
-      // Optional: listen to text changes if needed
-    });
-    _fetchComments(); // Fetch comments when modal initializes
+    _fetchComments();
   }
 
   @override
@@ -41,23 +40,18 @@ class _CommentModalState extends State<CommentModal> {
       _isLoading = true;
       _errorMessage = null;
     });
+
     try {
-      // Assuming getPostComments returns a List<Comment> or similar
-      // For now, it returns void, so we'll simulate data or adjust API
-      // dynamic fetchedData = await _commentApiService.getPostComments(widget.token, widget.postId);
-      // _comments = fetchedData.map((json) => Comment.fromJson(json)).toList(); // Example mapping
-
-      // Dummy data for now, as getPostComments returns void
-      await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
-      _comments = [
-        CreateComment(content: '와 엄청난데요? 저도 저렇게 라이딩 잘하고 싶습니다. 혹시 실례가 안된다면 같이 라이딩 가능하실까요...? 같이 해주신다면 정말 영광일 것 같습니다!!', postId: widget.postId, mentions: []),
-        CreateComment(content: '댓글 2', postId: widget.postId, mentions: []),
-        CreateComment(content: '댓글 3', postId: widget.postId, mentions: []),
-      ];
-
+      final comments = await CommentApi.getPostComments(token!, widget.postId);
+      if (!mounted) return;
+      setState(() {
+        _comments = comments;
+      });
     } catch (e) {
-      _errorMessage = '댓글을 불러오는데 실패했습니다: $e';
-      debugPrint(_errorMessage);
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = '댓글을 불러오는데 실패했습니다: $e';
+      });
     } finally {
       setState(() {
         _isLoading = false;
@@ -66,37 +60,26 @@ class _CommentModalState extends State<CommentModal> {
   }
 
   Future<void> _sendComment() async {
-    final commentContent = _commentController.text.trim();
-    if (commentContent.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('댓글 내용을 입력해주세요.')),
-      );
-      return;
-    }
-
-    List<String> mentions = [];
-    for (String a in commentContent.split(" ")) {
-      if (a.startsWith("@")) {
-        mentions.add(a.split("@").last);
-      }
-    }
+    final content = _commentController.text.trim();
+    if (content.isEmpty) return;
 
     try {
-      await CommentApiService.createComment(
-        widget.token,
+      await CommentApi.createComment(
+        token!,
         CreateComment(
-          content: commentContent,
-          parentId: null, // Assuming top-level comment
+          content: content,
+          parentId: null,
           postId: widget.postId,
-          mentions: mentions,
         ),
       );
-      _commentController.clear(); // Clear text field
-      await _fetchComments(); // Refresh comments list
+      _commentController.clear();
+      await _fetchComments();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('댓글이 성공적으로 등록되었습니다.')),
+        const SnackBar(content: Text('댓글이 등록되었습니다.')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('댓글 등록 실패: $e')),
       );
@@ -107,77 +90,87 @@ class _CommentModalState extends State<CommentModal> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         backgroundColor: Colors.transparent,
-        body: Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.outline,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+        body: Column(
+          children: [
+            // 모달 드래그 핸들
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, bottom: 12.0),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 16),
-              Expanded(
+            ),
+            // 댓글 목록
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _errorMessage != null
-                        ? Center(child: Text(_errorMessage!))
-                        : _comments.isEmpty
-                            ? const Center(child: Text('아직 댓글이 없습니다.'))
-                            : ListView.builder(
-                                itemCount: _comments.length,
-                                itemBuilder: (context, index) {
-                                  final comment = _comments[index];
-                                  return CommentItem(comment: comment); // Pass actual comment data
-                                },
-                              ),
-              ),
-              const Divider(thickness: 0.5),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Theme.of(context).colorScheme.outline,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: _commentController,
-                        decoration: const InputDecoration( // const for InputDecoration
-                          hintText: '댓글을 입력해주세요.',
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.send),
-                      onPressed: _sendComment, // Call the new send method
-                    ),
-                  ],
+                    ? Center(child: Text(_errorMessage!))
+                    : _comments.isEmpty
+                    ? const Center(child: Text('아직 댓글이 없습니다.'))
+                    : ListView.builder(
+                  itemCount: _comments.length,
+                  itemBuilder: (context, index) {
+                    final comment = _comments[index];
+                    return CommentItem(comment: comment);
+                  },
                 ),
               ),
-            ],
-          ),
+            ),
+            // 댓글 입력창
+            Padding(
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: _buildCommentInput(context),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCommentInput(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: Theme.of(context).colorScheme.outlineVariant,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _commentController,
+              decoration: const InputDecoration(
+                hintText: '댓글을 입력해주세요.',
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: _sendComment,
+          ),
+        ],
       ),
     );
   }
 }
 
+// 댓글 아이템
 class CommentItem extends StatefulWidget {
-  final CreateComment comment; // Add comment data
+  final dynamic comment;
+
   const CommentItem({super.key, required this.comment});
 
   @override
@@ -185,76 +178,427 @@ class CommentItem extends StatefulWidget {
 }
 
 class _CommentItemState extends State<CommentItem> {
-  bool _showReplies = false;
+  User? _user;
+  late final String? token = context.read<AuthProvider>().token;
+  late int _likeCount;
+  bool _isLiked = false;
+  bool _isLoading = true;
+  Future<List<TextSpan>>? _textSpansFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _likeCount = widget.comment.likeCount ?? 0;
+    _initComment();
+    _getUser();
+    if (token != null) {
+      _textSpansFuture = _buildTextSpans(widget.comment.content);
+    }
+  }
+
+  Future<List<TextSpan>> _buildTextSpans(String text) async {
+    final List<TextSpan> spans = [];
+    if (token == null) {
+      spans.add(TextSpan(text: text));
+      return spans;
+    }
+
+    final RegExp mentionRegex = RegExp(r'@(\w+)');
+    int lastMatchEnd = 0;
+
+    for (final Match match in mentionRegex.allMatches(text)) {
+      if (match.start > lastMatchEnd) {
+        spans.add(TextSpan(text: text.substring(lastMatchEnd, match.start)));
+      }
+
+      final String username = match.group(1)!;
+      final bool? isValid = await UserApi.checkUserMention(username, token!);
+
+      if (isValid == true) {
+        spans.add(TextSpan(
+          text: match.group(0),
+          style: const TextStyle(
+              color: Colors.blue, fontWeight: FontWeight.bold),
+        ));
+      } else {
+        spans.add(TextSpan(text: match.group(0)));
+      }
+      lastMatchEnd = match.end;
+    }
+
+    if (lastMatchEnd < text.length) {
+      spans.add(TextSpan(text: text.substring(lastMatchEnd)));
+    }
+
+    return spans;
+  }
+
+  void _initComment() async {
+    if (token == null) return;
+    try {
+      final checked =
+      await CommentApi.checkLikeComment(token!, widget.comment.commentId);
+      if (!mounted) return;
+      setState(() {
+        _isLiked = checked;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _getUser() async {
+    if (token == null) return;
+    try {
+      final info = await UserApi.getUserById(token!, widget.comment.userId);
+      if (!mounted) return;
+      setState(() {
+        _user = info;
+      });
+    } catch (e) {
+      throw Exception("유저 오류 발생: $e");
+    }
+  }
+
+  void _toggleLike() async {
+    if (token == null) return;
+
+    final prevLiked = _isLiked;
+    final prevCount = _likeCount;
+
+    setState(() {
+      _isLiked = !_isLiked;
+      _likeCount += _isLiked ? 1 : -1;
+    });
+
+    try {
+      if (_isLiked) {
+        await CommentApi.likeComment(token!, widget.comment.commentId);
+      } else {
+        await CommentApi.unlikeComment(token!, widget.comment.commentId);
+      }
+    } catch (e) {
+      setState(() {
+        _isLiked = prevLiked;
+        _likeCount = prevCount;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('요청 실패: $e')),
+        );
+      }
+    }
+  }
+
+  void _handleReply() {
+    if (token == null) return;
+    final TextEditingController _replyController = TextEditingController();
+
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor:
+                  Theme.of(context).colorScheme.outlineVariant,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _replyController,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: '대댓글을 입력해주세요.',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: () async {
+                    final content = _replyController.text.trim();
+                    if (content.isEmpty) return;
+
+                    try {
+                      await CommentApi.createComment(
+                        token!,
+                        CreateComment(
+                          content: content,
+                          parentId: widget.comment.commentId,
+                          postId: widget.comment.postId,
+                        ),
+                      );
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('대댓글이 등록되었습니다.')),
+                      );
+                      setState(() {}); // ReplyArea 갱신
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('등록 실패: $e')),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditDeleteModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('수정'),
+              onTap: () {
+                Navigator.pop(context);
+                _handleEdit();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: const Text('삭제'),
+              onTap: () {
+                Navigator.pop(context);
+                _handleDelete();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleEdit() {
+    if (token == null) return;
+    final TextEditingController _editController =
+    TextEditingController(text: widget.comment.content);
+
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 8,
+            right: 8,
+            top: 8,
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor:
+                  Theme.of(context).colorScheme.outlineVariant,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _editController,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: '댓글을 수정해주세요.',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: () async {
+                    final newContent = _editController.text.trim();
+                    if (newContent.isEmpty) return;
+
+                    try {
+                      await CommentApi.updateComment(
+                          token!, widget.comment.commentId, newContent);
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('댓글이 수정되었습니다.')),
+                      );
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('수정 실패: $e')),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleDelete() async {
+    if (token == null) return;
+    try {
+      await CommentApi.deleteComment(token!, widget.comment.commentId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('댓글이 삭제되었습니다.')),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('삭제 실패: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: Theme.of(context).colorScheme.outline,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Seprogramd', // 실제 사용자 이름으로 변경
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                        widget.comment.content), // 실제 댓글 내용 표시
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.thumb_up_alt_outlined, size: 16),
-                        const SizedBox(width: 4),
-                        const Text('1,234'), // 실제 좋아요 수로 변경
-                        const SizedBox(width: 16),
-                        const Text('답글 달기'),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero, // Remove padding
-                        alignment: Alignment.centerLeft, // Align text to left
-                        minimumSize: Size.zero, // Remove minimum size constraints
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Shrink tap target
-                        overlayColor: Colors.transparent,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _showReplies = !_showReplies;
-                        });
-                      },
-                      child: Text(
-                        _showReplies ? '댓글 숨기기' : '댓글 3개 더보기', // 실제 답글 수로 변경
-                        style: TextStyle(color: Theme.of(context).colorScheme.secondary),
-                      ),
-                    )
-                  ],
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
+
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 프로필
+                _user != null &&
+                    _user!.profilePic != null &&
+                    _user!.profilePic!.isNotEmpty
+                    ? CircleAvatar(
+                  radius: 30,
+                  backgroundImage: NetworkImage(_user!.profilePic!),
+                )
+                    : const CircleAvatar(
+                  radius: 30,
+                  backgroundImage:
+                  AssetImage('assets/image/not_profile.png'),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 댓글 내용 영역만 LongPress 적용
+                      GestureDetector(
+                        onLongPress: _showEditDeleteModal,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _user?.username ?? '로딩중...',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 4),
+                            FutureBuilder<List<TextSpan>>(
+                              future: _textSpansFuture,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                                  return RichText(
+                                    text: TextSpan(
+                                      style: DefaultTextStyle.of(context).style,
+                                      children: snapshot.data,
+                                    ),
+                                  );
+                                }
+                                return Text(widget.comment.content);
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          // 좋아요 버튼
+                          InkWell(
+                            onTap: _toggleLike,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _isLiked
+                                      ? Icons.thumb_up
+                                      : Icons.thumb_up_alt_outlined,
+                                  color: _isLiked
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _likeCount.toString(),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          // 답글 버튼
+                          InkWell(
+                            onTap: _handleReply,
+                            borderRadius: BorderRadius.circular(4),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 2),
+                              child: Text('답글 달기'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // 대댓글 영역 - LongPress 영향 없음
+            ReplyArea(commentId: widget.comment.commentId),
+          ],
         ),
-        if (_showReplies)
-          Column(
-            children: [
-              ReplyItem(),
-              ReplyItem(),
-            ],
-          ),
-      ],
+      ),
     );
   }
 }

@@ -14,3 +14,8 @@ int timeToInt(String time) {
   final int timeInSecond = int.parse(format[0]) * 3600 + int.parse(format[1]) * 60 + int.parse(format[2]);
   return timeInSecond;
 }
+
+int timeToIntMinute(String time) {
+  List<String> format = time.split(":");
+  return int.parse(format[0]) * 60 + int.parse(format[1]);
+}

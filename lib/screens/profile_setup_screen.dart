@@ -47,7 +47,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     });
 
     try {
-      await UserApiService.updateUserProfile(
+      await UserApi.updateUserProfile(
         token: widget.token,
         username: _usernameController.text,
         profileDescription: _descriptionController.text,
@@ -148,9 +148,14 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                       const SizedBox(height: 8),
                       TextField(
                         controller: _usernameController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: '닉네임을 입력해주세요.',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[200],
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -165,9 +170,14 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                       TextField(
                         controller: _descriptionController,
                         maxLines: 3,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: '자신을 소개하는 설명 문구를 입력해주세요.',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[200],
                         ),
                       ),
                     ],

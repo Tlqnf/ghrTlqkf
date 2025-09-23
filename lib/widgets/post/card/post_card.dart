@@ -8,6 +8,7 @@ class PostCard extends StatelessWidget {
   final String? user;
   final VoidCallback? onTap;
   final String? imageUrl; // Optional image URL
+  final VoidCallback? onEdit;
 
   const PostCard({
     super.key,
@@ -18,6 +19,7 @@ class PostCard extends StatelessWidget {
     this.user,
     this.onTap,
     this.imageUrl,
+    this.onEdit,
   });
 
   @override
@@ -85,6 +87,21 @@ class PostCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onEdit != null)
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      onEdit!();
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Text('수정하기'),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

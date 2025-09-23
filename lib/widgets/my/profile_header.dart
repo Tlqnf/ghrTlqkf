@@ -1,0 +1,153 @@
+import 'package:flutter/material.dart';
+import 'package:pedal/api/user_api.dart';
+import 'package:pedal/models/user.dart';
+import 'package:pedal/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
+
+class ProfileHeader extends StatefulWidget {
+  final String token;
+  final VoidCallback? onRemoveAdsTap; // New parameter
+
+  const ProfileHeader({
+    super.key,
+    required this.token,
+    this.onRemoveAdsTap, // Initialize new parameter
+  });
+
+  @override
+  State<ProfileHeader> createState() => _ProfileHeaderState();
+}
+
+class _ProfileHeaderState extends State<ProfileHeader> {
+  User? _user;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final token = Provider.of<AuthProvider>(context, listen: false).token;
+      if (token == null) {
+        throw Exception('Token not found');
+      }
+      final user = await UserApi.fetchUserProfile(token);
+      debugPrint('Fetched user: $user');
+      setState(() {
+        _user = user;
+      });
+    } catch (e, s) {
+      debugPrint('Error fetching user profile: $e');
+      debugPrint('Stack trace: $s');
+      setState(() {
+        _error = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Row(
+            children: [
+              _isLoading
+                  ? const CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.transparent,
+                      child: CircularProgressIndicator(),
+                    )
+                  : _user?.profilePic != null && _user!.profilePic!.isNotEmpty
+                  ? Container(
+                      width: 80, // 전체 크기
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.grey, // 테두리 색
+                          width: 3,           // 테두리 두께
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 37, // Container보다 border 두께만큼 작게
+                        backgroundColor: Colors.transparent,
+                        backgroundImage: _user?.profilePic != null
+                            ? NetworkImage(_user!.profilePic!)
+                            : null,
+                        child: _user?.profilePic == null ? Icon(Icons.person, size: 40) : null,
+                      ),
+                    )
+                  : const CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.transparent,
+                      backgroundImage: AssetImage('assets/image/not_profile.png'), // Fallback placeholder
+                    ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _isLoading
+                      ? const Text(
+                    'Loading...',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  )
+                      : Text(
+                    _user?.username ?? 'Guest',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  _isLoading
+                      ? const Text(
+                    'Loading...',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  )
+                      : Text(
+                    _user?.profileDescription ?? 'No description',
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  if (_error != null)
+                    Text(
+                      'Error: $_error',
+                      style: const TextStyle(fontSize: 13, color: Colors.red),
+                    ),
+                ],
+              ),
+            ],
+          ),
+          const Spacer(),
+          OutlinedButton(
+            onPressed: widget.onRemoveAdsTap, // Use the new callback
+            style: OutlinedButton.styleFrom(
+              backgroundColor: const Color(0x80FF3B30), // FF3B30 with alpha 50%
+              side: const BorderSide(color: Color(0x80FF3B30)), // Match border color
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              '광고 제거',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -9,7 +9,7 @@ class NavigationListModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Colors.white,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(16),
         ),

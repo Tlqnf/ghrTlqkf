@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/post.dart';
 
-class PostApiService {
+class PostApi {
   // get - post
-  // 게시글 목록 수집
+  // 게시글 목록 수집 (완)
   static Future<List<Post>> getPosts(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post'),
@@ -26,9 +26,8 @@ class PostApiService {
   }
 
   // post - post (수정 필요 반환값)
-  // 게시글 만들기 (실질적인 리스트 표시)
-  static Future<http.Response> createPost(
-      String postData, List<String> imagePaths, String token) async {
+  // 게시글 만들기 (실질적인 리스트 표시) todo 연결 필요 (로직 및 받는 데이터 정리)
+  static Future<bool> createPost(String postData, String? mapImagePath, List<String> imagePaths, String token) async {
     try {
       var uri = Uri.parse('${ApiConfig.baseUrl}/post');
       var request = http.MultipartRequest('POST', uri);
@@ -38,6 +37,19 @@ class PostApiService {
 
       // Add post data field
       request.fields['post_data'] = postData;
+
+      if (mapImagePath != null && mapImagePath.isNotEmpty) {
+        File mapImageFile = File(mapImagePath);
+        var stream = http.ByteStream(mapImageFile.openRead());
+        var length = await mapImageFile.length();
+        var multipartFile = http.MultipartFile(
+          'map_image',
+          stream,
+          length,
+          filename: basename(mapImageFile.path),
+        );
+        request.files.add(multipartFile);
+      }
 
       // Add images to the request
       for (String path in imagePaths) {
@@ -58,8 +70,15 @@ class PostApiService {
       // Send the request
       var streamedResponse = await request.send();
 
-      var response = await http.Response.fromStream(streamedResponse);
-      return response;
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        debugPrint("저장 성공 ${response.body}");
+        return true;
+      } else {
+        debugPrint("저장 실패 ${response.body}");
+        return false;
+      }
     } catch (e) {
       // You might want to handle exceptions more gracefully
       debugPrint('Error creating post: $e');
@@ -68,7 +87,7 @@ class PostApiService {
   }
 
   // patch - post (수정 필요 createPost와 똑같은 구조)
-  // 게시글 수정
+  // 게시글 수정 todo 데이터 구조 정리 필요
   static Future<http.Response> updatePost(UpdatePost postData, String token) {
     try {
       final response = http.post(
@@ -91,7 +110,7 @@ class PostApiService {
   }
 
   // delete - post/{postId}
-  // 게시글 삭제
+  // 게시글 삭제 (완)
   static Future<http.Response> deletePost(int postId, String token) {
     try {
       final response = http.delete(
@@ -109,10 +128,10 @@ class PostApiService {
   }
 
   // post - post/{postId}/post-like
-  // 게시글 좋아요
+  // 게시글 좋아요 (완)
   static Future<void> addThumbsUp(String token, int postId) async {
     final res = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/post/$postId/post-like'),
+      Uri.parse('${ApiConfig.baseUrl}/post/$postId/like'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (res.statusCode != 200) {
@@ -120,8 +139,23 @@ class PostApiService {
     }
   }
 
+  static Future<bool> checkThumbsUp(String token, int postId) async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}/post/$postId/is_liked"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)["is_liked"];
+    } else {
+      throw Exception("좋아요 호출 실패");
+    }
+  }
+
   // post - post/{postId}/post-unlike
-  // 게시글 좋아요 취소
+  // 게시글 좋아요 취소 (완)
   static Future<void> removeThumbsUp(String token, int postId) async {
     final res = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/post/$postId/post-unlike'),
@@ -133,7 +167,7 @@ class PostApiService {
   }
 
   // post - post/{postId}/bookmark
-  // 게시글 북마크 추가
+  // 게시글 북마크 추가 (완)
   static Future<void> addBookmark(String token, int postId) async {
     final res = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/post/$postId/bookmark'),
@@ -149,8 +183,8 @@ class PostApiService {
   }
 
   // delete - post/{postId}/bookmark
-  // 게시글 북마크 삭제
-  static Future<void> deleteBookmark(String token, int postId) async {
+  // 게시글 북마크 삭제 (완)
+  static Future<void> removeBookmark(String token, int postId) async {
     final res = await http.delete(
       Uri.parse('${ApiConfig.baseUrl}/post/$postId/bookmark'),
       headers: {

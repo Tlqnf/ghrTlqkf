@@ -21,7 +21,7 @@ class AuthProvider with ChangeNotifier {
     await prefs.setString('token', token);
 
     try {
-      bool? needsProfile = await UserApiService.checkUserProfile(token);
+      bool? needsProfile = await UserApi.checkUserProfile(token);
       if (needsProfile == true) {
         _authState = AuthState.needsProfileSetup;
       } else {

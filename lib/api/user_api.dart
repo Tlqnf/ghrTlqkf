@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/analyze.dart';
@@ -9,9 +10,11 @@ import 'package:pedal/models/user.dart';
 import 'package:pedal/models/card.dart';
 import 'package:image_picker/image_picker.dart';
 
-class UserApiService {
+// Mock data import
+
+class UserApi {
   // get - users/me
-  // 사용자 프로필 조회
+  // 사용자 프로필 조회 (완)
   static Future<User> fetchUserProfile(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/users/me'),
@@ -28,8 +31,26 @@ class UserApiService {
     }
   }
 
+  // get - users/{userId}
+  // 사용자 조회 (게시글 표시용)
+  static Future<User> getUserById(String token, int userId) async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/users/$userId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return User.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load user profile: ${response.statusCode}');
+    }
+  }
+
   // patch - users/me
-  // 사용자 프로필 수정
+  // 사용자 프로필 수정 (완)
   static Future<void> updateUserProfile({
     required String token,
     required String username,
@@ -46,6 +67,7 @@ class UserApiService {
       'profile_description': profileDescription,
     };
     request.fields['user_data'] = jsonEncode(userData);
+    debugPrint(jsonEncode(userData));
 
     if (profilePicFile != null) {
       final file = await http.MultipartFile.fromPath(
@@ -64,7 +86,7 @@ class UserApiService {
   }
 
   // get - users/mention/check
-  // 유저 멘션 여부
+  // 유저 멘션 여부 todo
   static Future<bool?> checkUserMention(String user, String token) async {
     final response = await http.get(
       Uri.parse("${ApiConfig.baseUrl}/users/mention/check?user=$user"),
@@ -82,7 +104,7 @@ class UserApiService {
   }
 
   // get - users/me/profile-description-status
-  // 유저의 프로필 중 설명이 있는가?
+  // 유저의 프로필 중 설명이 있는가? (완)
   static Future<bool?> checkUserProfile(String token) async{
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/users/me/profile-description-status'),
@@ -102,8 +124,8 @@ class UserApiService {
   }
 
   // post - users/me/logout
-  // 유저 로그아웃
-  static void logoutUserProfile(String token) async {
+  // 유저 로그아웃 (완)
+  static Future<void> logoutUserProfile(String token) async {
     final response = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/users/me/logout'),
       headers: {
@@ -119,8 +141,26 @@ class UserApiService {
     }
   }
 
+  // delete - users/me
+  // 유저 회원 탈퇴 (완)
+  static Future<void> deleteUserProfile(String token) async {
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}/users/me'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 204) {
+      return;
+    } else {
+      throw Exception('Failed to load user profile: ${response.statusCode}');
+    }
+  }
+
   // get - report/weekly_summary
-  // 유저의 주간 기록 표시
+  // 유저의 주간 기록 표시 (완)
   static Future<Analyze> analyzeUser(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/report/weekly_summary'),
@@ -135,12 +175,10 @@ class UserApiService {
     } else {
       throw Exception('Failed to load user profile: ${response.statusCode}');
     }
-
-
   }
 
   // get - post/me/posts/recent
-  // 유저가 최근 작성한 4개 게시글 목록 반환
+  // 유저가 최근 작성한 4개 게시글 목록 반환 (완)
   static Future<List<CardSummary>> getRecentPosts(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post/me/posts/recent'),
@@ -167,7 +205,7 @@ class UserApiService {
   }
 
   // get - post/me/posts?page={}
-  // 유저가 작성한 모든 게시글 반환
+  // 유저가 작성한 모든 게시글 반환 (완)
   static Future<List<Post>> getPosts(String token, int page) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post/me/posts?page=$page&page_size=10'),
@@ -175,7 +213,6 @@ class UserApiService {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-
     );
 
     if (response.statusCode == 200) {
@@ -195,7 +232,7 @@ class UserApiService {
   }
 
   // get - post/me/bookmarked/recent
-  // 유저가 최근에 북마크한 4개 게시글 목록 반환
+  // 유저가 최근에 북마크한 4개 게시글 목록 반환 (완)
   static Future<List<CardSummary>> getRecentBookmarks(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post/me/bookmarked/recent'),

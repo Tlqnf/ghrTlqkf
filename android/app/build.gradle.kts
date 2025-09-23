@@ -31,6 +31,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders += mapOf(
+            "KAKAO_NATIVE_APP_KEY" to (System.getenv("KAKAO_NATIVE_APP_KEY") ?: "default_scheme")
+        )
     }
 
     buildTypes {
@@ -49,4 +52,6 @@ flutter {
 dependencies {
     // Add the desugaring library
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4") // Updated to required version
+    implementation("com.kakao.sdk:v2-user:2.13.0")
+    implementation("com.kakao.sdk:v2-auth:2.13.0")
 }

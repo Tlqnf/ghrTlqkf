@@ -6,7 +6,7 @@ import 'package:pedal/models/route.dart';
 
 class NavigationApi {
   // post - navigation/guide-route
-  // routeId로 네비게이션
+  // routeId로 네비게이션 todo 연결 필요
   static Future<String> guideRoute(int routeId, String token) async {
     final response = await http.post(
       Uri.parse("${ApiConfig.baseUrl}/navigation/guide-route"),
@@ -26,7 +26,7 @@ class NavigationApi {
   }
 
   // post - navigation/guide-destination
-  // 시작, 도착 좌표로 네비게이션
+  // 시작, 도착 좌표로 네비게이션 todo 연결 필요
   static Future<String> guideDestination(GuideRoute location, String token) async {
     final response = await http.post(
       Uri.parse("${ApiConfig.baseUrl}/navigation/guide-destination"),

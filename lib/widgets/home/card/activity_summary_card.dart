@@ -4,12 +4,14 @@ class ActivitySummaryCard extends StatelessWidget {
   final String label;
   final String value;
   final String unit;
+  final String? minute;
 
   const ActivitySummaryCard({
     super.key,
     required this.label,
     required this.value,
     required this.unit,
+    this.minute,
   });
 
   @override
@@ -18,42 +20,65 @@ class ActivitySummaryCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8.0),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Theme.of(context).colorScheme.outline, width: 0.5), // 테두리 색상
+        borderRadius: BorderRadius.circular(10),
       ),
-      color: Theme.of(context).colorScheme.surface, // 카드 배경색
+      color: Colors.grey[100], // 카드 배경색
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(15.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant, // 제목 색상
-                  ),
-                ),
-              ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black, // 제목 색상
+              ),
             ),
             const SizedBox(height: 16),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface, // 값 색상
-              ),
-            ),
-            Text(
-              unit,
-              style: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant, // 단위 색상
-              ),
+            Row(
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary, // 값 색상
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  unit,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black, // 단위 색상
+                  ),
+                ),
+                minute != null ? Row(
+                  children: [
+                    const SizedBox(width: 4),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary, // 값 색상
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      "분",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black, // 단위 색상
+                      ),
+                    ),
+                  ],
+                ) : Container(),
+              ],
             ),
           ],
         ),

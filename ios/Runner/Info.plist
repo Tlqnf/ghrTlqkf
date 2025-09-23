@@ -49,7 +49,26 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to your photo library to let you pick a profile picture.</string>
-</dict>
-</plist>
+	    <key>NSPhotoLibraryUsageDescription</key>
+	    <string>This app needs access to your photo library to let you pick a profile picture.</string>
+	    <key>LSApplicationQueriesSchemes</key>
+	    <array>
+	      <string>kakaokompassauth</string>
+	      <string>kakaolink</string>
+	    </array>
+	    <key>CFBundleURLTypes</key>
+	    <array>
+	        <dict>
+	            <key>CFBundleTypeRole</key>
+	            <string>Editor</string>
+	            <key>CFBundleURLSchemes</key>
+	            <array>
+	                <string>kakao${YOUR_NATIVE_APP_KEY}</string>
+	                <string>com.googleusercontent.apps.955347166552-9d30ac6a1946989457f12d</string>
+	            </array>
+	        </dict>
+	    </array>
+	    <key>KAKAO_APP_KEY</key>
+	    <string>YOUR_NATIVE_APP_KEY</string>
+	</dict>
+	</plist>
