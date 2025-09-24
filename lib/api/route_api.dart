@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
+import 'package:pedal/models/route.dart';
 
 class RouteApi {
   // get - start-session
@@ -24,17 +25,15 @@ class RouteApi {
 
   // patch - routes/{routeId}
   // 경로 이름 or 태그 수정 todo
-  static Future<void> updateRoute(String routeName, List<String>? tagList, String token, int routeId) async {
+  static Future<void> updateRoute(UpdateRoute routeData, int routeId, String token) async {
+    debugPrint(jsonEncode(routeData.toJson()));
     final response = await http.patch(
       Uri.parse("${ApiConfig.baseUrl}/routes/$routeId"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
       },
-      body: jsonEncode({
-        "name": routeName,
-        "tags": tagList ?? [],
-      })
+      body: jsonEncode(routeData.toJson())
     );
 
     if (response.statusCode == 200) {

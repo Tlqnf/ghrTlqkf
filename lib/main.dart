@@ -155,7 +155,7 @@ void main() async {
 
   // Naver Map 초기화
   await FlutterNaverMap().init(
-    clientId: dotenv.env["CLIENT_ID"],
+    clientId: dotenv.env["NAVER_CLIENT_ID"],
     onAuthFailed: (ex) {
       debugPrint("Naver Map Auth failed: $ex");
     },

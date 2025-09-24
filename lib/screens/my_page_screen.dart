@@ -93,13 +93,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => PostFormScreen(
-                            postId: post.id,
-                            reportId: post.id, // Assuming reportId is the same as postId for now
-                            initialDistance: post.distance.toStringAsFixed(2),
-                            initialTime: post.time,
-                            mapImagePath: post.mapImageUrl,
-                            routeName: post.title,
-                            // tagList, title, content, imgUrls are not in Post, so pass null
+                            postData: post,
+                            routeId: post.routeId,
                           ),
                         ),
                       );

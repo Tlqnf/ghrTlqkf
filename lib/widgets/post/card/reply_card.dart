@@ -87,7 +87,6 @@ class _ReplyAreaState extends State<ReplyArea> {
 
     // 대댓글이 없을 경우
     if (_replies == null || _replies!.isEmpty) {
-      debugPrint('build - 대댓글 없음');
       return const SizedBox.shrink();
     }
 
@@ -218,10 +217,17 @@ class _ReplyItemState extends State<ReplyItem> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: Theme.of(context).colorScheme.outline,
-          ),
+          widget.reply.profilePic != null &&
+          widget.reply.profilePic!.isNotEmpty
+            ? CircleAvatar(
+                radius: 20,
+                backgroundImage: NetworkImage(widget.reply.profilePic!),
+              )
+            : const CircleAvatar(
+                radius: 20,
+                backgroundImage:
+                AssetImage('assets/image/not_profile.png'),
+              ),
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(

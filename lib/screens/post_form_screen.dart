@@ -6,38 +6,31 @@ import 'package:image_picker/image_picker.dart';
 import 'package:pedal/api/post_api.dart';
 import 'package:pedal/api/route_api.dart';
 import 'package:pedal/models/post.dart';
+import 'package:pedal/models/route.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
 import 'package:provider/provider.dart';
 
 class PostFormScreen extends StatefulWidget {
-  final int? postId;
   final int? reportId;
   final int? routeId;
   final String? initialDistance;
   final String? initialTime;
   final String? initialAvgSpeed;
   final String? mapImagePath;
-  final String? routeName;
-  final List<String>? tagList;
-  final String? title;
-  final String? content;
-  final List<String>? imgUrls;
+  final List<List<double>>? routeCoords;
+  final Post? postData;
 
   const PostFormScreen({
     super.key,
-    this.postId,
     this.reportId,
     this.routeId,
     this.initialDistance,
     this.initialTime,
     this.initialAvgSpeed,
     this.mapImagePath,
-    this.routeName,
-    this.tagList,
-    this.title,
-    this.content,
-    this.imgUrls,
+    this.routeCoords,
+    this.postData,
   });
 
   @override
@@ -64,26 +57,21 @@ class _PostFormScreenState extends State<PostFormScreen> {
   @override
   void initState() {
     super.initState();
-    _routeNameController.text = widget.routeName ?? '';
-    _titleController.text = widget.title ?? '';
-    _bodyController.text = widget.content ?? '';
-
-    if (widget.tagList != null) {
-      _tags.addAll(widget.tagList!);
-    }
-
-    if (widget.routeName != null) {
+    if (widget.postData != null) {
+      // Editing an existing post
       _isEditing = true;
-    }
-
-    // If coming from a record, default to community upload
-    if (widget.initialDistance != null) {
-      _isCommunityUploadEnabled = true;
-    }
-
-    // 서버에서 받은 이미지 URL이 있으면 리스트에 추가
-    if (widget.imgUrls != null) {
-      _additionalImageUrls.addAll(widget.imgUrls!);
+      _routeNameController.text = widget.postData!.routeName;
+      _titleController.text = widget.postData!.title;
+      _bodyController.text = widget.postData!.content;
+      _tags.addAll(widget.postData!.hashTag);
+      _additionalImageUrls.addAll(widget.postData!.images);
+      _isCommunityUploadEnabled = widget.postData!.public;
+    } else {
+      // Creating a new post
+      // If coming from a record, default to community upload
+      if (widget.initialDistance != null) {
+        _isCommunityUploadEnabled = true;
+      }
     }
   }
 
@@ -178,12 +166,23 @@ class _PostFormScreenState extends State<PostFormScreen> {
       final List<String> additionalImagePaths =
       _additionalImages.map((xfile) => xfile.path).toList();
 
+      debugPrint("데이터 추가");
+
       await RouteApi.updateRoute(
-        _routeNameController.text,
-        _tags,
-        token,
+        UpdateRoute(
+          name: _routeNameController.text,
+          pointsJson: widget.routeCoords?.map((coord) {
+            return {
+              "lat": coord[0].toDouble(),
+              "lon": coord[1].toDouble(),
+            };
+          }).toList(),
+        ),
         widget.routeId!,
+        token,
       );
+
+      debugPrint("데이트");
 
       final isSuccess = await PostApi.createPost(
         postData.toJsonString(),
@@ -217,7 +216,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')),
+        SnackBar(content: Text('생성 중 오류가 발생했습니다: $e')),
       );
     } finally {
       if (mounted) {
@@ -278,15 +277,16 @@ class _PostFormScreenState extends State<PostFormScreen> {
       _additionalImages.map((xfile) => xfile.path).toList();
 
       await RouteApi.updateRoute(
-        _routeNameController.text,
-        _tags,
-        token,
+        UpdateRoute(
+          name: _routeNameController.text,
+        ),
         widget.routeId!,
+        token,
       );
 
       final isSuccess = await PostApi.updatePost(
         postData.toJsonString(),
-        widget.postId!,
+        widget.postData!.id,
         additionalImagePaths,
         token,
       );
@@ -330,8 +330,8 @@ class _PostFormScreenState extends State<PostFormScreen> {
   Future<void> _deletePost() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
-    if (token == null || widget.postId == null) return;
-    final response = await PostApi.deletePost(widget.postId!, token);
+    if (token == null || widget.postData == null) return;
+    final response = await PostApi.deletePost(widget.postData!.id, token);
 
     if (!mounted) return;
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -464,9 +464,9 @@ class _PostFormScreenState extends State<PostFormScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildStatItem('거리', widget.initialDistance ?? '0.00', 'km'),
-                        _buildStatItem('평균 속력', widget.initialAvgSpeed ?? '0.0', 'km/h'),
-                        _buildStatItem('총 시간', widget.initialTime ?? '00:00:00', ''),
+                        _buildStatItem('거리', widget.postData?.distance.toStringAsFixed(2) ?? widget.initialDistance ?? '0.00', 'km'),
+                        _buildStatItem('평균 속력', widget.postData?.speed.toStringAsFixed(1) ?? widget.initialAvgSpeed ?? '0.0', 'km/h'),
+                        _buildStatItem('총 시간', widget.postData?.time ?? widget.initialTime ?? '00:00:00', ''),
                       ],
                     ),
                     const SizedBox(height: 24),

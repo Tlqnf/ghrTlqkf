@@ -32,7 +32,8 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         manifestPlaceholders += mapOf(
-            "KAKAO_NATIVE_APP_KEY" to (System.getenv("KAKAO_NATIVE_APP_KEY") ?: "default_scheme")
+            "KAKAO_NATIVE_APP_KEY" to (System.getenv("KAKAO_NATIVE_APP_KEY") ?: "default_scheme"),
+            "NAVER_CLIENT_ID" to (System.getenv("NAVER_CLIENT_ID") ?: "default_scheme")
         )
     }
 

@@ -106,7 +106,7 @@ class CommentApi{
       },
     );
     if (res.statusCode != 200) {
-      throw Exception('like comment failed: ${res.statusCode}');
+      throw Exception('like comment failed: ${res.body}');
     }
   }
 

@@ -18,23 +18,51 @@ class CommentModal extends StatefulWidget {
 
 class _CommentModalState extends State<CommentModal> {
   final TextEditingController _commentController = TextEditingController();
-  late final String? token = context.read<AuthProvider>().token;
+  final FocusNode _commentFocusNode = FocusNode();
+  bool _isMainInputFocused = false;
 
+  late final String? token = context.read<AuthProvider>().token;
   Future<List<Comment>>? _commentsFuture;
+
+  User? _user;
 
   @override
   void initState() {
     super.initState();
+    _commentFocusNode.addListener(_onFocusChange);
     _commentsFuture = CommentApi.getPostComments(token!, widget.postId);
+    _fetchCurrentUser();
+  }
+
+  void _onFocusChange() {
+    setState(() {
+      _isMainInputFocused = _commentFocusNode.hasFocus;
+    });
   }
 
   @override
   void dispose() {
     _commentController.dispose();
+    _commentFocusNode.removeListener(_onFocusChange);
+    _commentFocusNode.dispose();
     super.dispose();
   }
 
+  Future<void> _fetchCurrentUser() async {
+    if (token == null) return;
+    try {
+      final userInfo = await UserApi.fetchUserProfile(token!);
+      if (!mounted) return;
+      setState(() {
+        _user = userInfo;
+      });
+    } catch (e) {
+      debugPrint("현재 사용자 정보 불러오기 실패: $e");
+    }
+  }
+
   Future<void> _fetchComments() async {
+    FocusScope.of(context).unfocus();
     setState(() {
       _commentsFuture = CommentApi.getPostComments(token!, widget.postId);
     });
@@ -103,7 +131,10 @@ class _CommentModalState extends State<CommentModal> {
                     return ListView.builder(
                       itemCount: comments.length,
                       itemBuilder: (context, index) {
-                        return CommentItem(comment: comments[index]);
+                        return CommentItem(
+                          comment: comments[index],
+                          onCommentMutated: _fetchComments,
+                        );
                       },
                     );
                   }
@@ -113,7 +144,10 @@ class _CommentModalState extends State<CommentModal> {
             // 댓글 입력창
             Padding(
               padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom),
+                bottom: _isMainInputFocused
+                    ? MediaQuery.of(context).viewInsets.bottom
+                    : 0,
+              ),
               child: _buildCommentInput(context),
             ),
           ],
@@ -128,14 +162,22 @@ class _CommentModalState extends State<CommentModal> {
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          _user != null &&
+          _user!.profilePic!.isNotEmpty
+            ? CircleAvatar(
+                radius: 18,
+                backgroundImage: NetworkImage(_user!.profilePic!),
+              )
+            : const CircleAvatar(
+                radius: 18,
+                backgroundImage:
+                AssetImage('assets/image/not_profile.png'),
+              ),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _commentController,
+              focusNode: _commentFocusNode,
               decoration: const InputDecoration(
                 hintText: '댓글을 입력해주세요.',
                 border: InputBorder.none,
@@ -154,8 +196,10 @@ class _CommentModalState extends State<CommentModal> {
 
 class CommentItem extends StatefulWidget {
   final dynamic comment;
+  final VoidCallback onCommentMutated;
 
-  const CommentItem({super.key, required this.comment});
+  const CommentItem(
+      {super.key, required this.comment, required this.onCommentMutated});
 
   @override
   State<CommentItem> createState() => _CommentItemState();
@@ -197,7 +241,7 @@ class _CommentItemState extends State<CommentItem> {
 
       final String username = match.group(1)!;
       final bool? isValid =
-      token != null ? await UserApi.checkUserMention(username, token!) : null;
+          token != null ? await UserApi.checkUserMention(username, token!) : null;
 
       if (isValid == true) {
         spans.add(TextSpan(
@@ -225,7 +269,7 @@ class _CommentItemState extends State<CommentItem> {
     if (token == null) return;
     try {
       final checked =
-      await CommentApi.checkLikeComment(token!, widget.comment.commentId);
+          await CommentApi.checkLikeComment(token!, widget.comment.commentId);
       if (!mounted) return;
       setState(() {
         _isLiked = checked;
@@ -260,11 +304,7 @@ class _CommentItemState extends State<CommentItem> {
     });
 
     try {
-      if (_isLiked) {
-        await CommentApi.likeComment(token!, widget.comment.commentId);
-      } else {
-        await CommentApi.unlikeComment(token!, widget.comment.commentId);
-      }
+      await CommentApi.likeComment(token!, widget.comment.commentId);
     } catch (e) {
       setState(() {
         _isLiked = prevLiked;
@@ -287,18 +327,24 @@ class _CommentItemState extends State<CommentItem> {
       context: context,
       builder: (context) => SafeArea(
         child: Padding(
-          padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             color: Theme.of(context).scaffoldBackgroundColor,
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor:
-                  Theme.of(context).colorScheme.outlineVariant,
-                ),
+                _user != null &&
+                _user!.profilePic!.isNotEmpty
+                  ? CircleAvatar(
+                      radius: 18,
+                      backgroundImage: NetworkImage(_user!.profilePic!),
+                    )
+                  : const CircleAvatar(
+                      radius: 18,
+                      backgroundImage:
+                      AssetImage('assets/image/not_profile.png'),
+                    ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
@@ -330,7 +376,7 @@ class _CommentItemState extends State<CommentItem> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('대댓글이 등록되었습니다.')),
                       );
-                      setState(() {}); // ReplyArea 갱신
+                      widget.onCommentMutated();
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -380,7 +426,7 @@ class _CommentItemState extends State<CommentItem> {
   void _handleEdit() {
     if (token == null) return;
     final TextEditingController editController =
-    TextEditingController(text: widget.comment.content);
+        TextEditingController(text: widget.comment.content);
 
     showModalBottomSheet(
       isScrollControlled: true,
@@ -401,18 +447,24 @@ class _CommentItemState extends State<CommentItem> {
             color: Theme.of(context).scaffoldBackgroundColor,
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor:
-                  Theme.of(context).colorScheme.outlineVariant,
-                ),
+                _user != null &&
+                _user!.profilePic!.isNotEmpty
+                  ? CircleAvatar(
+                      radius: 18,
+                      backgroundImage: NetworkImage(_user!.profilePic!),
+                    )
+                  : const CircleAvatar(
+                      radius: 18,
+                      backgroundImage:
+                      AssetImage('assets/image/not_profile.png'),
+                    ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
                     controller: editController,
                     autofocus: true,
                     decoration: const InputDecoration(
-                      hintText: '댓글을 수정해주세요.',
+                      hintText: '수정할 댓글을 입력해주세요.',
                       border: InputBorder.none,
                     ),
                   ),
@@ -431,6 +483,7 @@ class _CommentItemState extends State<CommentItem> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('댓글이 수정되었습니다.')),
                       );
+                      widget.onCommentMutated();
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -456,6 +509,7 @@ class _CommentItemState extends State<CommentItem> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('댓글이 삭제되었습니다.')),
       );
+      widget.onCommentMutated();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -501,7 +555,7 @@ class _CommentItemState extends State<CommentItem> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _user?.username ?? '로딩중...',
+                              _user?.username ?? '',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
@@ -509,12 +563,15 @@ class _CommentItemState extends State<CommentItem> {
                             _isBuildingText
                                 ? Text(widget.comment.content)
                                 : RichText(
-                              text: TextSpan(
-                                style: DefaultTextStyle.of(context).style,
-                                children: _textSpans ??
-                                    [TextSpan(text: widget.comment.content)],
-                              ),
-                            ),
+                                    text: TextSpan(
+                                      style: DefaultTextStyle.of(context).style,
+                                      children: _textSpans ??
+                                          [
+                                            TextSpan(
+                                                text: widget.comment.content)
+                                          ],
+                                    ),
+                                  ),
                             const SizedBox(height: 8),
                           ],
                         ),
@@ -533,8 +590,8 @@ class _CommentItemState extends State<CommentItem> {
                                   color: _isLiked
                                       ? AppColors.light.info!
                                       : Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                                          .colorScheme
+                                          .onSurfaceVariant,
                                   size: 16,
                                 ),
                                 const SizedBox(width: 4),

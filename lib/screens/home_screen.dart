@@ -98,10 +98,8 @@ class _HomePageState extends State<HomePage> {
                               MediaQuery.of(context).size.width / 2.5,
                               child: ActivitySummaryCard(
                                 label: '활동 시간',
-                                value: '${_analyze?.totalActivityTimeHours}',
-                                unit: '시간',
-                                minute:
-                                '${_analyze?.totalActivityTimeRemainingMinutes}',
+                                value: '${_analyze?.totalActivityTimeFormatted}',
+                                unit: '',
                               ),
                             ),
                             const SizedBox(width: 8),

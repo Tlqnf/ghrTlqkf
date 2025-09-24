@@ -330,6 +330,8 @@ class _MapScreenState extends State<MapScreen> {
       token!
     );
 
+    final routeCoords = fullRoute.map((p) => [p.latitude, p.longitude]).toList();
+
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => PostFormScreen(
         reportId: reportId,
@@ -338,6 +340,7 @@ class _MapScreenState extends State<MapScreen> {
         initialTime: elapsedTime,
         initialAvgSpeed: avgSpeed,
         mapImagePath: snapshotPath,
+        routeCoords: routeCoords,
       ),
     ));
 

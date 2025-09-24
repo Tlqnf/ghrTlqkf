@@ -51,7 +51,7 @@ class _PostListState extends State<PostList> {
           final imageUrl = p.mapImageUrl;
 
           return PostCard(
-            routeName: p.title,
+            routeName: p.routeName,
             distance: distance,
             time: p.time,
             date: date,
@@ -107,7 +107,7 @@ class _PostListState extends State<PostList> {
             final imageUrl = p.mapImageUrl;
 
             return PostCard(
-              routeName: p.title, // post에 routeName 따로 사용
+              routeName: p.routeName,
               distance: distance,
               time: time,
               date: date,

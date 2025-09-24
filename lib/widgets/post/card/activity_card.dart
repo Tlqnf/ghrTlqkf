@@ -139,17 +139,16 @@ class _ActivityCardState extends State<ActivityCard>
             Row(
               children: [
                 _user != null &&
-                    _user!.profilePic != null &&
-                    _user!.profilePic!.isNotEmpty
-                    ? CircleAvatar(
-                  radius: 30,
-                  backgroundImage: NetworkImage(_user!.profilePic!),
-                )
-                    : const CircleAvatar(
-                  radius: 30,
-                  backgroundImage:
-                  AssetImage('assets/image/not_profile.png'),
-                ),
+                _user!.profilePic!.isNotEmpty
+                  ? CircleAvatar(
+                      radius: 30,
+                      backgroundImage: NetworkImage(_user!.profilePic!),
+                    )
+                  : const CircleAvatar(
+                      radius: 30,
+                      backgroundImage:
+                      AssetImage('assets/image/not_profile.png'),
+                    ),
                 const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

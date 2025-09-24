@@ -135,12 +135,8 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => PostFormScreen(
-                          postId: post.id,
-                          initialDistance: post.distance
-                              .toStringAsFixed(2),
-                          initialTime: post.time,
-                          mapImagePath: post.mapImageUrl,
-                          routeName: post.title,
+                          postData: post,
+                          routeId: post.routeId,
                         ),
                       ),
                     );

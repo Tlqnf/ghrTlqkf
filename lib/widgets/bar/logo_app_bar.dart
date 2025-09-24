@@ -62,13 +62,6 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: authProvider.authState == AuthState.loggedIn ? [
         IconButton(
-          icon: const Icon(Icons.notifications_none, color: Colors.black),
-          onPressed: () {
-            // Handle notification button press
-            debugPrint('Notification button pressed');
-          },
-        ),
-        IconButton(
           icon: const Icon(Icons.menu, color: Colors.black),
           onPressed: () {
             showModalBottomSheet(

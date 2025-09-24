@@ -1,4 +1,4 @@
-class Route {
+class FullRoute {
   final String name;
   final int id;
   final String createdAt;
@@ -7,7 +7,7 @@ class Route {
   final Map<String, dynamic> endPoint;
   final List<dynamic> tags;
 
-  Route({
+  FullRoute({
     required this.name,
     required this.id,
     required this.createdAt,
@@ -17,8 +17,8 @@ class Route {
     required this.tags,
   });
 
-  factory Route.fromJson(Map<String, dynamic> json) {
-    return Route(
+  factory FullRoute.fromJson(Map<String, dynamic> json) {
+    return FullRoute(
       name: json['name'],
       id: json['id'],
       createdAt: json['created_at'],
@@ -49,4 +49,32 @@ class GuideRoute {
     'finish_lat': finishLat,
     'finish_lon': finishLon,
   };
+}
+
+class UpdateRoute {
+  final String? name;
+  final List<Map<String, double>>? pointsJson;
+
+  UpdateRoute({
+    required this.name,
+    this.pointsJson,
+  });
+
+  factory UpdateRoute.fromJson(Map<String, dynamic> json) {
+    return UpdateRoute(
+      name: json['name'] ?? '',
+      pointsJson: (json['points_json'] as List<dynamic>?)
+          ?.map((e) => {
+        "lat": (e['lat'] as num).toDouble(),
+        "lon": (e['lon'] as num).toDouble(),
+      }).toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "name": name,
+      "points_json": pointsJson,
+    };
+  }
 }

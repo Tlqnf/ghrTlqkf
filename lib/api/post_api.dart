@@ -69,7 +69,6 @@ class PostApi {
 
       // Send the request
       var streamedResponse = await request.send();
-
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {

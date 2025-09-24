@@ -56,28 +56,6 @@ class ActivitySummaryCard extends StatelessWidget {
                     color: Colors.black, // 단위 색상
                   ),
                 ),
-                minute != null ? Row(
-                  children: [
-                    const SizedBox(width: 4),
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary, // 값 색상
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      "분",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black, // 단위 색상
-                      ),
-                    ),
-                  ],
-                ) : Container(),
               ],
             ),
           ],
