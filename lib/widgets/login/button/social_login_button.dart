@@ -75,11 +75,9 @@ class SocialLoginButton extends StatelessWidget {
       if (idToken != null) {
         final token = await OauthLoginApi.sendTokenGoogle(idToken);
         onLogin(token!);
-      } else {
-        debugPrint("토큰 없음");
       }
     } catch (e) {
-      debugPrint('Google 로그인 실패: $e');
+      rethrow;
     }
   }
 
@@ -90,11 +88,9 @@ class SocialLoginButton extends StatelessWidget {
       final accessToken = await OauthLoginApi.sendTokenKakao(token.accessToken);
       if (accessToken != null) {
         onLogin(accessToken);
-      } else {
-        debugPrint('카카오 로그인 실패: accessToken이 null입니다.');
       }
     } catch (error) {
-      debugPrint('카카오톡 로그인 실패 $error');
+      rethrow;
     }
   }
 }

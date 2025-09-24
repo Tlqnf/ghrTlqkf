@@ -208,10 +208,10 @@ class _ActivityCardState extends State<ActivityCard>
                     ),
                   ),
                   ...widget.post.images.map(
-                        (imageUrl) => ClipRRect(
+                        (image) => ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
                       child: Image.network(
-                        imageUrl,
+                        image["url"],
                         width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>

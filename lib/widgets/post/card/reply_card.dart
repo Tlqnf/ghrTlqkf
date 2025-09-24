@@ -126,7 +126,6 @@ class _ReplyAreaState extends State<ReplyArea> {
           Column(
             children: _replies!
                 .map((reply) {
-              debugPrint('build - ReplyItem 생성: $reply');
               return ReplyItem(reply: reply, parentId: widget.commentId);
             }).toList(),
           ),

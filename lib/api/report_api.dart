@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/report.dart';
 import 'package:http/http.dart' as http;
@@ -17,7 +16,6 @@ class ReportApi {
       body: jsonEncode(reportData.toJson()),
     );
     if (response.statusCode == 200) {
-      debugPrint("리포트 성공적으로 생성됨 ${reportData.routeId}");
       return Report.fromJson(jsonDecode(response.body)).id;
     } else {
       throw Exception('Failed to create Report: ${response.body}');

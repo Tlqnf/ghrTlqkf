@@ -1,3 +1,4 @@
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -115,6 +116,7 @@ final colorScheme = ColorScheme(
   onSecondary: Colors.white,
   error: AppColors.light.error!,
   onError: Colors.white,
+  // ignore: deprecated_member_use
   background: Colors.white,
   surface: AppColors.light.background!,
   onSurface: AppColors.light.text!,
@@ -122,19 +124,14 @@ final colorScheme = ColorScheme(
   onSurfaceVariant: AppColors.light.subText!,
 );
 
-// =====================
-// 1️⃣ FCM background handler (Top-level)
-// =====================
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('Handling a background message: ${message.messageId}');
   // 필요 시 background 처리
 }
 
-// =====================
-// 2️⃣ main()
-// =====================
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
 
   await dotenv.load(fileName: ".env");
   await initializeDateFormatting('ko_KR', null);

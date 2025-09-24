@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pedal/api/report_api.dart';
 import 'package:pedal/api/route_api.dart';
 import 'package:pedal/models/report.dart';
 import 'package:pedal/providers/auth_provider.dart';
+import 'package:pedal/services/admob_service.dart';
 import 'package:provider/provider.dart';
 import 'package:pedal/screens/post_form_screen.dart';
 import 'package:pedal/utils/time_formatter.dart';
@@ -45,10 +47,14 @@ class _MapScreenState extends State<MapScreen> {
   // Save Route
   int? _currentRouteId;
 
+  // banner
+  BannerAd? _bannerAd;
+
   @override
   void initState() {
     super.initState();
     _initializeLocationStream();
+    _createBannerAd();
 
     // Delay map loading to prevent transition animation conflicts
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -66,6 +72,23 @@ class _MapScreenState extends State<MapScreen> {
     _timer?.cancel();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  void _createBannerAd() {
+    _bannerAd = BannerAd(
+      size: AdSize.fullBanner,
+      adUnitId: AdMobService.bannerAdUnitId!,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (!mounted) return;
+          setState(() {}); // 로드 완료 후 화면 갱신
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+      request: const AdRequest(),
+    )..load();
   }
 
   // 사용자 위치 정보 불러오기 (권한 허용)
@@ -492,21 +515,17 @@ class _MapScreenState extends State<MapScreen> {
             right: 0,
             child: SafeArea(
               top: false,
-              child: Container(
+              child: SizedBox(
                 height: 60,
-                color: Theme.of(context).colorScheme.surface,
-                child: Center(
-                  child: Text(
-                    'Ad Placeholder',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  ),
-                ),
+                child: _bannerAd == null
+                  ? const SizedBox.shrink() // 아직 로드 안 됨
+                  : AdWidget(ad: _bannerAd!),
               ),
             ),
           ),
           // Navigation List Modal Handle
           Positioned(
-            bottom: 60, // Above the ad banner
+            bottom: 75, // Above the ad banner
             left: 0,
             right: 0,
             child: GestureDetector(
@@ -526,12 +545,6 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 );
               },
-              child: Container(
-                height: 30, // Height of the handle
-                color: Theme.of(context).colorScheme.surface.withAlpha(80), // Semi-transparent handle
-                alignment: Alignment.center,
-                child: Icon(Icons.keyboard_arrow_up, color: Theme.of(context).colorScheme.onSurface),
-              ),
             ),
           ),
         ],

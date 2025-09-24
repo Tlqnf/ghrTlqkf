@@ -95,6 +95,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                           builder: (context) => PostFormScreen(
                             postData: post,
                             routeId: post.routeId,
+                            mapImagePath: post.mapImageUrl,
                           ),
                         ),
                       );

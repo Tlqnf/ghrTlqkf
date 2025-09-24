@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/route.dart';
@@ -16,7 +15,6 @@ class RouteApi {
       }
     );
     if (response.statusCode == 200) {
-      debugPrint("${jsonDecode(response.body)["route_id"]}");
       return jsonDecode(response.body)["route_id"];
     } else {
       throw Exception("라우터 ID 생성 실패: ${jsonDecode(response.body)}");
@@ -24,9 +22,8 @@ class RouteApi {
   }
 
   // patch - routes/{routeId}
-  // 경로 이름 or 태그 수정 todo
+  // 경로 이름 or 태그 수정
   static Future<void> updateRoute(UpdateRoute routeData, int routeId, String token) async {
-    debugPrint(jsonEncode(routeData.toJson()));
     final response = await http.patch(
       Uri.parse("${ApiConfig.baseUrl}/routes/$routeId"),
       headers: {

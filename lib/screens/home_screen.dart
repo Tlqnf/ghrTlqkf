@@ -55,10 +55,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: RefreshIndicator( // 🔹 Pull-to-Refresh 적용
+      body: RefreshIndicator( // Pull-to-Refresh 적용
         onRefresh: _refreshData,
         child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(), // 빈 영역에서도 pull 가능
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverList(
               delegate: SliverChildListDelegate([
@@ -109,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                               child: ActivitySummaryCard(
                                 label: '활동 거리',
                                 value:
-                                '${_analyze?.totalActivityDistanceKm}',
+                                '${_analyze?.totalActivityDistanceKm.toStringAsFixed(2)}',
                                 unit: 'km',
                               ),
                             ),

@@ -105,7 +105,6 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                             backgroundColor: const Color(0xFFE0E0E0),
                             backgroundImage: _imageFile != null
                                 ? (() {
-                                    debugPrint('Image file path: ${_imageFile!.path}');
                                     return FileImage(File(_imageFile!.path));
                                   })()
                                 : null,

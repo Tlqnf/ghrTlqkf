@@ -137,6 +137,7 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
                         builder: (context) => PostFormScreen(
                           postData: post,
                           routeId: post.routeId,
+                          mapImagePath: post.mapImageUrl,
                         ),
                       ),
                     );

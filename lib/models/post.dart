@@ -11,7 +11,7 @@ class Post {
   final int reportId;
   final int routeId;
   final DateTime createdAt;
-  final List<String> images;
+  final List<Map<String, dynamic>> images; // <-- 그대로 Map
   final List<String> hashTag;
   final bool public;
   final String mapImageUrl;
@@ -43,9 +43,12 @@ class Post {
 
   factory Post.fromJson(Map<String, dynamic> json) {
     final imgs = (json['images'] as List?)
-        ?.map((e) => e is String ? e : (e?['url'] as String? ?? ''))
-        .where((s) => s.isNotEmpty)
-        .toList() ?? <String>[];
+        ?.map((e) => {
+      "id": e['id'],
+      "url": e['url'],
+    })
+        .toList() ??
+        <Map<String, dynamic>>[];
 
     return Post(
       id: json['id'] ?? 0,
@@ -58,7 +61,7 @@ class Post {
       reportId: json['report_id'] ?? 0,
       routeId: json["route_id"] ?? 0,
       createdAt: DateTime.tryParse(json['created_at'] ?? '')?.toLocal() ?? DateTime.now(),
-      images: imgs,
+      images: imgs, // List<Map<String, dynamic>>
       hashTag: List<String>.from(json['hash_tag'] ?? []),
       public: json['public'] ?? false,
       mapImageUrl: json['map_image_url'] ?? '',
@@ -74,6 +77,7 @@ class CreatePost {
   final String title;
   final String content;
   final int? reportId;
+  final int? routeId;
   final List<String> hashTag;
   final bool public;
 
@@ -81,6 +85,7 @@ class CreatePost {
     required this.title,
     required this.content,
     this.reportId,
+    this.routeId,
     required this.hashTag,
     required this.public,
   });
@@ -94,6 +99,42 @@ class CreatePost {
     };
     // Add optional fields only if they are not null
     if (reportId != null) data['report_id'] = reportId;
+    if (routeId != null) data['route_id'] = routeId;
+    return data;
+  }
+
+  String toJsonString() => json.encode(toJson());
+}
+
+class UpdatePost {
+  final String title;
+  final String content;
+  final int? reportId;
+  final List<String> hashTag;
+  final bool public;
+  final List<int>? imagesToKeepIds;
+
+  UpdatePost({
+    required this.title,
+    required this.content,
+    this.reportId,
+    required this.hashTag,
+    required this.public,
+    this.imagesToKeepIds,
+  });
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {
+      'title': title,
+      'content': content,
+      'hash_tag': hashTag,
+      'public': public,
+    };
+
+    // Add optional fields only if they are not null
+    if (reportId != null) data['report_id'] = reportId;
+    if (imagesToKeepIds != null) data['images_to_keep_ids'] = imagesToKeepIds;
+
     return data;
   }
 

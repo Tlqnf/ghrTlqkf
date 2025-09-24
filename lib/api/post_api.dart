@@ -26,7 +26,7 @@ class PostApi {
   }
 
   // post - post (수정 필요 반환값)
-  // 게시글 만들기 (실질적인 리스트 표시) todo 연결 필요 (로직 및 받는 데이터 정리)
+  // 게시글 만들기 (실질적인 리스트 표시)
   static Future<bool> createPost(String postData, String? mapImagePath, List<String> imagePaths, String token) async {
     try {
       var uri = Uri.parse('${ApiConfig.baseUrl}/post');
@@ -72,10 +72,10 @@ class PostApi {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
-        debugPrint("저장 성공 ${response.body}");
+        debugPrint("저장 성공 ${response.statusCode}");
         return true;
       } else {
-        debugPrint("저장 실패 ${response.body}");
+        debugPrint("저장 실패 ${response.statusCode}");
         return false;
       }
     } catch (e) {
@@ -86,8 +86,13 @@ class PostApi {
   }
 
   // patch - post (수정 필요 createPost와 똑같은 구조)
-  // 게시글 수정 todo 데이터 구조 정리 필요
-  static Future<bool> updatePost(String postData, int postId, List<String> imagePaths, String token) async {
+  // 게시글 수정
+  static Future<bool> updatePost(
+      String postData,
+      int postId,
+      List<String> imagePaths,
+      String token,
+      ) async {
     try {
       var uri = Uri.parse('${ApiConfig.baseUrl}/post/$postId');
       var request = http.MultipartRequest('PATCH', uri);
@@ -98,13 +103,14 @@ class PostApi {
       // Post data
       request.fields['post_update'] = postData;
 
+      // 새로 추가된 이미지 파일 첨부
       for (String path in imagePaths) {
         if (path.isNotEmpty) {
           File imageFile = File(path);
           var stream = http.ByteStream(imageFile.openRead());
           var length = await imageFile.length();
           var multipartFile = http.MultipartFile(
-            'images', // FastAPI endpoint's expected field name for files
+            'new_images',
             stream,
             length,
             filename: basename(imageFile.path),
@@ -118,14 +124,11 @@ class PostApi {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        debugPrint("수정 성공: ${response.body}");
         return true;
       } else {
-        debugPrint("수정 실패: ${response.body}");
         return false;
       }
     } catch (e) {
-      debugPrint('Error updating post: $e');
       rethrow;
     }
   }
@@ -143,7 +146,6 @@ class PostApi {
       );
       return response;
     } catch (e) {
-      debugPrint('Error creating post: $e');
       rethrow;
     }
   }

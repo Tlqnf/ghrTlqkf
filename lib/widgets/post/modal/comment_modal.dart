@@ -57,7 +57,7 @@ class _CommentModalState extends State<CommentModal> {
         _user = userInfo;
       });
     } catch (e) {
-      debugPrint("현재 사용자 정보 불러오기 실패: $e");
+      rethrow;
     }
   }
 
@@ -371,7 +371,7 @@ class _CommentItemState extends State<CommentItem> {
                           postId: widget.comment.postId,
                         ),
                       );
-                      if (!mounted) return;
+
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('대댓글이 등록되었습니다.')),

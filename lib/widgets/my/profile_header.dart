@@ -40,7 +40,6 @@ class _ProfileHeaderState extends State<ProfileHeader> {
         throw Exception('Token not found');
       }
       final user = await UserApi.fetchUserProfile(token);
-      debugPrint('Fetched user: $user');
       setState(() {
         _user = user;
       });

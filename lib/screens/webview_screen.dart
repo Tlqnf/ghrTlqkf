@@ -16,6 +16,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   void dispose() {
+    // ignore: deprecated_member_use
     _controller?.clearCache();
     _controller?.dispose();
     super.dispose();
@@ -31,6 +32,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(

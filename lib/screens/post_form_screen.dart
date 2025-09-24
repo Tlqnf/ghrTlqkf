@@ -48,6 +48,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
   final ImagePicker _picker = ImagePicker();
   final List<XFile> _additionalImages = [];
   final List<String> _additionalImageUrls = []; // 서버 이미지 URL
+  final List<Map<String, dynamic>> _additionalImageInfos = [];
   bool _isLoading = false;
   bool _isEditing = false;
 
@@ -64,7 +65,10 @@ class _PostFormScreenState extends State<PostFormScreen> {
       _titleController.text = widget.postData!.title;
       _bodyController.text = widget.postData!.content;
       _tags.addAll(widget.postData!.hashTag);
-      _additionalImageUrls.addAll(widget.postData!.images);
+      _additionalImageInfos.addAll(widget.postData!.images);
+      _additionalImageUrls.addAll(
+          widget.postData!.images.map((image) => image["url"])
+      );
       _isCommunityUploadEnabled = widget.postData!.public;
     } else {
       // Creating a new post
@@ -152,21 +156,9 @@ class _PostFormScreenState extends State<PostFormScreen> {
         return;
       }
 
-      final postData = CreatePost(
-        title: _isCommunityUploadEnabled
-            ? _titleController.text
-            : _routeNameController.text,
-        content: _isCommunityUploadEnabled ? _bodyController.text : '',
-        hashTag: _tags,
-        reportId: widget.reportId,
-        public: _isCommunityUploadEnabled,
-      );
-
       final String? mapImagePath = widget.mapImagePath;
       final List<String> additionalImagePaths =
       _additionalImages.map((xfile) => xfile.path).toList();
-
-      debugPrint("데이터 추가");
 
       await RouteApi.updateRoute(
         UpdateRoute(
@@ -182,7 +174,16 @@ class _PostFormScreenState extends State<PostFormScreen> {
         token,
       );
 
-      debugPrint("데이트");
+      final postData = CreatePost(
+        title: _isCommunityUploadEnabled
+            ? _titleController.text
+            : _routeNameController.text,
+        content: _isCommunityUploadEnabled ? _bodyController.text : '',
+        hashTag: _tags,
+        reportId: widget.reportId,
+        public: _isCommunityUploadEnabled,
+        routeId: widget.routeId,
+      );
 
       final isSuccess = await PostApi.createPost(
         postData.toJsonString(),
@@ -263,18 +264,25 @@ class _PostFormScreenState extends State<PostFormScreen> {
         return;
       }
 
-      final postData = CreatePost(
+      // 새로 추가된 이미지 경로
+      final List<String> additionalImagePaths =
+      _additionalImages.map((xfile) => xfile.path).toList();
+
+      // 유지할 기존 이미지들의 ID
+      final List<int> imagesToKeepIds = _additionalImageInfos
+          .where((img) => _additionalImageUrls.contains(img["url"]))
+          .map((img) => img["id"] as int)
+          .toList();
+
+      final postData = UpdatePost(
         title: _isCommunityUploadEnabled
             ? _titleController.text
             : _routeNameController.text,
         content: _isCommunityUploadEnabled ? _bodyController.text : '',
         hashTag: _tags,
-        reportId: widget.reportId,
         public: _isCommunityUploadEnabled,
+        imagesToKeepIds: imagesToKeepIds
       );
-
-      final List<String> additionalImagePaths =
-      _additionalImages.map((xfile) => xfile.path).toList();
 
       await RouteApi.updateRoute(
         UpdateRoute(
@@ -288,7 +296,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
         postData.toJsonString(),
         widget.postData!.id,
         additionalImagePaths,
-        token,
+        token, // 유지할 이미지 id
       );
 
       if (isSuccess) {
@@ -302,7 +310,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('성공적으로 생성되었습니다.')),
+          const SnackBar(content: Text('성공적으로 수정되었습니다.')),
         );
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
@@ -310,7 +318,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('생성에 실패했습니다.')),
+          const SnackBar(content: Text('수정에 실패했습니다.')),
         );
       }
     } catch (e) {
@@ -344,7 +352,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
       );
     } else {
       final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
-      final errorMessage = responseBody['detail'] ?? '수정에 실패했습니다.';
+      final errorMessage = responseBody['detail'] ?? '삭제에 실패했습니다.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('오류: ${response.statusCode} - $errorMessage')),
       );
@@ -602,6 +610,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                                       onTap: () {
                                         setState(() {
                                           _additionalImageUrls.removeAt(urlIndex);
+                                          _additionalImageInfos.removeAt(urlIndex);
                                         });
                                       },
                                       child: Container(
@@ -684,49 +693,51 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
                     // Buttons
                     _isEditing
-                        ? Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: _isLoading ? null : _deletePost,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            disabledBackgroundColor: Colors.grey[400],
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(color: Colors.red, strokeWidth: 3),
-                          )
-                              : const Text('삭제', style: TextStyle(fontSize: 18)),
-                        ),
-                        const Spacer(),
-                        ElevatedButton(
-                          onPressed: _isLoading ? null : _updatePost,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            disabledBackgroundColor: Colors.grey[400],
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
-                          )
-                              : const Text('수정', style: TextStyle(fontSize: 18)),
-                        ),
-                      ],
-                    )
+                        ? _isLoading
+                          ? Center(child: CircularProgressIndicator())
+                          : Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: _isLoading ? null : _deletePost,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    disabledBackgroundColor: Colors.grey[400],
+                                  ),
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(color: Colors.red, strokeWidth: 3),
+                                  )
+                                      : const Text('삭제', style: TextStyle(fontSize: 18)),
+                                ),
+                                const Spacer(),
+                                ElevatedButton(
+                                  onPressed: _isLoading ? null : _updatePost,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 70),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    disabledBackgroundColor: Colors.grey[400],
+                                  ),
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                                  )
+                                      : const Text('수정', style: TextStyle(fontSize: 18)),
+                                ),
+                            ],
+                            )
                         : SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
