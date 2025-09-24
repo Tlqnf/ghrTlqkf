@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedal/api/comment_api.dart';
 import 'package:pedal/api/user_api.dart';
+import 'package:pedal/main.dart';
 import 'package:pedal/models/comment.dart';
 import 'package:pedal/models/user.dart';
 import 'package:pedal/providers/auth_provider.dart';
@@ -19,14 +20,12 @@ class _CommentModalState extends State<CommentModal> {
   final TextEditingController _commentController = TextEditingController();
   late final String? token = context.read<AuthProvider>().token;
 
-  List<Comment> _comments = [];
-  bool _isLoading = true;
-  String? _errorMessage;
+  Future<List<Comment>>? _commentsFuture;
 
   @override
   void initState() {
     super.initState();
-    _fetchComments();
+    _commentsFuture = CommentApi.getPostComments(token!, widget.postId);
   }
 
   @override
@@ -37,26 +36,8 @@ class _CommentModalState extends State<CommentModal> {
 
   Future<void> _fetchComments() async {
     setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+      _commentsFuture = CommentApi.getPostComments(token!, widget.postId);
     });
-
-    try {
-      final comments = await CommentApi.getPostComments(token!, widget.postId);
-      if (!mounted) return;
-      setState(() {
-        _comments = comments;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = '댓글을 불러오는데 실패했습니다: $e';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 
   Future<void> _sendComment() async {
@@ -108,21 +89,25 @@ class _CommentModalState extends State<CommentModal> {
             ),
             // 댓글 목록
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _errorMessage != null
-                    ? Center(child: Text(_errorMessage!))
-                    : _comments.isEmpty
-                    ? const Center(child: Text('아직 댓글이 없습니다.'))
-                    : ListView.builder(
-                  itemCount: _comments.length,
-                  itemBuilder: (context, index) {
-                    final comment = _comments[index];
-                    return CommentItem(comment: comment);
-                  },
-                ),
+              child: FutureBuilder<List<Comment>>(
+                future: _commentsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('아직 댓글이 없습니다.'));
+                  } else {
+                    final comments = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: comments.length,
+                      itemBuilder: (context, index) {
+                        return CommentItem(comment: comments[index]);
+                      },
+                    );
+                  }
+                },
               ),
             ),
             // 댓글 입력창
@@ -167,7 +152,6 @@ class _CommentModalState extends State<CommentModal> {
   }
 }
 
-// 댓글 아이템
 class CommentItem extends StatefulWidget {
   final dynamic comment;
 
@@ -182,8 +166,10 @@ class _CommentItemState extends State<CommentItem> {
   late final String? token = context.read<AuthProvider>().token;
   late int _likeCount;
   bool _isLiked = false;
-  bool _isLoading = true;
-  Future<List<TextSpan>>? _textSpansFuture;
+
+  // FutureBuilder 없애고 상태 변수로 변경
+  List<TextSpan>? _textSpans;
+  bool _isBuildingText = true;
 
   @override
   void initState() {
@@ -192,17 +178,15 @@ class _CommentItemState extends State<CommentItem> {
     _initComment();
     _getUser();
     if (token != null) {
-      _textSpansFuture = _buildTextSpans(widget.comment.content);
+      _buildTextSpans(widget.comment.content);
+    } else {
+      _textSpans = [TextSpan(text: widget.comment.content)];
+      _isBuildingText = false;
     }
   }
 
-  Future<List<TextSpan>> _buildTextSpans(String text) async {
+  Future<void> _buildTextSpans(String text) async {
     final List<TextSpan> spans = [];
-    if (token == null) {
-      spans.add(TextSpan(text: text));
-      return spans;
-    }
-
     final RegExp mentionRegex = RegExp(r'@(\w+)');
     int lastMatchEnd = 0;
 
@@ -212,13 +196,13 @@ class _CommentItemState extends State<CommentItem> {
       }
 
       final String username = match.group(1)!;
-      final bool? isValid = await UserApi.checkUserMention(username, token!);
+      final bool? isValid =
+      token != null ? await UserApi.checkUserMention(username, token!) : null;
 
       if (isValid == true) {
         spans.add(TextSpan(
           text: match.group(0),
-          style: const TextStyle(
-              color: Colors.blue, fontWeight: FontWeight.bold),
+          style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
         ));
       } else {
         spans.add(TextSpan(text: match.group(0)));
@@ -230,7 +214,11 @@ class _CommentItemState extends State<CommentItem> {
       spans.add(TextSpan(text: text.substring(lastMatchEnd)));
     }
 
-    return spans;
+    if (!mounted) return;
+    setState(() {
+      _textSpans = spans;
+      _isBuildingText = false;
+    });
   }
 
   void _initComment() async {
@@ -241,14 +229,9 @@ class _CommentItemState extends State<CommentItem> {
       if (!mounted) return;
       setState(() {
         _isLiked = checked;
-        _isLoading = false;
       });
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    } catch (_) {
+      if (!mounted) return;
     }
   }
 
@@ -261,7 +244,7 @@ class _CommentItemState extends State<CommentItem> {
         _user = info;
       });
     } catch (e) {
-      throw Exception("유저 오류 발생: $e");
+      debugPrint("유저 오류 발생: $e");
     }
   }
 
@@ -484,8 +467,6 @@ class _CommentItemState extends State<CommentItem> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
-
     return Material(
       color: Colors.transparent,
       child: Padding(
@@ -501,13 +482,12 @@ class _CommentItemState extends State<CommentItem> {
                     _user!.profilePic != null &&
                     _user!.profilePic!.isNotEmpty
                     ? CircleAvatar(
-                  radius: 30,
+                  radius: 25,
                   backgroundImage: NetworkImage(_user!.profilePic!),
                 )
                     : const CircleAvatar(
-                  radius: 30,
-                  backgroundImage:
-                  AssetImage('assets/image/not_profile.png'),
+                  radius: 25,
+                  backgroundImage: AssetImage('assets/image/not_profile.png'),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -526,19 +506,14 @@ class _CommentItemState extends State<CommentItem> {
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             const SizedBox(height: 4),
-                            FutureBuilder<List<TextSpan>>(
-                              future: _textSpansFuture,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                                  return RichText(
-                                    text: TextSpan(
-                                      style: DefaultTextStyle.of(context).style,
-                                      children: snapshot.data,
-                                    ),
-                                  );
-                                }
-                                return Text(widget.comment.content);
-                              },
+                            _isBuildingText
+                                ? Text(widget.comment.content)
+                                : RichText(
+                              text: TextSpan(
+                                style: DefaultTextStyle.of(context).style,
+                                children: _textSpans ??
+                                    [TextSpan(text: widget.comment.content)],
+                              ),
                             ),
                             const SizedBox(height: 8),
                           ],
@@ -556,7 +531,7 @@ class _CommentItemState extends State<CommentItem> {
                                       ? Icons.thumb_up
                                       : Icons.thumb_up_alt_outlined,
                                   color: _isLiked
-                                      ? Theme.of(context).colorScheme.primary
+                                      ? AppColors.light.info!
                                       : Theme.of(context)
                                       .colorScheme
                                       .onSurfaceVariant,

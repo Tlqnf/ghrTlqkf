@@ -18,21 +18,19 @@ class ActivityCard extends StatefulWidget {
 }
 
 class _ActivityCardState extends State<ActivityCard>
-    with AutomaticKeepAliveClientMixin { // 🔹 상태 유지
+    with AutomaticKeepAliveClientMixin {
   late final token = context.read<AuthProvider>().token;
-  late bool _isLiked;
-  late int _likeCount;
-  late bool _isBookmark;
+  bool _isLiked = false;
+  int _likeCount = 0;
+  bool _isBookmark = false;
   bool _isMoreContent = false;
 
   User? _user; // null 허용
-  bool _isLoading = true; // 로딩 상태
 
   @override
   void initState() {
     super.initState();
     _likeCount = widget.post.likeCount;
-    _isBookmark = false;
     _getUserInfo();
   }
 
@@ -40,26 +38,16 @@ class _ActivityCardState extends State<ActivityCard>
     try {
       final info = await UserApi.getUserById(token!, widget.post.userId);
       final checked = await PostApi.checkThumbsUp(token!, widget.post.id);
+      final bookmarked = await PostApi.checkBookmark(token!, widget.post.id);
       if (mounted) {
         setState(() {
           _user = info;
-          _isLoading = false;
           _isLiked = checked;
+          _isBookmark = bookmarked;
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
       debugPrint('유저 정보를 불러오는데 실패했습니다: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
   }
 
@@ -138,12 +126,6 @@ class _ActivityCardState extends State<ActivityCard>
     final token = authProvider.token;
     final postId = widget.post.id;
 
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 0,
@@ -157,28 +139,17 @@ class _ActivityCardState extends State<ActivityCard>
             Row(
               children: [
                 _user != null &&
-                  _user!.profilePic != null &&
-                  _user!.profilePic!.isNotEmpty
+                    _user!.profilePic != null &&
+                    _user!.profilePic!.isNotEmpty
                     ? CircleAvatar(
-                        radius: 25,
-                        backgroundColor: Colors.transparent,
-                        child: _user!.profilePic != null
-                          ? ClipOval(
-                              child: Image.network(
-                                _user!.profilePic!,
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                            : const Icon(Icons.person, size: 30),
-                      )
+                  radius: 30,
+                  backgroundImage: NetworkImage(_user!.profilePic!),
+                )
                     : const CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage:
-                        AssetImage('assets/image/not_profile.png'),
-                      ),
+                  radius: 30,
+                  backgroundImage:
+                  AssetImage('assets/image/not_profile.png'),
+                ),
                 const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

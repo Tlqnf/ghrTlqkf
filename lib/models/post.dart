@@ -14,6 +14,7 @@ class Post {
   final List<String> hashTag;
   final bool public;
   final String mapImageUrl;
+  final String routeName;
   final double speed;
   final double distance;
   final String time;
@@ -32,6 +33,7 @@ class Post {
     required this.hashTag,
     required this.public,
     required this.mapImageUrl,
+    required this.routeName,
     required this.speed,
     required this.distance,
     required this.time,
@@ -57,6 +59,7 @@ class Post {
       hashTag: List<String>.from(json['hash_tag'] ?? []),
       public: json['public'] ?? false,
       mapImageUrl: json['map_image_url'] ?? '',
+      routeName: json['route_name'] ?? '',
       speed: (json['speed'] as num?)?.toDouble() ?? 0.0,
       distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
       time: json['time'] ?? '',

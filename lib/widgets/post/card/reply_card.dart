@@ -25,7 +25,6 @@ class _ReplyAreaState extends State<ReplyArea> {
   void initState() {
     super.initState();
     token = context.read<AuthProvider>().token;
-    debugPrint('initState - token: $token'); // token 확인
     _getReplies();
   }
 

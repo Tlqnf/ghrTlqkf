@@ -9,7 +9,7 @@ import 'package:pedal/widgets/my/profile_header.dart';
 import 'package:pedal/widgets/my/section_header.dart';
 import 'package:provider/provider.dart';
 import 'package:pedal/screens/report_detail_screen.dart';
-import 'package:pedal/models/card.dart';
+import 'package:pedal/models/post.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
@@ -19,8 +19,8 @@ class MyPageScreen extends StatefulWidget {
 }
 
 class _MyPageScreenState extends State<MyPageScreen> {
-  late Future<List<CardSummary>> _recentPostsFuture;
-  late Future<List<CardSummary>> _recentBookmarksFuture;
+  late Future<List<Post>> _recentPostsFuture;
+  late Future<List<Post>> _recentBookmarksFuture;
 
   @override
   void initState() {
@@ -65,7 +65,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   );
                 },
               ),
-              FutureBuilder<List<CardSummary>>(
+              FutureBuilder<List<Post>>(
                 future: _recentPostsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -78,28 +78,28 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   return PostList(
                     bookmarked: false,
                     mockData: snapshot.data!,
-                    onItemTap: (CardSummary cardSummary) {
+                    onItemTap: (Post post) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => ReportDetailScreen(
-                            reportId: cardSummary.reportId,
+                            reportId: post.reportId,
                           ),
                         ),
                       );
                     },
-                    onItemEdit: (CardSummary cardSummary) {
+                    onItemEdit: (Post post) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => PostFormScreen(
-                            postId: cardSummary.id,
-                            reportId: cardSummary.id, // Assuming reportId is the same as postId for now
-                            initialDistance: cardSummary.distance.toStringAsFixed(2),
-                            initialTime: cardSummary.time,
-                            mapImagePath: cardSummary.mapImageUrl,
-                            routeName: cardSummary.title,
-                            // tagList, title, content, imgUrls are not in CardSummary, so pass null
+                            postId: post.id,
+                            reportId: post.id, // Assuming reportId is the same as postId for now
+                            initialDistance: post.distance.toStringAsFixed(2),
+                            initialTime: post.time,
+                            mapImagePath: post.mapImageUrl,
+                            routeName: post.title,
+                            // tagList, title, content, imgUrls are not in Post, so pass null
                           ),
                         ),
                       );
@@ -123,7 +123,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   );
                 },
               ),
-              FutureBuilder<List<CardSummary>>(
+              FutureBuilder<List<Post>>(
                 future: _recentBookmarksFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {

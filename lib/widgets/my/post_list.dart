@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pedal/api/user_api.dart';
-import 'package:pedal/models/card.dart';
+import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/widgets/post/card/post_card.dart';
 import 'package:provider/provider.dart';
 
 class PostList extends StatefulWidget {
   final bool bookmarked;
-  final List<CardSummary>? mockData; // Add optional mock data parameter
-  final Function(CardSummary)? onItemTap; // Add this
-  final Function(CardSummary)? onItemEdit; // Add this
+  final List<Post>? mockData; // Add optional mock data parameter
+  final Function(Post)? onItemTap; // Add this
+  final Function(Post)? onItemEdit; // Add this
 
   const PostList({
     super.key,
@@ -26,11 +26,6 @@ class PostList extends StatefulWidget {
 
 class _PostListState extends State<PostList> {
   String _formatDistance(double km) => '${km.toStringAsFixed(2)} km';
-
-  String _formatDate(String raw) {
-    final parsed = DateTime.parse(raw).toLocal();
-    return DateFormat('yyyy.MM.dd').format(parsed);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,20 +43,21 @@ class _PostListState extends State<PostList> {
         physics: const NeverScrollableScrollPhysics(),
         itemCount: items.length,
         itemBuilder: (context, index) {
-          final c = items[index];
+          final p = items[index];
 
-          final distance = _formatDistance(c.distance);
-          final date = _formatDate(c.createdAt);
-          final imageUrl = c.mapImageUrl;
+          final distance = _formatDistance(p.distance);
+          final date = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR')
+              .format(p.createdAt.toLocal());
+          final imageUrl = p.mapImageUrl;
 
           return PostCard(
-            routeName: c.title,
+            routeName: p.title,
             distance: distance,
-            time: c.time,
+            time: p.time,
             date: date,
             imageUrl: imageUrl,
-            onTap: widget.onItemTap != null ? () => widget.onItemTap!(c) : null, // Pass tap event
-            onEdit: widget.onItemEdit != null ? () => widget.onItemEdit!(c) : null, // Pass edit event
+            onTap: widget.onItemTap != null ? () => widget.onItemTap!(p) : null, // Pass tap event
+            onEdit: widget.onItemEdit != null ? () => widget.onItemEdit!(p) : null, // Pass edit event
           );
         },
       );
@@ -69,7 +65,7 @@ class _PostListState extends State<PostList> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    return FutureBuilder<List<CardSummary>>(
+    return FutureBuilder<List<Post>>(
       future: widget.bookmarked
             ? UserApi.getRecentPosts(authProvider.token!)
             : UserApi.getRecentBookmarks(authProvider.token!),
@@ -102,21 +98,22 @@ class _PostListState extends State<PostList> {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: items.length, // 4개 표시
           itemBuilder: (context, index) {
-            final c = items[index];
+            final p = items[index];
 
-            final distance = _formatDistance(c.distance);
-            final time = c.time;
-            final date = _formatDate(c.createdAt);
-            final imageUrl = c.mapImageUrl;
+            final distance = _formatDistance(p.distance);
+            final time = p.time;
+            final date = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR')
+                .format(p.createdAt.toLocal());
+            final imageUrl = p.mapImageUrl;
 
             return PostCard(
-              routeName: c.title, // post에 routeName 따로 사용
+              routeName: p.title, // post에 routeName 따로 사용
               distance: distance,
               time: time,
               date: date,
               imageUrl: imageUrl, // MapImageUrl
-              onTap: widget.onItemTap != null ? () => widget.onItemTap!(c) : null, // Pass tap event
-              onEdit: widget.onItemEdit != null ? () => widget.onItemEdit!(c) : null, // Pass edit event
+              onTap: widget.onItemTap != null ? () => widget.onItemTap!(p) : null, // Pass tap event
+              onEdit: widget.onItemEdit != null ? () => widget.onItemEdit!(p) : null, // Pass edit event
             );
           },
         );

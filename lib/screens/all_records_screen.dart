@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pedal/api/user_api.dart';
-import 'package:pedal/models/card.dart';
+import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/post_form_screen.dart';
 import 'package:pedal/screens/report_detail_screen.dart';
@@ -22,7 +22,7 @@ class AllRecordsScreen extends StatefulWidget {
 }
 
 class _AllRecordsScreenState extends State<AllRecordsScreen> {
-  final List<CardSummary> _records = [];
+  final List<Post> _records = [];
   int _page = 1;
   bool _isLoading = false;
   bool _hasMore = true;
@@ -56,7 +56,7 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final List<CardSummary> newRecords = widget.bookmarked
+      final List<Post> newRecords = widget.bookmarked
           ? await UserApi.getBookmarks(authProvider.token!, _page)
           : await UserApi.getPosts(authProvider.token!, _page);
 
@@ -117,30 +117,30 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
                   mockData: _records,
                   onItemTap: widget.bookmarked
                       ? null
-                      : (CardSummary cardSummary) {
+                      : (Post post) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ReportDetailScreen(
-                          reportId: cardSummary.reportId,
+                          reportId: post.reportId,
                         ),
                       ),
                     );
                   },
                   onItemEdit: widget.bookmarked
                       ? null
-                      : (CardSummary cardSummary) {
+                      : (Post post) {
                     // Only allow edit for non-bookmarked (my records)
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => PostFormScreen(
-                          postId: cardSummary.id,
-                          initialDistance: cardSummary.distance
+                          postId: post.id,
+                          initialDistance: post.distance
                               .toStringAsFixed(2),
-                          initialTime: cardSummary.time,
-                          mapImagePath: cardSummary.mapImageUrl,
-                          routeName: cardSummary.title,
+                          initialTime: post.time,
+                          mapImagePath: post.mapImageUrl,
+                          routeName: post.title,
                         ),
                       ),
                     );

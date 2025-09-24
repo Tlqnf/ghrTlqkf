@@ -5,8 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/analyze.dart';
+import 'package:pedal/models/post.dart';
 import 'package:pedal/models/user.dart';
-import 'package:pedal/models/card.dart';
 import 'package:image_picker/image_picker.dart';
 
 class UserApi {
@@ -176,7 +176,7 @@ class UserApi {
 
   // get - post/me/posts/recent
   // 유저가 최근 작성한 4개 게시글 목록 반환 (완)
-  static Future<List<CardSummary>> getRecentPosts(String token) async {
+  static Future<List<Post>> getRecentPosts(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post/me/posts/recent'),
       headers: {
@@ -191,7 +191,7 @@ class UserApi {
       // 응답이 List<Map<String, dynamic>> 형태라고 가정
       if (decoded is List) {
         return decoded
-            .map((e) => CardSummary.fromJson(e as Map<String, dynamic>))
+            .map((e) => Post.fromJson(e as Map<String, dynamic>))
             .toList();
       } else {
         throw Exception('Unexpected response format (not a List)');
@@ -203,7 +203,7 @@ class UserApi {
 
   // get - post/me/posts?page={}
   // 유저가 작성한 모든 게시글 반환 (완)
-  static Future<List<CardSummary>> getPosts(String token, int page) async {
+  static Future<List<Post>> getPosts(String token, int page) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post/me/posts?page=$page&page_size=10'),
       headers: {
@@ -218,7 +218,7 @@ class UserApi {
       // 응답이 List<Map<String, dynamic>> 형태라고 가정
       if (decoded is List) {
         return decoded
-            .map((e) => CardSummary.fromJson(e as Map<String, dynamic>))
+            .map((e) => Post.fromJson(e as Map<String, dynamic>))
             .toList();
       } else {
         throw Exception('Unexpected response format (not a List)');
@@ -230,7 +230,7 @@ class UserApi {
 
   // get - post/me/bookmarked/recent
   // 유저가 최근에 북마크한 4개 게시글 목록 반환 (완)
-  static Future<List<CardSummary>> getRecentBookmarks(String token) async {
+  static Future<List<Post>> getRecentBookmarks(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post/me/bookmarked/recent'),
       headers: {
@@ -245,7 +245,7 @@ class UserApi {
       // 응답이 List<Map<String, dynamic>> 형태라고 가정
       if (decoded is List) {
         return decoded
-            .map((e) => CardSummary.fromJson(e as Map<String, dynamic>))
+            .map((e) => Post.fromJson(e as Map<String, dynamic>))
             .toList();
       } else {
         throw Exception('Unexpected response format (not a List)');
@@ -257,7 +257,7 @@ class UserApi {
 
   // get - post/me/bookmarked?page={}
   // 유저가 북마크한 모든 게시글 반환
-  static Future<List<CardSummary>> getBookmarks(String token, int page) async {
+  static Future<List<Post>> getBookmarks(String token, int page) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post/me/bookmarked?page=$page&page_size=10'),
       headers: {
@@ -272,7 +272,7 @@ class UserApi {
       // 응답이 List<Map<String, dynamic>> 형태라고 가정
       if (decoded is List) {
         return decoded
-            .map((e) => CardSummary.fromJson(e as Map<String, dynamic>))
+            .map((e) => Post.fromJson(e as Map<String, dynamic>))
             .toList();
       } else {
         throw Exception('Unexpected response format (not a List)');
