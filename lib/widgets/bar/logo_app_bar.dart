@@ -133,6 +133,14 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                           },
                         ),
                         ListTile(
+                          leading: const Icon(Icons.notifications, color: Colors.black),
+                          title: const Text('공지사항', style: TextStyle(color: Colors.black)),
+                          onTap: () async {
+                            Navigator.pop(context); // Close the modal
+                            // 공지사항 화면 만들기 -> 서버 확인 필요
+                          },
+                        ),
+                        ListTile(
                           leading: const Icon(Icons.help_outline, color: Colors.black),
                           title: const Text('문의하기', style: TextStyle(color: Colors.black)),
                           onTap: () async {

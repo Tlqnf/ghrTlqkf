@@ -4,10 +4,6 @@ import 'package:flutter/cupertino.dart';
 // Background message handler must be a top-level function.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  // await Firebase.initializeApp(); // Not needed if you just handle the notification data
-
   debugPrint("Handling a background message: \${message.messageId}");
   debugPrint('Message data: \${message.data}');
   debugPrint('Message notification: \${message.notification?.title}');
@@ -22,6 +18,17 @@ class FCMService {
   }
 
   Future<void> initialize() async {
+    // Request permission for iOS and Android 13+
+    await _firebaseMessaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
     // Get the FCM token (for debugging/logging purposes within the service)
     final String? fcmToken = await _firebaseMessaging.getToken();
     debugPrint("FCM Token: $fcmToken");

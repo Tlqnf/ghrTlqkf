@@ -1,9 +1,4 @@
 import 'dart:async';
-import 'package:background_locator_2/background_locator.dart';
-import 'package:background_locator_2/location_dto.dart';
-import 'package:background_locator_2/settings/android_settings.dart' as bl2_android;
-import 'package:background_locator_2/settings/ios_settings.dart';
-import 'package:background_locator_2/settings/locator_settings.dart' as bl2;
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -12,8 +7,6 @@ import 'package:pedal/api/report_api.dart';
 import 'package:pedal/models/report.dart';
 import 'package:pedal/api/route_api.dart';
 import 'package:pedal/providers/auth_provider.dart';
-import 'package:pedal/services/location_callback_handler.dart';
-import 'package:pedal/services/location_service_repository.dart';
 import 'package:pedal/utils/route_utils.dart';
 import 'package:pedal/utils/time_formatter.dart';
 
@@ -23,7 +16,6 @@ class MapProvider with ChangeNotifier {
   NLatLng? _currentLocation;
   NaverMapController? _mapController;
   StreamSubscription<Position>? _positionStreamSubscription;
-  StreamSubscription<LocationDto>? _locationDtoStreamSubscription;
 
   final int _chunkSize = 25;
   final List<List<NLatLng>> _routeChunks = [[]];
@@ -123,63 +115,6 @@ class MapProvider with ChangeNotifier {
   }
 
   Future<void> initialize() async {
-    _locationDtoStreamSubscription =
-        LocationServiceRepository.locationStream.listen((LocationDto position) {
-          final newPoint = NLatLng(position.latitude, position.longitude);
-          final currentSpeedKmh = position.speed * 3.6;
-
-          final marker = NMarker(
-            id: 'current_location',
-            position: newPoint,
-            icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
-            size: const Size(15, 15),
-            anchor: const NPoint(0.5, 0.5),
-          );
-          _mapController?.addOverlay(marker);
-
-          if (_isRecording && !_isPaused) {
-            final lastPoint = _currentLocation;
-            if (lastPoint != null) {
-              final distance = Geolocator.distanceBetween(
-                lastPoint.latitude,
-                lastPoint.longitude,
-                newPoint.latitude,
-                newPoint.longitude,
-              );
-              if (distance >= 0 && distance < 100) {
-                _distance += distance;
-              }
-            }
-
-            final elapsedSec = _stopwatch.elapsed.inSeconds;
-            if (_distance > 0 && elapsedSec > 0) {
-              _avgSpeed = (_distance / elapsedSec) * 3.6;
-            }
-
-            if (currentSpeedKmh > _maxSpeed) _maxSpeed = currentSpeedKmh;
-            _addPointToRoute(newPoint);
-          }
-
-          _currentLocation = newPoint;
-          _currentSpeed = currentSpeedKmh;
-          _isLoading = false;
-
-          if (_isFollowingUser && _isMapVisible && _mapController != null) {
-            _mapController!.getCameraPosition().then((p) {
-              final cameraUpdate = NCameraUpdate.scrollAndZoomTo(
-                target: newPoint,
-                zoom: p.zoom,
-              );
-              _mapController!.updateCamera(cameraUpdate);
-            });
-          }
-          notifyListeners();
-        });
-
-    await _initializeLocationStream();
-  }
-
-  Future<void> _initializeLocationStream() async {
     _isLoading = true;
     notifyListeners();
 
@@ -189,6 +124,22 @@ class MapProvider with ChangeNotifier {
       return;
     }
 
+    // Check and request location permissions
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _setError('Location permissions are denied.');
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _setError('Location permissions are permanently denied, we cannot request permissions.');
+      return;
+    }
+
+    // Initial location fetching
     Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
     if (lastKnownPosition != null) {
       _currentLocation = NLatLng(lastKnownPosition.latitude, lastKnownPosition.longitude);
@@ -198,13 +149,12 @@ class MapProvider with ChangeNotifier {
 
     try {
       Position currentPosition = await Geolocator.getCurrentPosition(
-        // ignore: deprecated_member_use
         timeLimit: const Duration(seconds: 10),
       );
       _currentLocation = NLatLng(currentPosition.latitude, currentPosition.longitude);
       _isLoading = false;
 
-      if (_mapController != null && lastKnownPosition != null) {
+      if (_mapController != null && _currentLocation != null) {
         final cameraUpdate = NCameraUpdate.scrollAndZoomTo(target: _currentLocation!, zoom: 16.5);
         _mapController?.updateCamera(cameraUpdate);
       }
@@ -215,11 +165,65 @@ class MapProvider with ChangeNotifier {
       }
     }
 
-    _startLocationStream();
-  }
+    // Start listening to Geolocator stream
+    _positionStreamSubscription?.cancel(); // Cancel any previous subscription
+    _positionStreamSubscription = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 0, // Receive updates even for small movements
+      ),
+    ).listen((Position position) {
 
-  void _startLocationStream() {
-    _positionStreamSubscription?.cancel();
+      final newPoint = NLatLng(position.latitude, position.longitude);
+      final currentSpeedKmh = position.speed * 3.6;
+
+      final marker = NMarker(
+        id: 'current_location',
+        position: newPoint,
+        icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
+        size: const Size(15, 15),
+        anchor: const NPoint(0.5, 0.5),
+      );
+      _mapController?.addOverlay(marker);
+
+      if (_isRecording && !_isPaused) {
+        final lastPoint = _currentLocation;
+        if (lastPoint != null) {
+          final distance = Geolocator.distanceBetween(
+            lastPoint.latitude,
+            lastPoint.longitude,
+            newPoint.latitude,
+            newPoint.longitude,
+          );
+          if (distance >= 0 && distance < 100) { // Filter out large jumps
+            _distance += distance;
+          }
+        }
+
+        final elapsedSec = _stopwatch.elapsed.inSeconds;
+        if (_distance > 0 && elapsedSec > 0) {
+          _avgSpeed = (_distance / elapsedSec) * 3.6;
+        }
+
+        if (currentSpeedKmh > _maxSpeed) _maxSpeed = currentSpeedKmh;
+        _addPointToRoute(newPoint);
+      }
+
+      _currentLocation = newPoint;
+      _currentSpeed = currentSpeedKmh;
+      _isLoading = false;
+
+      if (_isFollowingUser && _isMapVisible && _mapController != null) {
+        _mapController!.getCameraPosition().then((p) {
+          final cameraUpdate = NCameraUpdate.scrollAndZoomTo(
+            target: newPoint,
+            zoom: p.zoom,
+          );
+          _mapController!.updateCamera(cameraUpdate);
+        });
+      }
+      notifyListeners();
+    });
   }
 
   void _addPointToRoute(NLatLng point) {
@@ -252,30 +256,6 @@ class MapProvider with ChangeNotifier {
       _setError("Authentication information is missing. Please log in again.");
       return false;
     }
-
-    // ✅ background_locator_2 enum만 사용
-    await BackgroundLocator.registerLocationUpdate(
-      LocationCallbackHandler.callback,
-      androidSettings: bl2_android.AndroidSettings(
-        accuracy: bl2.LocationAccuracy.HIGH, // background_locator_2 enum
-        interval: 5,
-        distanceFilter: 0,
-        client: bl2_android.LocationClient.google,
-        androidNotificationSettings: bl2_android.AndroidNotificationSettings(
-          notificationChannelName: 'Location tracking',
-          notificationTitle: 'Pedal',
-          notificationMsg: '주행을 기록하고 있습니다.',
-          notificationBigMsg: '백그라운드에서 주행 경로를 기록하고 있습니다.',
-          notificationIcon: '@mipmap/ic_launcher',
-          notificationIconColor: Colors.grey,
-        ),
-      ),
-      iosSettings: IOSSettings(
-        accuracy: bl2.LocationAccuracy.HIGH, // background_locator_2 enum
-        distanceFilter: 0,
-        showsBackgroundLocationIndicator: true,
-      ),
-    );
 
     final int newRouteId = await RouteApi.getRouteId(_authProvider!.token!);
     _currentRouteId = newRouteId;
@@ -320,7 +300,6 @@ class MapProvider with ChangeNotifier {
   }
 
   Future<Map<String, dynamic>?> stopRecordingAndNavigate() async {
-    await BackgroundLocator.unRegisterLocationUpdate();
     if (!_isRecording || _authProvider?.token == null) return null;
 
     _isMapVisible = true;
@@ -405,7 +384,6 @@ class MapProvider with ChangeNotifier {
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
-    _locationDtoStreamSubscription?.cancel();
     _timer?.cancel();
     _mapController?.dispose();
     super.dispose();

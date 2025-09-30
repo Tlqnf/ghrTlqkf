@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/analyze.dart';
@@ -101,19 +102,24 @@ class UserApi {
   // get - users/me/profile-description-status
   // 유저의 프로필 중 설명이 있는가? (완)
   static Future<bool?> checkUserProfile(String token) async{
+    final url = Uri.parse('${ApiConfig.baseUrl}/users/me/profile-description-status');
+    debugPrint('UserApi: Calling checkUserProfile at $url');
     final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/users/me/profile-description-status'),
+      url,
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
 
+    debugPrint('UserApi: checkUserProfile response status code: ${response.statusCode}');
     if (response.statusCode == 200) {
+      debugPrint('UserApi: checkUserProfile response body: ${response.body}');
       Map<String, dynamic> json = jsonDecode(response.body);
       return json["is_null"];
 
     } else {
+      debugPrint('UserApi: checkUserProfile failed with status: ${response.statusCode}, body: ${response.body}');
       throw Exception('Failed to load user profile: ${response.statusCode}');
     }
   }

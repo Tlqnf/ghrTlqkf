@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:pedal/providers/map_provider.dart';
 import 'package:pedal/screens/post_form_screen.dart';
+import 'package:pedal/widgets/ad/banner_ad_widget.dart';
 import 'package:pedal/widgets/map/button/map_control_button.dart';
 import 'package:pedal/screens/no_map_recording_screen.dart';
 import 'package:pedal/widgets/map/card/stat_card.dart';
@@ -128,6 +129,12 @@ class RecordingOverlay extends StatelessWidget {
               ],
             ),
           ),
+        ),
+        const Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Center(child: BannerAdWidget()),
         ),
       ],
     );

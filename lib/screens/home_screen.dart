@@ -88,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                               MediaQuery.of(context).size.width / 2.5,
                               child: ActivitySummaryCard(
                                 label: '활동 횟수',
-                                value: '${_analyze?.routesTakenCount}',
+                                value: '${_analyze?.routesTakenCount ?? 0}',
                                 unit: '회',
                               ),
                             ),
@@ -98,7 +98,7 @@ class _HomePageState extends State<HomePage> {
                               MediaQuery.of(context).size.width / 2.5,
                               child: ActivitySummaryCard(
                                 label: '활동 시간',
-                                value: '${_analyze?.totalActivityTimeFormatted}',
+                                value: _analyze?.totalActivityTimeFormatted ?? '00:00:00',
                                 unit: '',
                               ),
                             ),
@@ -109,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                               child: ActivitySummaryCard(
                                 label: '활동 거리',
                                 value:
-                                '${_analyze?.totalActivityDistanceKm.toStringAsFixed(2)}',
+                                _analyze?.totalActivityDistanceKm.toStringAsFixed(2) ?? '0.00',
                                 unit: 'km',
                               ),
                             ),

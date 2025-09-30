@@ -15,9 +15,6 @@ import 'package:pedal/screens/main_navigation_screen.dart';
 import 'package:pedal/config/firebase_options.dart';
 import 'package:pedal/services/fcm_service.dart';
 import 'package:provider/provider.dart';
-import 'package:background_locator_2/background_locator.dart';
-import 'package:permission_handler/permission_handler.dart';
-
 
 // ThemeExtension을 사용한 AppColors 정의
 @immutable
@@ -168,8 +165,6 @@ void main() async {
     serverClientId: dotenv.env["GOOGLE_SERVER_CLIENT_ID"], // 서버 검증용
   );
 
-  await BackgroundLocator.initialize();
-
   runApp(
     MultiProvider(
       providers: [
@@ -187,9 +182,6 @@ void main() async {
   );
 }
 
-// =====================
-// 3️⃣ PedalApp
-// =====================
 class PedalApp extends StatefulWidget {
   const PedalApp({super.key});
 
@@ -198,13 +190,10 @@ class PedalApp extends StatefulWidget {
 }
 
 class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
-  bool _permissionsReady = false;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkAndRequestPermissions();
   }
 
   @override
@@ -214,102 +203,30 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _checkAndRequestPermissions();
-    }
-  }
-
-  Future<void> _checkAndRequestPermissions() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.location,
-      Permission.notification,
-      Permission.photos,
-    ].request();
-
-    bool allGranted = true;
-    statuses.forEach((permission, status) {
-      if (!status.isGranted) {
-        allGranted = false;
-      }
-    });
-
-    if (allGranted) {
-      if (!_permissionsReady) {
-        setState(() {
-          _permissionsReady = true;
-        });
-      }
-    } else {
-      _showPermissionDialog();
-    }
-  }
-
-  void _showPermissionDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('권한 필요'),
-          content: const Text('앱의 모든 기능을 사용하기 위해 권한이 필요합니다. 설정으로 이동하여 권한을 허용해주세요.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('설정으로 이동'),
-              onPressed: () {
-                openAppSettings();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (!_permissionsReady) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
     return MaterialApp(
       title: 'Pedal',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: colorScheme,
-        extensions: <ThemeExtension<dynamic>>[AppColors.light],
-      ),
-      home: FutureBuilder(
-        future: Provider.of<AuthProvider>(context, listen: false).tryAutoLogin(),
-        builder: (ctx, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: colorScheme,
+          extensions: [AppColors.light],
+        ),
+      home: Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          switch (auth.authState) {
+            case AuthState.loading:
+              return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            case AuthState.loggedIn:
+              return MainNavigationScreen();
+            case AuthState.needsProfileSetup:
+              return ProfileSetupPage(
+                  token: auth.token!,
+                  onSetupComplete: () => auth.completeProfileSetup());
+            case AuthState.loggedOut:
+            return LoginScreen();
           }
-
-          return Consumer<AuthProvider>(
-            builder: (context, auth, _) {
-              switch (auth.authState) {
-                case AuthState.loading:
-                  return const Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
-                  );
-                case AuthState.loggedIn:
-                  return MainNavigationScreen();
-                case AuthState.needsProfileSetup:
-                  return ProfileSetupPage(
-                    token: auth.token!,
-                    onSetupComplete: () => auth.completeProfileSetup(),
-                  );
-                case AuthState.loggedOut:
-                  return LoginScreen();
-              }
-            },
-          );
         },
-      ),
+      )
     );
   }
 }
