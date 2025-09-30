@@ -52,7 +52,7 @@ class PaymentScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        '3,000원 / 월',
+                        '2,500원 / 월',
                         style: TextStyle(
                           fontSize: 22,
                           color: Colors.black,

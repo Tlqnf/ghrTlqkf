@@ -22,17 +22,6 @@ class FCMService {
   }
 
   Future<void> initialize() async {
-    // Request permission for iOS and Android 13+
-    await _firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
-
     // Get the FCM token (for debugging/logging purposes within the service)
     final String? fcmToken = await _firebaseMessaging.getToken();
     debugPrint("FCM Token: $fcmToken");

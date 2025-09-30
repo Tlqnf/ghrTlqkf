@@ -137,7 +137,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                           title: const Text('문의하기', style: TextStyle(color: Colors.black)),
                           onTap: () async {
                             Navigator.pop(context); // Close the modal
-                            final url = Uri.parse('https://open.kakao.com/o/sAFj9Hsg');
+                            final url = Uri.parse('http://pf.kakao.com/_fxoxoUn/chat');
                             if (await canLaunchUrl(url)) {
                               await launchUrl(url, mode: LaunchMode.externalApplication);
                             } else {

@@ -8,12 +8,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:pedal/providers/auth_provider.dart';
+import 'package:pedal/providers/map_provider.dart';
 import 'package:pedal/screens/login_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
 import 'package:pedal/config/firebase_options.dart';
 import 'package:pedal/services/fcm_service.dart';
 import 'package:provider/provider.dart';
+import 'package:background_locator_2/background_locator.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 // ThemeExtension을 사용한 AppColors 정의
 @immutable
@@ -164,9 +168,20 @@ void main() async {
     serverClientId: dotenv.env["GOOGLE_SERVER_CLIENT_ID"], // 서버 검증용
   );
 
+  await BackgroundLocator.initialize();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AuthProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, MapProvider>(
+          create: (context) => MapProvider(),
+          update: (context, auth, previousMapProvider) {
+            previousMapProvider!.update(auth);
+            return previousMapProvider;
+          },
+        ),
+      ],
       child: const PedalApp(),
     ),
   );
@@ -182,9 +197,82 @@ class PedalApp extends StatefulWidget {
   State<PedalApp> createState() => _PedalAppState();
 }
 
-class _PedalAppState extends State<PedalApp> {
+class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
+  bool _permissionsReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkAndRequestPermissions();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkAndRequestPermissions();
+    }
+  }
+
+  Future<void> _checkAndRequestPermissions() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.location,
+      Permission.notification,
+      Permission.photos,
+    ].request();
+
+    bool allGranted = true;
+    statuses.forEach((permission, status) {
+      if (!status.isGranted) {
+        allGranted = false;
+      }
+    });
+
+    if (allGranted) {
+      if (!_permissionsReady) {
+        setState(() {
+          _permissionsReady = true;
+        });
+      }
+    } else {
+      _showPermissionDialog();
+    }
+  }
+
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('권한 필요'),
+          content: const Text('앱의 모든 기능을 사용하기 위해 권한이 필요합니다. 설정으로 이동하여 권한을 허용해주세요.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('설정으로 이동'),
+              onPressed: () {
+                openAppSettings();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_permissionsReady) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return MaterialApp(
       title: 'Pedal',
       theme: ThemeData(

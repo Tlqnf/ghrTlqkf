@@ -77,7 +77,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   }
                   return PostList(
                     bookmarked: false,
-                    mockData: snapshot.data!,
+                    postData: snapshot.data!,
                     onItemTap: (Post post) {
                       Navigator.push(
                         context,
@@ -131,7 +131,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   }
                   return PostList(
                     bookmarked: true,
-                    mockData: snapshot.data!,
+                    postData: snapshot.data!,
                     onItemTap: null,
                   );
                 },

@@ -74,9 +74,11 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
         _isLoading = false;
       });
       // Optional: Show an error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load records: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load records: $e')),
+        );
+      }
     }
   }
 
@@ -114,7 +116,7 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
               children: [
                 PostList(
                   bookmarked: widget.bookmarked,
-                  mockData: _records,
+                  postData: _records,
                   onItemTap: widget.bookmarked
                       ? null
                       : (Post post) {

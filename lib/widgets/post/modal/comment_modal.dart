@@ -83,15 +83,17 @@ class _CommentModalState extends State<CommentModal> {
       );
       _commentController.clear();
       await _fetchComments();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('댓글이 등록되었습니다.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('댓글이 등록되었습니다.')),
+        );
+      }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('댓글 등록 실패: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('댓글 등록 실패: $e')),
+        );
+      }
     }
   }
 
@@ -373,9 +375,11 @@ class _CommentItemState extends State<CommentItem> {
                       );
 
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('대댓글이 등록되었습니다.')),
-                      );
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('대댓글이 등록되었습니다.')),
+                        );
+                      }
                       widget.onCommentMutated();
                     } catch (e) {
                       if (mounted) {
@@ -478,11 +482,12 @@ class _CommentItemState extends State<CommentItem> {
                     try {
                       await CommentApi.updateComment(
                           token!, widget.comment.commentId, newContent);
-                      if (!mounted) return;
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('댓글이 수정되었습니다.')),
-                      );
+                      if (mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('댓글이 수정되었습니다.')),
+                        );
+                      }
                       widget.onCommentMutated();
                     } catch (e) {
                       if (mounted) {
@@ -505,10 +510,11 @@ class _CommentItemState extends State<CommentItem> {
     if (token == null) return;
     try {
       await CommentApi.deleteComment(token!, widget.comment.commentId);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('댓글이 삭제되었습니다.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('댓글이 삭제되었습니다.')),
+        );
+      }
       widget.onCommentMutated();
     } catch (e) {
       if (mounted) {

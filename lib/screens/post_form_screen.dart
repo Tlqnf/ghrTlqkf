@@ -10,6 +10,9 @@ import 'package:pedal/models/route.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:pedal/services/admob_service.dart';
+
 
 class PostFormScreen extends StatefulWidget {
   final int? reportId;
@@ -55,9 +58,14 @@ class _PostFormScreenState extends State<PostFormScreen> {
   final PageController _pageController = PageController();
   int _currentImagePage = 0;
 
+  InterstitialAd? _interstitialAd;
+  bool _isAdLoaded = false;
+
   @override
   void initState() {
     super.initState();
+    _loadInterstitialAd();
+
     if (widget.postData != null) {
       // Editing an existing post
       _isEditing = true;
@@ -118,6 +126,45 @@ class _PostFormScreenState extends State<PostFormScreen> {
     setState(() {
       _tags.remove(tag);
     });
+  }
+
+  void _loadInterstitialAd() {
+    final adUnitId = AdMobService.interstitialAdUnitId;
+    if (adUnitId == null) return;
+
+    InterstitialAd.load(
+      adUnitId: adUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+          _isAdLoaded = true;
+          _interstitialAd?.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              ad.dispose();
+              _navigateToHome();
+            },
+            onAdFailedToShowFullScreenContent: (ad, error) {
+              ad.dispose();
+              debugPrint('Failed to show ad: $error');
+              _navigateToHome();
+            },
+          );
+        },
+        onAdFailedToLoad: (error) {
+          debugPrint('InterstitialAd failed to load: $error');
+        },
+      ),
+    );
+  }
+
+  void _navigateToHome() {
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+            (Route<dynamic> route) => false,
+      );
+    }
   }
 
   Future<void> _savePost() async {
@@ -201,18 +248,22 @@ class _PostFormScreenState extends State<PostFormScreen> {
         }
         _additionalImages.clear();
 
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('성공적으로 생성되었습니다.')),
-        );
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-              (Route<dynamic> route) => false,
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('성공적으로 생성되었습니다.')),
+          );
+          if (_isAdLoaded && _interstitialAd != null) {
+            _interstitialAd!.show();
+          } else {
+            _navigateToHome();
+          }
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('생성에 실패했습니다.')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('생성에 실패했습니다.')),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -308,18 +359,22 @@ class _PostFormScreenState extends State<PostFormScreen> {
         }
         _additionalImages.clear();
 
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('성공적으로 수정되었습니다.')),
-        );
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-              (Route<dynamic> route) => false,
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('성공적으로 수정되었습니다.')),
+          );
+          if (_isAdLoaded && _interstitialAd != null) {
+            _interstitialAd!.show();
+          } else {
+            _navigateToHome();
+          }
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('수정에 실패했습니다.')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('수정에 실패했습니다.')),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;

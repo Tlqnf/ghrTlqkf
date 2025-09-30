@@ -1,58 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:pedal/providers/map_provider.dart';
+import 'package:pedal/screens/post_form_screen.dart';
 import 'package:pedal/widgets/map/button/map_control_button.dart';
 import 'package:pedal/screens/no_map_recording_screen.dart';
 import 'package:pedal/widgets/map/card/stat_card.dart';
+import 'package:provider/provider.dart';
 
 class RecordingOverlay extends StatelessWidget {
-  final bool isMapVisible;
-  final double distance;
-  final double avgSpeed;
-  final String elapsedTime;
-  final double currentSpeed;
-  final double maxSpeed;
-  final bool isPaused;
-  final VoidCallback onRotateMap;
-  final VoidCallback onRecenterMap;
-  final VoidCallback onTogglePause;
-  final VoidCallback onStopRecording;
-  final VoidCallback onToggleMapVisibility;
-  final NaverMapController? mapController;
-
-  const RecordingOverlay({
-    super.key,
-    required this.isMapVisible,
-    required this.distance,
-    required this.avgSpeed,
-    required this.elapsedTime,
-    required this.currentSpeed,
-    required this.maxSpeed,
-    required this.isPaused,
-    required this.onRotateMap,
-    required this.onRecenterMap,
-    required this.onTogglePause,
-    required this.onStopRecording,
-    required this.onToggleMapVisibility,
-    required this.mapController,
-  });
+  const RecordingOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final mapProvider = context.watch<MapProvider>();
+    final mapProviderReader = context.read<MapProvider>();
+
     return Stack(
       children: [
         // === Top section: Either map stats or no-map view ===
-        if (isMapVisible) ...[
+        if (mapProvider.isMapVisible) ...[
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
             right: 16,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                StatCard(title: '거리', value: (distance / 1000).toStringAsFixed(2), unit: 'km'),
-                StatCard(title: '평균 속력', value: avgSpeed.toStringAsFixed(1), unit: 'km/h'),
-                StatCard(title: '시간', value: elapsedTime, unit: ''),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StatCard(title: '거리', value: (mapProvider.distance / 1000).toStringAsFixed(2), unit: 'km'),
+                  SizedBox(width: 10,),
+                  StatCard(title: '현재 속력', value: mapProvider.currentSpeed.toStringAsFixed(1), unit: 'km/h'),
+                  SizedBox(width: 10,),
+                  StatCard(title: '시간', value: mapProvider.elapsedTime, unit: ''),
+                ],
+              ),
             ),
           ),
           Positioned(
@@ -62,12 +44,12 @@ class RecordingOverlay extends StatelessWidget {
               children: [
                 MapControlButton(
                   icon: Icons.explore_outlined,
-                  onPressed: onRotateMap,
+                  onPressed: () => mapProvider.mapController?.updateCamera(NCameraUpdate.withParams(bearing: 0)),
                 ),
                 const SizedBox(height: 8),
                 MapControlButton(
                   icon: Icons.my_location,
-                  onPressed: onRecenterMap,
+                  onPressed: mapProviderReader.recenterMap,
                 ),
               ],
             ),
@@ -75,13 +57,13 @@ class RecordingOverlay extends StatelessWidget {
         ] else ...[
           Positioned.fill(
             child: NoMapRecordingView(
-              currentSpeed: currentSpeed,
-              isPaused: isPaused,
-              togglePause: onTogglePause,
-              distance: distance,
-              elapsedTime: elapsedTime,
-              avgSpeed: avgSpeed,
-              maxSpeed: maxSpeed,
+              currentSpeed: mapProvider.currentSpeed,
+              isPaused: mapProvider.isPaused,
+              togglePause: mapProviderReader.togglePause,
+              distance: mapProvider.distance,
+              elapsedTime: mapProvider.elapsedTime,
+              avgSpeed: mapProvider.avgSpeed,
+              maxSpeed: mapProvider.maxSpeed,
             ),
           ),
         ],
@@ -111,22 +93,37 @@ class RecordingOverlay extends StatelessWidget {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: Icon(isPaused ? Icons.play_arrow : Icons.pause,
+                        icon: Icon(mapProvider.isPaused ? Icons.play_arrow : Icons.pause,
                             size: 50),
-                        onPressed: onTogglePause,
+                        onPressed: mapProviderReader.togglePause,
                       ),
                       const SizedBox(width: 8),
                       IconButton(
                         icon: const Icon(Icons.stop, size: 50),
-                        onPressed: onStopRecording,
+                        onPressed: () async {
+                          final navData = await mapProviderReader.stopRecordingAndNavigate();
+                          if (navData != null && context.mounted) {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => PostFormScreen(
+                                reportId: navData['reportId'],
+                                routeId: navData['routeId'],
+                                initialDistance: navData['initialDistance'],
+                                initialTime: navData['initialTime'],
+                                initialAvgSpeed: navData['initialAvgSpeed'],
+                                mapImagePath: navData['mapImagePath'],
+                                routeCoords: navData['routeCoords'],
+                              ),
+                            ));
+                          }
+                        },
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 16),
                 MapControlButton(
-                  icon: isMapVisible ? Icons.layers_clear : Icons.layers,
-                  onPressed: onToggleMapVisibility,
+                  icon: mapProvider.isMapVisible ? Icons.layers_clear : Icons.layers,
+                  onPressed: mapProviderReader.toggleMapVisibility,
                 ),
               ],
             ),
