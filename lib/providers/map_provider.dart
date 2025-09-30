@@ -7,10 +7,12 @@ import 'package:pedal/api/report_api.dart';
 import 'package:pedal/models/report.dart';
 import 'package:pedal/api/route_api.dart';
 import 'package:pedal/providers/auth_provider.dart';
+import 'package:pedal/services/notification_service.dart';
 import 'package:pedal/utils/route_utils.dart';
 import 'package:pedal/utils/time_formatter.dart';
 
 class MapProvider with ChangeNotifier {
+  final NotificationService _notificationService = NotificationService();
   AuthProvider? _authProvider;
 
   NLatLng? _currentLocation;
@@ -120,6 +122,7 @@ class MapProvider with ChangeNotifier {
   }
 
   Future<void> initialize() async {
+    await _notificationService.init();
     _isLoading = true;
     notifyListeners();
 
@@ -295,8 +298,26 @@ class MapProvider with ChangeNotifier {
     _stopwatch.reset();
     _stopwatch.start();
     _timer?.cancel();
+
+    // Show initial notification
+    _notificationService.showRecordingNotification(
+      time: '00:00:00',
+      distance: '0.00 km',
+      speed: '0.0 km/h',
+    );
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _elapsedTime = formatTime(_stopwatch.elapsed.inSeconds);
+
+      // Update notification every second if not paused
+      if (!_isPaused) {
+        _notificationService.showRecordingNotification(
+          time: _elapsedTime,
+          distance: '${(_distance / 1000).toStringAsFixed(2)} km',
+          speed: '${_currentSpeed.toStringAsFixed(1)} km/h',
+        );
+      }
+      
       notifyListeners();
     });
 
@@ -305,6 +326,8 @@ class MapProvider with ChangeNotifier {
   }
 
   Future<Map<String, dynamic>?> stopRecordingAndNavigate() async {
+    await _notificationService.cancelNotification();
+
     if (!_isRecording || _authProvider?.token == null) return null;
 
     _isMapVisible = true;
@@ -390,6 +413,7 @@ class MapProvider with ChangeNotifier {
 
   @override
   void dispose() {
+    _notificationService.cancelNotification();
     _positionStreamSubscription?.cancel();
     _timer?.cancel();
     _mapController?.dispose();
