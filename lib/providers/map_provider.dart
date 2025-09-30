@@ -72,6 +72,11 @@ class MapProvider with ChangeNotifier {
 
   void toggleMapVisibility() {
     _isMapVisible = !_isMapVisible;
+    if (_isMapVisible) {
+      _positionStreamSubscription?.resume();
+    } else {
+      _positionStreamSubscription?.pause();
+    }
     notifyListeners();
   }
 
@@ -332,6 +337,8 @@ class MapProvider with ChangeNotifier {
 
     final imageFile = await _mapController!.takeSnapshot();
     snapshotPath = imageFile.path;
+
+    recenterMap();
 
     _mapController?.clearOverlays();
     if (_currentLocation != null) {

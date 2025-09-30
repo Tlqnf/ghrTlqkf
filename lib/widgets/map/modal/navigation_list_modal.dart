@@ -1,8 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:pedal/api/navigation_api.dart';
+import 'package:pedal/api/user_api.dart';
+import 'package:pedal/models/post.dart';
+import 'package:pedal/providers/auth_provider.dart';
+import 'package:pedal/widgets/post/card/post_card.dart';
+import 'package:provider/provider.dart';
 
-class NavigationListModal extends StatelessWidget {
+class NavigationListModal extends StatefulWidget {
   final ScrollController scrollController;
-  const NavigationListModal({super.key, required this.scrollController });
+  const NavigationListModal({super.key, required this.scrollController});
+
+  @override
+  State<NavigationListModal> createState() => _NavigationListModalState();
+}
+
+class _NavigationListModalState extends State<NavigationListModal> {
+  Future<Map<String, List<Post>>>? _routesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // Use addPostFrameCallback to access the provider safely
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (authProvider.token != null) {
+        setState(() {
+          _routesFuture = _fetchRoutes(authProvider.token!);
+        });
+      }
+    });
+  }
+
+  Future<Map<String, List<Post>>> _fetchRoutes(String token) async {
+    try {
+      // Fetch both lists in parallel
+      final results = await Future.wait([
+        UserApi.getRecentPosts(token),
+        UserApi.getRecentBookmarks(token),
+      ]);
+      return {
+        'myRoutes': results[0],
+        'bookmarkedRoutes': results[1],
+      };
+    } catch (e) {
+      // Propagate error to be handled by FutureBuilder
+      throw Exception('Failed to load routes: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,11 +59,11 @@ class NavigationListModal extends StatelessWidget {
         ),
       ),
       child: SingleChildScrollView(
-        controller: scrollController,
+        controller: widget.scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 위쪽 회색 핸들바
+            // Top grey handle bar
             Center(
               child: Container(
                 margin: const EdgeInsets.symmetric(vertical: 16),
@@ -30,94 +75,87 @@ class NavigationListModal extends StatelessWidget {
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                '내 경로',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text("현재 네비게이션은 개발 중에 있습니다.", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
-                      Text("빠른 시일 내에 여러분들께 선보일 수 있도록 하겠습니다."),
+            FutureBuilder<Map<String, List<Post>>>(
+              future: _routesFuture,
+              builder: (context, snapshot) {
+                if (_routesFuture == null) {
+                  // This can happen if the token is not available initially
+                  return const Center(child: Text('로그인이 필요합니다.'));
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('경로를 불러오는데 실패했습니다.'));
+                } else if (!snapshot.hasData ||
+                    (snapshot.data!['myRoutes']!.isEmpty &&
+                        snapshot.data!['bookmarkedRoutes']!.isEmpty)) {
+                  return const Center(child: Text('표시할 경로가 없습니다.'));
+                }
+
+                final myRoutes = snapshot.data!['myRoutes']!;
+                final bookmarkedRoutes = snapshot.data!['bookmarkedRoutes']!;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (myRoutes.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          '내 경로',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      _buildRouteList(myRoutes),
+                      const SizedBox(height: 16),
                     ],
-                  ),
-                ),
-              ],
+                    if (bookmarkedRoutes.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          '저장한 경로',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      _buildRouteList(bookmarkedRoutes, isBookmark: true),
+                    ],
+                  ],
+                );
+              },
             ),
-            // ListView.builder(
-            //   physics: const NeverScrollableScrollPhysics(), // Handled by SingleChildScrollView
-            //   shrinkWrap: true,
-            //   itemCount: 2, // Dummy data for "My Routes"
-            //   itemBuilder: (context, index) {
-            //     return Padding(
-            //       padding: const EdgeInsets.symmetric(),
-            //       child: PostCard(
-            //         routeName: '갤러리아 백화점 경로',
-            //         distance: '17.28 km',
-            //         time: '01:03:23',
-            //         date: '2025.09.01',
-            //         onTap: () {
-            //           debugPrint('My Route ${index + 1} tapped!');
-            //         },
-            //       ),
-            //     );
-            //   },
-            // ),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(),
-            //   child: TextButton(
-            //     onPressed: () {
-            //       debugPrint('2개 경로 더보기 tapped!');
-            //     },
-            //     child: Text(
-            //       '2개 경로 더보기',
-            //       style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 16),
-            //     ),
-            //   ),
-            // ),
-            // const Padding(
-            //   padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            //   child: Text(
-            //     '저장한 경로',
-            //     style: TextStyle(
-            //       fontSize: 20,
-            //       fontWeight: FontWeight.bold,
-            //     ),
-            //   ),
-            // ),
-            // ListView.builder(
-            //   physics: const NeverScrollableScrollPhysics(), // Handled by SingleChildScrollView
-            //   shrinkWrap: true,
-            //   itemCount: 2, // Dummy data for "Saved Routes"
-            //   itemBuilder: (context, index) {
-            //     return Padding(
-            //       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-            //       child: PostCard(
-            //         routeName: '시청역 근처 경로',
-            //         distance: '9.98 km',
-            //         time: '47분',
-            //         user: 'Seprogramd${index + 1}',
-            //         onTap: () {
-            //           debugPrint('Saved Route ${index + 1} tapped!');
-            //         },
-            //       ),
-            //     );
-            //   },
-            // ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRouteList(List<Post> posts, {bool isBookmark = false}) {
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: posts.length,
+      itemBuilder: (context, index) {
+        final post = posts[index];
+        return PostCard(
+          routeName: isBookmark ? post.title : post.routeName,
+          distance: '${post.distance.toStringAsFixed(2)} km',
+          time: post.time,
+          date: DateFormat('yyyy.MM.dd').format(post.createdAt),
+          imageUrl: post.mapImageUrl,
+          // user field is omitted as we don't have the username directly
+          onTap: () {
+            debugPrint('Route ${post.routeId} tapped!');
+            final token = Provider.of<AuthProvider>(context, listen: false).token;
+            NavigationApi.guideRoute(post.routeId, token!);
+          },
+        );
+      },
     );
   }
 }
