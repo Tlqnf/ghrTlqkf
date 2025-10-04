@@ -323,17 +323,18 @@ class _CommentItemState extends State<CommentItem> {
   void _handleReply() {
     if (token == null) return;
     final TextEditingController replyController = TextEditingController();
+    final BuildContext originalContext = context;
 
     showModalBottomSheet(
       isScrollControlled: true,
       context: context,
-      builder: (context) => SafeArea(
+      builder: (modalContext) => SafeArea(
         child: Padding(
           padding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              EdgeInsets.only(bottom: MediaQuery.of(modalContext).viewInsets.bottom),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(modalContext).scaffoldBackgroundColor,
             child: Row(
               children: [
                 _user != null &&
@@ -374,19 +375,18 @@ class _CommentItemState extends State<CommentItem> {
                         ),
                       );
 
-                      Navigator.pop(context);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('대댓글이 등록되었습니다.')),
-                        );
-                      }
+                      Navigator.pop(modalContext);
+
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(originalContext).showSnackBar(
+                        const SnackBar(content: Text('대댓글이 등록되었습니다.')),
+                      );
                       widget.onCommentMutated();
                     } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('등록 실패: $e')),
-                        );
-                      }
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(originalContext).showSnackBar(
+                        SnackBar(content: Text('등록 실패: $e')),
+                      );
                     }
                   },
                 ),
@@ -431,6 +431,7 @@ class _CommentItemState extends State<CommentItem> {
     if (token == null) return;
     final TextEditingController editController =
         TextEditingController(text: widget.comment.content);
+    final BuildContext originalContext = context;
 
     showModalBottomSheet(
       isScrollControlled: true,
@@ -438,17 +439,17 @@ class _CommentItemState extends State<CommentItem> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.zero,
       ),
-      builder: (context) => SafeArea(
+      builder: (modalContext) => SafeArea(
         child: Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(modalContext).viewInsets.bottom,
             left: 8,
             right: 8,
             top: 8,
           ),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(modalContext).scaffoldBackgroundColor,
             child: Row(
               children: [
                 _user != null &&
@@ -482,19 +483,19 @@ class _CommentItemState extends State<CommentItem> {
                     try {
                       await CommentApi.updateComment(
                           token!, widget.comment.commentId, newContent);
-                      if (mounted) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('댓글이 수정되었습니다.')),
-                        );
-                      }
+                      
+                      Navigator.pop(modalContext);
+
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(originalContext).showSnackBar(
+                        const SnackBar(content: Text('댓글이 수정되었습니다.')),
+                      );
                       widget.onCommentMutated();
                     } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('수정 실패: $e')),
-                        );
-                      }
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(originalContext).showSnackBar(
+                        SnackBar(content: Text('수정 실패: $e')),
+                      );
                     }
                   },
                 ),
@@ -510,18 +511,16 @@ class _CommentItemState extends State<CommentItem> {
     if (token == null) return;
     try {
       await CommentApi.deleteComment(token!, widget.comment.commentId);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('댓글이 삭제되었습니다.')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('댓글이 삭제되었습니다.')),
+      );
       widget.onCommentMutated();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('삭제 실패: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('삭제 실패: $e')),
+      );
     }
   }
 

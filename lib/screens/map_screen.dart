@@ -50,6 +50,7 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: mapProvider.isLoading
         ? const Center(child: CircularProgressIndicator())
         : mapProvider.currentLocation == null

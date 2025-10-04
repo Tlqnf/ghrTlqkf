@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PaymentScreen extends StatelessWidget {
@@ -91,8 +92,24 @@ class PaymentScreen extends StatelessWidget {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            // TODO: Implement payment logic
-                            debugPrint('Proceed to Payment tapped');
+                            showCupertinoDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return CupertinoAlertDialog(
+                                  title: const Text('알림'),
+                                  content: const Text(
+                                      '현재 결제 연동이 되지 않아 결제 진행이 불가합니다. 이용에 불편을 끼쳐드려 죄송합니다.'),
+                                  actions: <Widget>[
+                                    CupertinoDialogAction(
+                                      child: const Text('확인'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFF3B30),

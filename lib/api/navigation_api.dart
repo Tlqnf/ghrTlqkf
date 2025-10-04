@@ -7,7 +7,7 @@ import 'package:pedal/models/route.dart';
 class NavigationApi {
   // post - navigation/guide-route
   // routeId로 네비게이션
-  static Future<String> guideRoute(int routeId, String token) async {
+  static Future<Map<String, dynamic>> guideRoute(int routeId, String token) async {
     final response = await http.post(
       Uri.parse("${ApiConfig.baseUrl}/navigation/guide-route"),
       headers: {
@@ -19,7 +19,7 @@ class NavigationApi {
       })
     );
     if (response.statusCode == 200) {
-      return "경로 제공";
+      return jsonDecode(response.body);
     } else {
       throw Exception('Failed to load navigator route: ${response.body}');
     }

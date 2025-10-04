@@ -58,9 +58,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
                     if (jsonResponse is Map &&
                         jsonResponse.containsKey('access_token')) {
                       final token = jsonResponse['access_token'];
-                      if (mounted) {
-                        Navigator.pop(context, token);
-                      }
+                      if (!mounted) return;
+                      Navigator.pop(context, token);
                     }
                   } catch (e) {
                     debugPrint('Error parsing JSON from webview: $e');

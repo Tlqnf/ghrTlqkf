@@ -55,6 +55,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: RefreshIndicator( // Pull-to-Refresh 적용
         onRefresh: _refreshData,
         child: CustomScrollView(

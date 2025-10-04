@@ -80,11 +80,13 @@ class PreRecordingOverlay extends StatelessWidget {
             },
           ),
         ),
-        const Positioned(
+        Positioned(
           bottom: 0,
           left: 0,
           right: 0,
-          child: Center(child: BannerAdWidget()),
+          child: SafeArea(
+            child: Center(child: BannerAdWidget()),
+          ),
         ),
       ],
     );

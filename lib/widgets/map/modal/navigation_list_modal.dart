@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:intl/intl.dart';
-import 'package:pedal/api/navigation_api.dart';
+import 'package:pedal/api/route_api.dart';
 import 'package:pedal/api/user_api.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
+import 'package:pedal/providers/map_provider.dart';
 import 'package:pedal/widgets/post/card/post_card.dart';
 import 'package:provider/provider.dart';
 
@@ -149,10 +151,26 @@ class _NavigationListModalState extends State<NavigationListModal> {
           date: DateFormat('yyyy.MM.dd').format(post.createdAt),
           imageUrl: post.mapImageUrl,
           // user field is omitted as we don't have the username directly
-          onTap: () {
-            debugPrint('Route ${post.routeId} tapped!');
-            final token = Provider.of<AuthProvider>(context, listen: false).token;
-            NavigationApi.guideRoute(post.routeId, token!);
+          onTap: () async {
+            final authProvider = context.read<AuthProvider>();
+            final mapProvider = context.read<MapProvider>();
+            if (authProvider.token == null) return;
+
+            try {
+              final points = await RouteApi.getRoutePoint(post.routeId, authProvider.token!);
+              final routeCoords = points.map((p) => NLatLng(p['lat'], p['lon'])).toList();
+
+              if (routeCoords.isNotEmpty) {
+                mapProvider.startNavigation(routeCoords);
+                if (!mounted) return;
+                Navigator.pop(context); // Close the modal
+              }
+            } catch (e) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('경로를 불러오는데 실패했습니다: $e')),
+              );
+            }
           },
         );
       },

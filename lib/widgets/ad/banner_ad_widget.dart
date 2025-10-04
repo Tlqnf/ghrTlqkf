@@ -12,26 +12,43 @@ class BannerAdWidget extends StatefulWidget {
 class _BannerAdWidgetState extends State<BannerAdWidget> {
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
+  AdSize? _adSize;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _loadAd();
   }
 
-  void _loadAd() {
+  Future<void> _loadAd() async {
+    // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
+    final AnchoredAdaptiveBannerAdSize? size =
+        await AdSize.getAnchoredAdaptiveBannerAdSize(
+      Orientation.portrait,
+      MediaQuery.of(context).size.width.truncate(),
+    );
+
+    if (size == null) {
+      return;
+    }
+
     final bannerAdUnitId = AdMobService.bannerAdUnitId;
     if (bannerAdUnitId == null) {
       return;
     }
+
+    _bannerAd?.dispose();
+
     _bannerAd = BannerAd(
       adUnitId: bannerAdUnitId,
       request: const AdRequest(),
-      size: AdSize.banner,
+      size: size,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
           setState(() {
+            _bannerAd = ad as BannerAd;
             _isAdLoaded = true;
+            _adSize = size;
           });
         },
         onAdFailedToLoad: (ad, err) {
@@ -49,10 +66,10 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isAdLoaded && _bannerAd != null) {
+    if (_isAdLoaded && _bannerAd != null && _adSize != null) {
       return SizedBox(
-        width: _bannerAd!.size.width.toDouble(),
-        height: _bannerAd!.size.height.toDouble(),
+        width: _adSize!.width.toDouble(),
+        height: _adSize!.height.toDouble(),
         child: AdWidget(ad: _bannerAd!),
       );
     } else {

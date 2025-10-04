@@ -96,4 +96,19 @@ class RouteApi {
           'Failed to load routes by filter: ${response.statusCode}');
     }
   }
+
+  static Future<List<dynamic>> getRoutePoint(int routeId, String token) async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseUrl}/routes/$routeId/turn-points"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json"
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load navigator route: ${response.body}');
+    }
+  }
 }

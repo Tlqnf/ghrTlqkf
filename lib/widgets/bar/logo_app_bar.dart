@@ -95,6 +95,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                             showConfirmationDialog('로그아웃', '정말 로그아웃 하시겠습니까?', () async {
                               await UserApi.logoutUserProfile(authProvider.token!);
                               authProvider.logout();
+                              if (!context.mounted) return;
                               Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(builder: (context) => const LoginScreen()),

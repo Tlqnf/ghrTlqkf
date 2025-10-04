@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -58,6 +59,12 @@ class MapProvider with ChangeNotifier {
   NaverMapController? get mapController => _mapController;
   BannerAd? get bannerAd => _bannerAd;
   bool get isFollowingUser => _isFollowingUser;
+
+  bool _isNavigating = false;
+  NPathOverlay? _navigationPath;
+  final List<NMarker> _arrowMarkers = [];
+
+  bool get isNavigating => _isNavigating;
 
   void update(AuthProvider authProvider) {
     _authProvider = authProvider;
@@ -410,6 +417,82 @@ class MapProvider with ChangeNotifier {
       'routeCoords': routeCoords,
     };
   }
+
+  Future<void> startNavigation(List<NLatLng> routeCoords) async {
+    if (_mapController == null || routeCoords.isEmpty) return;
+
+    stopNavigation();
+    _isNavigating = true;
+
+    // Draw the path
+    _navigationPath = NPathOverlay(
+      id: 'navigation_path',
+      coords: routeCoords,
+      width: 6,
+      color: Colors.red,
+      outlineWidth: 2,
+      outlineColor: Colors.white,
+    );
+    _mapController!.addOverlay(_navigationPath!);
+
+    // Add arrow markers
+    final arrowIcon = NOverlayImage.fromAssetImage('assets/image/arrow.svg');
+    for (int i = 0; i < routeCoords.length - 1; i += 10) { // Adjust step for density
+      final start = routeCoords[i];
+      final end = routeCoords[i + 1];
+      final angle = _calculateBearing(start, end);
+
+      final arrowMarker = NMarker(
+        id: 'arrow_$i',
+        position: start,
+        icon: arrowIcon,
+        size: const Size(24, 24),
+        anchor: const NPoint(0.5, 0.5),
+        angle: angle,
+      );
+      _arrowMarkers.add(arrowMarker);
+    }
+    for (final marker in _arrowMarkers) {
+      _mapController!.addOverlay(marker);
+    }
+
+    // Move camera to fit the route
+    final bounds = NLatLngBounds.from(routeCoords);
+    final cameraUpdate = NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80));
+    _mapController!.updateCamera(cameraUpdate);
+
+    notifyListeners();
+  }
+
+  void stopNavigation() {
+    if (_mapController == null) return;
+
+    _isNavigating = false;
+    if (_navigationPath != null) {
+      _mapController!.deleteOverlay(_navigationPath!.info);
+      _navigationPath = null;
+    }
+    if (_arrowMarkers.isNotEmpty) {
+      for (final marker in _arrowMarkers) {
+        _mapController!.deleteOverlay(marker.info);
+      }
+      _arrowMarkers.clear();
+    }
+    notifyListeners();
+  }
+
+  double _calculateBearing(NLatLng start, NLatLng end) {
+    final lat1 = start.latitude * pi / 180;
+    final lon1 = start.longitude * pi / 180;
+    final lat2 = end.latitude * pi / 180;
+    final lon2 = end.longitude * pi / 180;
+
+    final y = sin(lon2 - lon1) * cos(lat2);
+    final x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon2 - lon1);
+    final bearing = atan2(y, x) * 180 / pi;
+    return (bearing + 360) % 360;
+  }
+
 
   @override
   void dispose() {
