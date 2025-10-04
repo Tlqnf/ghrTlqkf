@@ -36,7 +36,7 @@ android {
 
     defaultConfig {
         applicationId = "com.nucl.pedal"
-        minSdk = flutter.minSdkVersion // Ensure minSdkVersion is at least 21 for flutter_background_service
+        minSdk = flutter.minSdkVersion // 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

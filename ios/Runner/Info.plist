@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app needs access to location when open.</string>]
+    <string>This app needs access to location when open.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>주행 경로를 기록하기 위해 항상 위치 정보에 접근해야 합니다.</string>
     <key>NSLocationAlwaysUsageDescription</key>
