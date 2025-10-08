@@ -47,7 +47,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(5),
             child: Image.asset("assets/Logo.png", height: 35),
           ),
           const SizedBox(width: 8),

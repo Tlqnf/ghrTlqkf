@@ -18,6 +18,7 @@ class ProfileSetupPage extends StatefulWidget {
   State<ProfileSetupPage> createState() => _ProfileSetupPageState();
 }
 
+// style 변경 필요 (figma 참고)
 class _ProfileSetupPageState extends State<ProfileSetupPage> {
   final _usernameController = TextEditingController();
   final _descriptionController = TextEditingController();

@@ -8,7 +8,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:pedal/providers/auth_provider.dart';
-import 'package:pedal/providers/map_provider.dart';
 import 'package:pedal/screens/login_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
@@ -169,13 +168,6 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProxyProvider<AuthProvider, MapProvider>(
-          create: (context) => MapProvider(),
-          update: (context, auth, previousMapProvider) {
-            previousMapProvider!.update(auth);
-            return previousMapProvider;
-          },
-        ),
       ],
       child: const PedalApp(),
     ),
@@ -194,6 +186,7 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
   }
 
   @override

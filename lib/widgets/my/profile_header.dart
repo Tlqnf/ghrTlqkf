@@ -3,6 +3,7 @@ import 'package:pedal/api/user_api.dart';
 import 'package:pedal/models/user.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileHeader extends StatefulWidget {
   final String token;
@@ -22,11 +23,26 @@ class _ProfileHeaderState extends State<ProfileHeader> {
   User? _user;
   bool _isLoading = true;
   String? _error;
+  bool _isProfileSetupComplete = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
+    _loadProfileStatus();
+  }
+
+  Future<void> _loadProfileStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isSetupComplete = prefs.getBool('profile_setup_complete') ?? false;
+
+    if (isSetupComplete) {
+      setState(() {
+        _isProfileSetupComplete = true;
+        _isLoading = false;
+      });
+    } else {
+      _fetchUserData();
+    }
   }
 
   Future<void> _fetchUserData() async {
@@ -62,67 +78,88 @@ class _ProfileHeaderState extends State<ProfileHeader> {
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
-          Row(
-            children: [
-              _isLoading
-                  ? const CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.transparent,
-                      child: CircularProgressIndicator(),
-                    )
-                  : _user!.profilePic != null &&
-                    _user!.profilePic!.isNotEmpty
-                    ? CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.transparent,
-                      child: _user!.profilePic != null
-                        ? ClipOval(
-                            child: Image.network(
-                              _user!.profilePic!,
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : const Icon(Icons.person, size: 30),
-                      )
-                    : const CircleAvatar(
+          if (_isProfileSetupComplete)
+            const Row(
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.transparent,
+                  backgroundImage:
+                  AssetImage('assets/image/not_profile.png'),
+                ),
+                SizedBox(width: 16),
+                Text(
+                  '사용자',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ],
+            )
+          else
+            Row(
+              children: [
+                _isLoading
+                    ? const CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.transparent,
-                        backgroundImage:
-                        AssetImage('assets/image/not_profile.png'),
+                        child: CircularProgressIndicator(),
+                      )
+                    : _user!.profilePic != null &&
+                            _user!.profilePic!.isNotEmpty
+                        ? CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.transparent,
+                            child: _user!.profilePic != null
+                                ? ClipOval(
+                                    child: Image.network(
+                                      _user!.profilePic!,
+                                      width: 60,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : const Icon(Icons.person, size: 30),
+                          )
+                        : const CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.transparent,
+                            backgroundImage:
+                                AssetImage('assets/image/not_profile.png'),
+                          ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _isLoading
+                        ? const Text(
+                            'Loading...',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          )
+                        : Text(
+                            _user?.username ?? 'Guest',
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                    _isLoading
+                        ? const Text(
+                            'Loading...',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          )
+                        : Text(
+                            _user?.profileDescription ?? 'No description',
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.grey),
+                          ),
+                    if (_error != null)
+                      Text(
+                        'Error: $_error',
+                        style:
+                            const TextStyle(fontSize: 13, color: Colors.red),
                       ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _isLoading
-                      ? const Text(
-                    'Loading...',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  )
-                      : Text(
-                    _user?.username ?? 'Guest',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  _isLoading
-                      ? const Text(
-                    'Loading...',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  )
-                      : Text(
-                    _user?.profileDescription ?? 'No description',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  if (_error != null)
-                    Text(
-                      'Error: $_error',
-                      style: const TextStyle(fontSize: 13, color: Colors.red),
-                    ),
-                ],
-              ),
-            ],
-          ),
+                  ],
+                ),
+              ],
+            ),
           const Spacer(),
           OutlinedButton(
             onPressed: widget.onRemoveAdsTap, // Use the new callback

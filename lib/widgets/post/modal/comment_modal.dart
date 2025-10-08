@@ -165,6 +165,7 @@ class _CommentModalState extends State<CommentModal> {
       child: Row(
         children: [
           _user != null &&
+          _user!.profilePic != null &&
           _user!.profilePic!.isNotEmpty
             ? CircleAvatar(
                 radius: 18,
@@ -338,6 +339,7 @@ class _CommentItemState extends State<CommentItem> {
             child: Row(
               children: [
                 _user != null &&
+                _user!.profilePic != null &&
                 _user!.profilePic!.isNotEmpty
                   ? CircleAvatar(
                       radius: 18,
@@ -453,6 +455,7 @@ class _CommentItemState extends State<CommentItem> {
             child: Row(
               children: [
                 _user != null &&
+                _user!.profilePic != null &&
                 _user!.profilePic!.isNotEmpty
                   ? CircleAvatar(
                       radius: 18,

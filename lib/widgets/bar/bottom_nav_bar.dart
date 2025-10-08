@@ -61,8 +61,8 @@ class _NavBarItem extends StatelessWidget {
         onTap: onTap,
         containedInkWell: true, // ripple이 버튼 영역 안에만 퍼짐
         radius: 30, // ripple 크기 조절
-        splashColor: Colors.red.withAlpha(20),
-        highlightColor: Colors.red.withAlpha(10),
+        splashColor: Colors.red.withValues(alpha: 0.2),
+        highlightColor: Colors.red.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),

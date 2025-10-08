@@ -74,7 +74,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No data'));
+                    return const Center(child: Text('현재 저장한 기록이 없습니다.'));
                   }
                   return PostList(
                     bookmarked: false,
@@ -104,7 +104,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 32),
               SectionHeader(
                 title: '북마크 경로',
                 showMoreButton: true,
@@ -128,7 +128,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No data'));
+                    return const Center(child: Text('현재 북마크한 경로가 없습니다.'));
                   }
                   return PostList(
                     bookmarked: true,

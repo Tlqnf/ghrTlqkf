@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pedal/api/report_api.dart';
 import 'package:pedal/models/report.dart';
 import 'package:pedal/api/route_api.dart';
@@ -12,24 +11,25 @@ import 'package:pedal/services/notification_service.dart';
 import 'package:pedal/utils/route_utils.dart';
 import 'package:pedal/utils/time_formatter.dart';
 
+enum RecordingStatus { idle, recording, paused }
+
 class MapProvider with ChangeNotifier {
   final NotificationService _notificationService = NotificationService();
   AuthProvider? _authProvider;
 
-  NLatLng? _currentLocation;
-  NaverMapController? _mapController;
-  StreamSubscription<Position>? _positionStreamSubscription;
+  NLatLng? _currentLocation; // 현재 위치
+  NaverMapController? _mapController; // 맵 컨트롤러
+  StreamSubscription<Position>? _positionStreamSubscription; // 실시간 위치 정보
 
+  // 경로 지정
   final int _chunkSize = 25;
   final List<List<NLatLng>> _routeChunks = [[]];
 
   bool _isFollowingUser = true;
   bool _isMapVisible = true;
   bool _isLoading = true;
-  bool _isMapReady = false;
 
-  bool _isRecording = false;
-  bool _isPaused = false;
+  RecordingStatus recordingStatus = RecordingStatus.idle;
   final Stopwatch _stopwatch = Stopwatch();
   Timer? _timer;
 
@@ -40,16 +40,12 @@ class MapProvider with ChangeNotifier {
   double _maxSpeed = 0.0;
 
   int? _currentRouteId;
-  BannerAd? _bannerAd;
 
-  String? _errorMessage;
-  String? get errorMessage => _errorMessage;
-
-  bool get isRecording => _isRecording;
-  bool get isPaused => _isPaused;
+  bool get isRecording => recordingStatus == RecordingStatus.recording;
+  bool get isPaused => recordingStatus == RecordingStatus.paused;
   bool get isMapVisible => _isMapVisible;
   bool get isLoading => _isLoading;
-  bool get isMapReady => _isMapReady;
+  bool get isMapReady => _mapController != null;
   String get elapsedTime => _elapsedTime;
   double get distance => _distance;
   double get avgSpeed => _avgSpeed;
@@ -57,14 +53,12 @@ class MapProvider with ChangeNotifier {
   double get maxSpeed => _maxSpeed;
   NLatLng? get currentLocation => _currentLocation;
   NaverMapController? get mapController => _mapController;
-  BannerAd? get bannerAd => _bannerAd;
   bool get isFollowingUser => _isFollowingUser;
+  bool get isNavigating => _isNavigating;
 
   bool _isNavigating = false;
   NPathOverlay? _navigationPath;
   final List<NMarker> _arrowMarkers = [];
-
-  bool get isNavigating => _isNavigating;
 
   void update(AuthProvider authProvider) {
     _authProvider = authProvider;
@@ -72,11 +66,6 @@ class MapProvider with ChangeNotifier {
 
   void setMapController(NaverMapController controller) {
     _mapController = controller;
-  }
-
-  void setMapReady(bool isReady) {
-    _isMapReady = isReady;
-    notifyListeners();
   }
 
   void toggleMapVisibility() {
@@ -90,24 +79,21 @@ class MapProvider with ChangeNotifier {
   }
 
   void togglePause() {
-    if (!_isRecording) return;
-    _isPaused = !_isPaused;
-    if (_isPaused) {
-      _stopwatch.stop();
-    } else {
-      _stopwatch.start();
-    }
-    notifyListeners();
-  }
+    if (recordingStatus == RecordingStatus.idle) return;
+    recordingStatus = (recordingStatus == RecordingStatus.recording)
+        ? RecordingStatus.paused
+        : RecordingStatus.recording;
 
-  void clearError() {
-    _errorMessage = null;
+    recordingStatus == RecordingStatus.paused
+        ? _stopwatch.stop()
+        : _stopwatch.start();
+
+    notifyListeners();
   }
 
   void _setError(String message) {
-    _errorMessage = message;
+    debugPrint("MapProvider error: $message");
     _isLoading = false;
-    notifyListeners();
   }
 
   void setIsFollowingUser(bool isFollowing) {
@@ -164,6 +150,7 @@ class MapProvider with ChangeNotifier {
 
     try {
       Position currentPosition = await Geolocator.getCurrentPosition(
+        // ignore: deprecated_member_use
         timeLimit: const Duration(seconds: 10),
       );
       _currentLocation = NLatLng(currentPosition.latitude, currentPosition.longitude);
@@ -181,7 +168,6 @@ class MapProvider with ChangeNotifier {
     }
 
     // Start listening to Geolocator stream
-    _positionStreamSubscription?.cancel(); // Cancel any previous subscription
     _positionStreamSubscription = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
@@ -201,7 +187,7 @@ class MapProvider with ChangeNotifier {
       );
       _mapController?.addOverlay(marker);
 
-      if (_isRecording && !_isPaused) {
+      if (recordingStatus != RecordingStatus.idle) {
         final lastPoint = _currentLocation;
         if (lastPoint != null) {
           final distance = Geolocator.distanceBetween(
@@ -275,13 +261,8 @@ class MapProvider with ChangeNotifier {
     final int newRouteId = await RouteApi.getRouteId(_authProvider!.token!);
     _currentRouteId = newRouteId;
 
-    if (_currentRouteId == null) {
-      _setError("Failed to get route ID. Please try again.");
-      return false;
-    }
-
     _mapController?.clearOverlays();
-    if (_currentLocation != null) {
+    if (_mapController != null && _currentLocation != null) {
       final marker = NMarker(
         id: 'current_location',
         position: _currentLocation!,
@@ -292,8 +273,7 @@ class MapProvider with ChangeNotifier {
       _mapController!.addOverlay(marker);
     }
 
-    _isRecording = true;
-    _isPaused = false;
+    recordingStatus = RecordingStatus.recording;
     _distance = 0.0;
     _avgSpeed = 0.0;
     _elapsedTime = '00:00:00';
@@ -316,16 +296,13 @@ class MapProvider with ChangeNotifier {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _elapsedTime = formatTime(_stopwatch.elapsed.inSeconds);
 
-      // Update notification every second if not paused
-      if (!_isPaused) {
+      if (recordingStatus == RecordingStatus.recording) {
         _notificationService.showRecordingNotification(
           time: _elapsedTime,
           distance: '${(_distance / 1000).toStringAsFixed(2)} km',
           speed: '${_currentSpeed.toStringAsFixed(1)} km/h',
         );
       }
-      
-      notifyListeners();
     });
 
     notifyListeners();
@@ -335,7 +312,7 @@ class MapProvider with ChangeNotifier {
   Future<Map<String, dynamic>?> stopRecordingAndNavigate() async {
     await _notificationService.cancelNotification();
 
-    if (!_isRecording || _authProvider?.token == null) return null;
+    if (recordingStatus != RecordingStatus.recording || _authProvider?.token == null) return null;
 
     _isMapVisible = true;
     _stopwatch.stop();
@@ -347,39 +324,42 @@ class MapProvider with ChangeNotifier {
 
     String? snapshotPath;
     final fullRoute = _routeChunks.expand((chunk) => chunk).toList();
-    late NCameraUpdate cameraUpdate;
 
-    if (fullRoute.isNotEmpty && _mapController != null) {
-      final bounds = NLatLngBounds.from(fullRoute);
-      cameraUpdate = NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80));
-      final double distanceMeters = calculateRouteDistance(fullRoute);
-      int durationMs = (distanceMeters / 500).clamp(500, 3000).toInt();
-      cameraUpdate.setAnimation(
-        animation: NCameraAnimation.linear,
-        duration: Duration(milliseconds: durationMs),
-      );
-    } else {
-      cameraUpdate = NCameraUpdate.withParams(target: _currentLocation);
-      cameraUpdate.setAnimation(animation: NCameraAnimation.none);
-    }
-    await _mapController!.updateCamera(cameraUpdate);
-    await Future.delayed(const Duration(milliseconds: 500));
+    if (_mapController != null) {
+      late NCameraUpdate cameraUpdate;
 
-    final imageFile = await _mapController!.takeSnapshot();
-    snapshotPath = imageFile.path;
+      if (fullRoute.isNotEmpty) {
+        final bounds = NLatLngBounds.from(fullRoute);
+        cameraUpdate = NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80));
+        final double distanceMeters = calculateRouteDistance(fullRoute);
+        int durationMs = (distanceMeters / 500).clamp(500, 3000).toInt();
+        cameraUpdate.setAnimation(
+          animation: NCameraAnimation.linear,
+          duration: Duration(milliseconds: durationMs),
+        );
+      } else {
+        cameraUpdate = NCameraUpdate.withParams(target: _currentLocation);
+        cameraUpdate.setAnimation(animation: NCameraAnimation.none);
+      }
+      await _mapController!.updateCamera(cameraUpdate);
+      await Future.delayed(const Duration(milliseconds: 500));
 
-    recenterMap();
+      final imageFile = await _mapController!.takeSnapshot();
+      snapshotPath = imageFile.path;
 
-    _mapController?.clearOverlays();
-    if (_currentLocation != null) {
-      final marker = NMarker(
-        id: 'current_location',
-        position: _currentLocation!,
-        icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
-        size: const Size(15, 15),
-        anchor: const NPoint(0.5, 0.5),
-      );
-      _mapController!.addOverlay(marker);
+      recenterMap();
+
+      _mapController?.clearOverlays();
+      if (_currentLocation != null) {
+        final marker = NMarker(
+          id: 'current_location',
+          position: _currentLocation!,
+          icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
+          size: const Size(15, 15),
+          anchor: const NPoint(0.5, 0.5),
+        );
+        _mapController!.addOverlay(marker);
+      }
     }
 
     final reportId = await ReportApi.createReport(
@@ -395,8 +375,7 @@ class MapProvider with ChangeNotifier {
 
     final routeCoords = fullRoute.map((p) => [p.latitude, p.longitude]).toList();
 
-    _isRecording = false;
-    _isPaused = false;
+    recordingStatus = RecordingStatus.idle;
     _stopwatch.reset();
     _distance = 0.0;
     _avgSpeed = 0.0;
@@ -456,7 +435,6 @@ class MapProvider with ChangeNotifier {
       _mapController!.addOverlay(marker);
     }
 
-    // Move camera to fit the route
     final bounds = NLatLngBounds.from(routeCoords);
     final cameraUpdate = NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80));
     _mapController!.updateCamera(cameraUpdate);
@@ -498,6 +476,7 @@ class MapProvider with ChangeNotifier {
   void dispose() {
     _notificationService.cancelNotification();
     _positionStreamSubscription?.cancel();
+    _positionStreamSubscription = null;
     _timer?.cancel();
     _mapController?.dispose();
     super.dispose();
