@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pedal/api/user_api.dart';
 
@@ -7,10 +8,35 @@ enum AuthState { loggedOut, needsProfileSetup, loggedIn, loading }
 class AuthProvider with ChangeNotifier {
   String? _token;
   AuthState _authState = AuthState.loggedOut;
+  bool _hasBackgroundPermission = false;
 
   String? get token => _token;
   AuthState get authState => _authState;
   bool get isLoggedIn => _authState == AuthState.loggedIn || _authState == AuthState.needsProfileSetup;
+  bool get hasBackgroundPermission => _hasBackgroundPermission;
+
+  Future<void> checkBackgroundPermission() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    bool hasConsented = prefs.getBool('background_location_consent') ?? false;
+    final permission = await Geolocator.checkPermission();
+    final hasSystemPermission = (permission == LocationPermission.always);
+
+    if (hasSystemPermission && !hasConsented) {
+      await prefs.setBool('background_location_consent', true);
+      hasConsented = true;
+    }
+
+    if (!hasSystemPermission && hasConsented) {
+      await prefs.setBool('background_location_consent', false);
+      hasConsented = false;
+    }
+
+    _hasBackgroundPermission = hasConsented && hasSystemPermission;
+
+    notifyListeners();
+  }
+
 
   Future<void> login(String token) async {
     _token = token;
@@ -57,10 +83,8 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> tryAutoLogin() async {
+    await checkBackgroundPermission(); // 권한 + 동의 기록 최신화
     final prefs = await SharedPreferences.getInstance();
-    if (!prefs.containsKey('token')) {
-      return;
-    }
     final extractedToken = prefs.getString('token');
     if (extractedToken != null) {
       await login(extractedToken);

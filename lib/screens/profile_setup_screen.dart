@@ -18,7 +18,6 @@ class ProfileSetupPage extends StatefulWidget {
   State<ProfileSetupPage> createState() => _ProfileSetupPageState();
 }
 
-// style 변경 필요 (figma 참고)
 class _ProfileSetupPageState extends State<ProfileSetupPage> {
   final _usernameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -120,30 +119,44 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                           const SizedBox(width: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Text(
                                 '프로필 이미지 선택',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 8),
                               OutlinedButton(
                                 onPressed: _pickImage,
-                                child: const Text('업로드'),
+                                child: const Text('업로드', style: TextStyle(fontWeight: FontWeight.w400),),
                               ),
                             ],
                           ),
                         ],
                       ),
                       const SizedBox(height: 32),
-                      const Text(
-                        '닉네임 *',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            '닉네임',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 4,),
+                          const Text(
+                            "*",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red,
+                            ),
+                          )
+                        ],
                       ),
                       const SizedBox(height: 8),
                       TextField(
@@ -151,11 +164,23 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                         decoration: InputDecoration(
                           hintText: '닉네임을 입력해주세요.',
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
                           ),
-                          filled: true,
-                          fillColor: Colors.grey[200],
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey, // Focus 되어도 회색 그대로
+                              width: 1.0,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -173,11 +198,23 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                         decoration: InputDecoration(
                           hintText: '자신을 소개하는 설명 문구를 입력해주세요.',
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
                           ),
-                          filled: true,
-                          fillColor: Colors.grey[200],
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey, // Focus 되어도 회색 그대로
+                              width: 1.0,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -191,12 +228,14 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                   onPressed: _submitProfile,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                   ),
                   child: const Text('프로필 설정'),
                 ),
-
             ],
           ),
         ),

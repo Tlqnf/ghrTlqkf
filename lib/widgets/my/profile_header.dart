@@ -160,25 +160,26 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                 ),
               ],
             ),
-          const Spacer(),
-          OutlinedButton(
-            onPressed: widget.onRemoveAdsTap, // Use the new callback
-            style: OutlinedButton.styleFrom(
-              backgroundColor: const Color(0x80FF3B30), // FF3B30 with alpha 50%
-              side: const BorderSide(color: Color(0x80FF3B30)), // Match border color
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              '광고 제거',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600
-              ),
-            ),
-          ),
+          // todo 결제 연동 진행 후에 표시
+          // const Spacer(),
+          // OutlinedButton(
+          //   onPressed: widget.onRemoveAdsTap,
+          //   style: OutlinedButton.styleFrom(
+          //     backgroundColor: const Color(0xFFFF3B30),
+          //     side: const BorderSide(color: Colors.transparent),
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(8),
+          //     ),
+          //   ),
+          //   child: const Text(
+          //     '광고 제거',
+          //     style: TextStyle(
+          //       color: Colors.white,
+          //       fontSize: 18,
+          //       fontWeight: FontWeight.w600
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

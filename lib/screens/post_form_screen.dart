@@ -416,7 +416,6 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final imageCount =
         (widget.mapImagePath != null ? 1 : 0) + _additionalImages.length + _additionalImageUrls.length;
 
@@ -535,18 +534,49 @@ class _PostFormScreenState extends State<PostFormScreen> {
                     const SizedBox(height: 24),
 
                     // Route Name
-                    const Text('경로 이름 *', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Row(
+                      children: [
+                        const Text(
+                          '경로 이름',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 4,),
+                        const Text(
+                          "*",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red,
+                          ),
+                        )
+                      ],
+                    ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _routeNameController,
                       decoration: InputDecoration(
                         hintText: '경로 이름을 입력해주세요.',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 1.0,
+                          ),
                         ),
-                        filled: true,
-                        fillColor: Colors.grey[200],
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 1.0,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey, // Focus 되어도 회색 그대로
+                            width: 1.0,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -560,18 +590,39 @@ class _PostFormScreenState extends State<PostFormScreen> {
                       decoration: InputDecoration(
                         hintText: '추가할 태그를 입력해주세요. (최대 3개)',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 1.0,
+                          ),
                         ),
-                        filled: true,
-                        fillColor: Colors.grey[200],
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 1.0,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey, // Focus 되어도 회색 그대로
+                            width: 1.0,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8.0,
                       runSpacing: 4.0,
-                      children: _tags.map((tag) => Chip(label: Text('#$tag'), onDeleted: () => _removeTag(tag))).toList(),
+                      children: _tags.map((tag) => Chip(
+                        label: Text('#$tag'),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(
+                            color: Colors.grey,
+                          ),
+                        ),
+                        onDeleted: () => _removeTag(tag),
+                      )).toList(),
                     ),
                     const SizedBox(height: 24),
 
@@ -686,7 +737,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text('상단에서 추가된 사진을 드래그로 확인 가능', style: TextStyle(color: Colors.grey, fontSize: 12)),
-
+                    const SizedBox(height: 24,),
                     // Community Upload
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -700,7 +751,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                             });
                           },
                           activeThumbColor: Colors.white,
-                          activeTrackColor: theme.colorScheme.secondary,
+                          activeTrackColor: Colors.blue,
                         ),
                       ],
                     ),
@@ -710,22 +761,73 @@ class _PostFormScreenState extends State<PostFormScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('게시글 제목', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          Row(
+                            children: [
+                              const Text(
+                                '게시글 제목',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4,),
+                              const Text(
+                                "*",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.red,
+                                ),
+                              )
+                            ],
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _titleController,
                             decoration: InputDecoration(
                               hintText: '게시글 제목을 입력해주세요.',
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
+                                borderSide: BorderSide(
+                                  color: Colors.grey,
+                                  width: 1.0,
+                                ),
                               ),
-                              filled: true,
-                              fillColor: Colors.grey[200],
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.grey,
+                                  width: 1.0,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.grey, // Focus 되어도 회색 그대로
+                                  width: 1.0,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
-                          const Text('게시글 내용', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
+                          Row(
+                            children: [
+                              const Text(
+                                '게시글 내용',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4,),
+                              const Text(
+                                "*",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.red,
+                                ),
+                              )
+                            ],
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _bodyController,
@@ -735,11 +837,23 @@ class _PostFormScreenState extends State<PostFormScreen> {
                             decoration: InputDecoration(
                               hintText: '게시글에 올릴 내용을 입력해주세요.',
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
+                                borderSide: BorderSide(
+                                  color: Colors.grey,
+                                  width: 1.0,
+                                ),
                               ),
-                              filled: true,
-                              fillColor: Colors.grey[200],
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.grey,
+                                  width: 1.0,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.grey, // Focus 되어도 회색 그대로
+                                  width: 1.0,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 32),

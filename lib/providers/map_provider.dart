@@ -13,7 +13,7 @@ import 'package:pedal/utils/time_formatter.dart';
 
 enum RecordingStatus { idle, recording, paused }
 
-class MapProvider with ChangeNotifier {
+class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   final NotificationService _notificationService = NotificationService();
   AuthProvider? _authProvider;
 
@@ -115,6 +115,7 @@ class MapProvider with ChangeNotifier {
   }
 
   Future<void> initialize() async {
+    WidgetsBinding.instance.addObserver(this);
     await _notificationService.init();
     _isLoading = true;
     notifyListeners();
@@ -473,7 +474,29 @@ class MapProvider with ChangeNotifier {
 
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_authProvider == null) return;
+
+    if (!_authProvider!.hasBackgroundPermission) {
+      if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+        if (recordingStatus == RecordingStatus.recording) {
+          _stopwatch.stop();
+          _positionStreamSubscription?.pause();
+        }
+      } else if (state == AppLifecycleState.resumed) {
+        if (recordingStatus == RecordingStatus.recording && !_stopwatch.isRunning) {
+          _stopwatch.start();
+          if (_isMapVisible) {
+            _positionStreamSubscription?.resume();
+          }
+        }
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _notificationService.cancelNotification();
     _positionStreamSubscription?.cancel();
     _positionStreamSubscription = null;

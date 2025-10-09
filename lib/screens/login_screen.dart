@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:pedal/api/firebase_message_api.dart';
 import 'package:pedal/api/oauth_login_auth.dart';
@@ -55,6 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
       context,
       onAgreed: () async {
         try {
+          await _extraAlertDialog();
           final account = await GoogleSignInService().signIn();
           if (account == null) return; // User cancelled
           final auth = account.authentication;
@@ -77,6 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
     showTermsOfServiceModal(
       context,
       onAgreed: () async {
+        await _extraAlertDialog();
         final url = '${ApiConfig.baseUrl}/oauth/naver/login';
         final token = await Navigator.push(
           context,
@@ -96,6 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
       context,
       onAgreed: () async {
         try {
+          await _extraAlertDialog();
           final kakaoToken = await UserApi.instance.loginWithKakaoTalk();
           final accessToken = await OauthLoginApi.sendTokenKakao(kakaoToken.accessToken);
           if (accessToken != null) {
@@ -106,6 +110,52 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       },
     );
+  }
+
+  Future<void> _extraAlertDialog() async {
+    final agreed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          '위치정보 수집 안내',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          '이 앱은 서비스 제공을 위해 사용자가 앱을 닫은 상태(백그라운드)에서도 위치 정보를 수집합니다.\n\n'
+              '수집된 데이터는 주행 기록 저장, 맞춤형 알림 제공, 통계 분석에 활용되며, 언제든 설정에서 해제할 수 있습니다.\n\n'
+              '이에 동의하시겠습니까?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('동의하지 않음'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('동의함'),
+          ),
+        ],
+      ),
+    );
+
+    if (agreed == true) {
+      await Geolocator.requestPermission();
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('위치정보 수집이 거부되어 일부 기능이 제한됩니다.'),
+            duration: Duration(seconds: 7),
+          ),
+        );
+      }
+    }
+
+    if (mounted) {
+      await Provider.of<AuthProvider>(context, listen: false)
+          .checkBackgroundPermission();
+    }
   }
 
   @override

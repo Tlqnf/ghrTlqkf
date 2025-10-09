@@ -86,9 +86,13 @@ class _TermsOfServiceModalState extends State<TermsOfServiceModal> {
 
 제2조 (수집 방법)
 앱 설치 시 권한 요청, 회원가입·프로필 입력, 서비스 이용 중 자동 수집(GPS·센서), 사용자가 업로드한 콘텐츠 수집.
+또한, 서비스 품질 향상 및 이용자 편의를 위해 사용자가 앱을 직접 실행하지 않은 상태(백그라운드)에서도 위치정보가 주기적으로 수집될 수 있습니다. 
+백그라운드 수집은 이용자의 명시적 동의 및 단말기 권한 허용에 의해서만 이루어집니다.
+
 
 제3조 (수집 목적)
 	•	서비스 제공 및 개선(경로 추적·저장·공유, 통계 제공)
+	• 백그라운드 위치정보 수집: 실시간 주행 기록 유지, 안전 알림, 이동 통계 제공 등
 	•	이용자 식별 및 계정관리
 	•	고객지원 및 불만처리
 	•	마케팅 및 맞춤형 서비스 제공(선택 동의 시)
@@ -102,6 +106,9 @@ class _TermsOfServiceModalState extends State<TermsOfServiceModal> {
 제5조 (위치정보의 이용·제공 동의 및 선택권)
 	1.	위치정보 수집은 서비스 제공에 필수적이므로, 이용자는 앱 권한 허용을 통해 동의합니다. 권한 해제 시 추적·공유 기능이 제한됩니다.
 	2.	이용자는 언제든지 위치정보 수집·이용을 중단(앱 권한 해제)하거나, 저장된 경로를 삭제할 수 있습니다.
+  3.  백그라운드 위치 수집은 서비스 지속 제공(예: 주행 중 기록 유지)을 위해 사용되며, 최초 실행 시 별도의 동의 절차를 통해 허용됩니다. 
+      사용자는 단말기 설정 또는 앱 내 설정을 통해 언제든지 철회할 수 있습니다.
+
 
 제6조 (제3자 제공)
 	1.	회사는 이용자의 동의 없이 원칙적으로 개인정보를 제3자에게 제공하지 않습니다.
@@ -125,8 +132,9 @@ class _TermsOfServiceModalState extends State<TermsOfServiceModal> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), // Rounded corners
-      title: const Text('약관 동의'),
+      contentPadding: EdgeInsets.all(20.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+      title: const Text('약관 동의', style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w600)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -143,7 +151,6 @@ class _TermsOfServiceModalState extends State<TermsOfServiceModal> {
             },
             isBold: true,
           ),
-          const Divider(),
           _buildAgreementRow(
             label: '[필수] 서비스 이용약관',
             value: _termsOfService,
@@ -228,6 +235,7 @@ class _TermsOfServiceModalState extends State<TermsOfServiceModal> {
         Checkbox(
           value: value,
           onChanged: onChanged,
+          checkColor: Colors.white,
         ),
         Expanded(
           child: Text(
