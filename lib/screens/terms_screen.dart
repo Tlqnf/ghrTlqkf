@@ -127,6 +127,15 @@ final List<Map<String, String>> termsOfService = [
 
   {'type': 'subtitle', 'content': '제12조 (개인정보 보호)'},
   {'type': 'body', 'content': '개인정보의 수집·이용·보유 관련 사항은 별도의 “개인정보 처리방침”을 따릅니다.'},
+
+  {'type': 'subtitle', 'content': '제13조 (아동 보호 및 안전 정책)'},
+  {'type': 'body', 'content': '1. 회사는 아동의 안전을 최우선으로 하며, 아동 성적 학대 및 착취(CSAE, Child Sexual Abuse and Exploitation)를 명시적으로 금지합니다.'},
+  {'type': 'body', 'content': '2. 이용자는 아동을 대상으로 한 불법적 행위나 콘텐츠(아동 성착취물, 성적 학대 표현물 등)를 업로드하거나 공유해서는 안 됩니다.'},
+  {'type': 'body', 'content': '3. 회사는 아동 보호와 관련된 법령 및 Google Play의 아동 안전 표준 정책을 준수합니다.'},
+  {'type': 'body', 'content': '4. 이용자가 아동 보호 정책을 위반한 경우, 회사는 즉시 콘텐츠 삭제, 계정 정지 또는 수사기관 신고 등의 조치를 취할 수 있습니다.'},
+  {'type': 'body', 'content': '5. 회사는 아동 안전 및 학대 예방을 위한 담당자를 지정하며, 이용자는 아래 연락처를 통해 관련 신고나 문의를 할 수 있습니다.'},
+  {'type': 'space', 'content': ''},
+
 ];
 
 final List<Map<String, String>> privacyPolicy = [
@@ -180,7 +189,14 @@ final List<Map<String, String>> privacyPolicy = [
   {'type': 'body', 'content': '관리적 조치: 내부관리계획 수립·시행, 최소 권한 원칙 적용 등'},
   {'type': 'space', 'content': ''},
 
-  {'type': 'subtitle', 'content': '제10조 (개인정보 보호책임자 및 연락처)'},
+  {'type': 'subtitle', 'content': '제10조 (아동의 개인정보 보호)'},
+  {'type': 'body', 'content': '1. 회사는 만 14세 미만 아동의 개인정보를 법정대리인의 동의 없이 수집하거나 이용하지 않습니다.'},
+  {'type': 'body', 'content': '2. 아동 관련 콘텐츠 및 데이터는 아동의 안전을 침해하지 않는 범위 내에서만 처리되며, 모든 절차는 관련 법령 및 Google Play 아동 안전 표준 정책을 준수합니다.'},
+  {'type': 'body', 'content': '3. 아동의 개인정보가 포함된 불법 콘텐츠(예: 아동 성착취물, CSAM 등)는 즉시 삭제되며, 관련 기관에 신고될 수 있습니다.'},
+  {'type': 'body', 'content': '4. 아동 개인정보 보호 관련 문의는 다음 연락처로 가능합니다.'},
+  {'type': 'space', 'content': ''},
+
+  {'type': 'subtitle', 'content': '제11조 (개인정보 보호책임자 및 아동 안전 담당자 및 연락처)'},
   {'type': 'body', 'content': '• 개인정보 보호책임자: 김준화'},
   {'type': 'body', 'content': '• 연락처: nuclbackki1@worldpedal.com'},
   {'type': 'body', 'content': '• 우편주소: 35398'},
