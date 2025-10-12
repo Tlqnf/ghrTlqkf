@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:pedal/services/in_app_purchase_service.dart';
 
-class PaymentScreen extends StatelessWidget {
+class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
+
+  @override
+  State<PaymentScreen> createState() => _PaymentScreenState();
+}
+
+class _PaymentScreenState extends State<PaymentScreen> {
+  final InAppPurchaseService iapService = InAppPurchaseService();
+
+  @override
+  void initState() {
+    super.initState();
+    iapService.loadProducts();
+    iapService.listenToPurchaseUpdated();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,9 +115,18 @@ class PaymentScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text(
-                            '결제 진행하기',
-                            style: TextStyle(fontSize: 18),
+                          child: TextButton(
+                            child: const Text(
+                              '결제 진행하기',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                            onPressed: () async {
+                              if (iapService.productId.isNotEmpty) {
+                                ProductDetails product = iapService.products[0];
+                                String id = product.id;
+                                iapService.buyProduct(product, id);
+                              }
+                            },
                           ),
                         ),
                       ),
