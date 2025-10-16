@@ -60,6 +60,8 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   NPathOverlay? _navigationPath;
   final List<NMarker> _arrowMarkers = [];
 
+  bool _isInitialized = false;
+
   void update(AuthProvider authProvider) {
     _authProvider = authProvider;
   }
@@ -115,6 +117,9 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   }
 
   Future<void> initialize() async {
+    if (_isInitialized) return;
+    _isInitialized = true;
+
     WidgetsBinding.instance.addObserver(this);
     await _notificationService.init();
     _isLoading = true;

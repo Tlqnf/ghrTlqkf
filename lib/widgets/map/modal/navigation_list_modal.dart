@@ -150,7 +150,6 @@ class _NavigationListModalState extends State<NavigationListModal> {
           time: post.time,
           date: DateFormat('yyyy.MM.dd').format(post.createdAt),
           imageUrl: post.mapImageUrl,
-          // user field is omitted as we don't have the username directly
           onTap: () async {
             final authProvider = context.read<AuthProvider>();
             final mapProvider = context.read<MapProvider>();
@@ -159,11 +158,12 @@ class _NavigationListModalState extends State<NavigationListModal> {
             try {
               final points = await RouteApi.getRoutePoint(post.routeId, authProvider.token!);
               final routeCoords = points.map((p) => NLatLng(p['lat'], p['lon'])).toList();
-
               if (routeCoords.isNotEmpty) {
                 mapProvider.startNavigation(routeCoords);
-                if (!mounted) return;
-                Navigator.pop(context); // Close the modal
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('네비게이션 경로가 존재하지 않습니다.')),
+                );
               }
             } catch (e) {
               if (!mounted) return;
