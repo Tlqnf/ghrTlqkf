@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pedal/api/user_api.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/login_screen.dart';
+import 'package:pedal/screens/notice_list_screen.dart';
 import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -93,8 +94,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                           onTap: () {
                             Navigator.pop(context); // Close the modal
                             showConfirmationDialog('로그아웃', '정말 로그아웃 하시겠습니까?', () async {
-                              await UserApi.logoutUserProfile(authProvider.token!);
-                              authProvider.logout();
+                              await UserApi.logoutUserProfile(authProvider.token!);                              authProvider.logout();
                               if (!context.mounted) return;
                               Navigator.pushAndRemoveUntil(
                                 context,
@@ -136,9 +136,12 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                         ListTile(
                           leading: const Icon(Icons.notifications, color: Colors.black),
                           title: const Text('공지사항', style: TextStyle(color: Colors.black)),
-                          onTap: () async {
-                            Navigator.pop(context); // Close the modal
-                            // 공지사항 화면 만들기 -> 서버 확인 필요
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const NoticeListScreen()),
+                            );
                           },
                         ),
                         ListTile(

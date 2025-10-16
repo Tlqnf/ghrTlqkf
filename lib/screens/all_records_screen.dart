@@ -96,20 +96,6 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
           : Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                OutlinedButton(
-                  onPressed: () {
-                    // Handle sorting by latest
-                  },
-                  child: const Text('최신순'),
-                ),
-                const Spacer(),
-              ],
-            ),
-          ),
           Expanded(
             child: ListView(
               controller: _scrollController,

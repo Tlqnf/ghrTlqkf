@@ -376,9 +376,7 @@ class _CommentItemState extends State<CommentItem> {
                           postId: widget.comment.postId,
                         ),
                       );
-
                       Navigator.pop(modalContext);
-
                       if (!mounted) return;
                       ScaffoldMessenger.of(originalContext).showSnackBar(
                         const SnackBar(content: Text('대댓글이 등록되었습니다.')),

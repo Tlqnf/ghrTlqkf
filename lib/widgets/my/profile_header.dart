@@ -133,13 +133,29 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                         ? const Text(
                             'Loading...',
                             style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
+                              fontSize: 20, fontWeight: FontWeight.bold
+                            ),
                           )
                         : Text(
                             _user?.username ?? 'Guest',
                             style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
+                              fontSize: 20, fontWeight: FontWeight.bold
+                            ),
                           ),
+                    _isLoading
+                        ? const Text(
+                            'Loading...',
+                            style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w600
+                            ),
+                          )
+                        : Text(
+                            _user?.email ?? 'example@gmail.com',
+                            style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey
+                            ),
+                          ),
+                    const SizedBox(height: 4,),
                     _isLoading
                         ? const Text(
                             'Loading...',
@@ -148,7 +164,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                         : Text(
                             _user?.profileDescription ?? 'No description',
                             style: const TextStyle(
-                                fontSize: 16, color: Colors.grey),
+                                fontSize: 14, color: Colors.grey),
                           ),
                     if (_error != null)
                       Text(

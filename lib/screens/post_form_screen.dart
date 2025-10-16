@@ -363,11 +363,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('성공적으로 수정되었습니다.')),
           );
-          if (_isAdLoaded && _interstitialAd != null) {
-            _interstitialAd!.show();
-          } else {
-            _navigateToHome();
-          }
+          _navigateToHome();
         }
       } else {
         if (mounted) {
