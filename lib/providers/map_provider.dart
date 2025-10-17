@@ -309,9 +309,8 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
           speed: '${_currentSpeed.toStringAsFixed(1)} km/h',
         );
       }
+      notifyListeners();
     });
-
-    notifyListeners();
     return true;
   }
 

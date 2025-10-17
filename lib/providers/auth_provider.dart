@@ -41,29 +41,23 @@ class AuthProvider with ChangeNotifier {
   Future<void> login(String token) async {
     _token = token;
     _authState = AuthState.loading;
-    debugPrint('AuthProvider: authState set to loading. Token: $_token');
     notifyListeners();
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
 
     try {
-      debugPrint('AuthProvider: Calling UserApi.checkUserProfile...');
       bool? needsProfile = await UserApi.checkUserProfile(token);
-      debugPrint('AuthProvider: UserApi.checkUserProfile returned needsProfile: $needsProfile');
       if (needsProfile == true) {
         _authState = AuthState.needsProfileSetup;
-        debugPrint('AuthProvider: authState set to needsProfileSetup');
       } else {
         _authState = AuthState.loggedIn;
-        debugPrint('AuthProvider: authState set to loggedIn');
       }
     } catch (e) {
       debugPrint('AuthProvider: Error during checkUserProfile: $e');
       await logout();
       debugPrint('AuthProvider: Logged out due to error.');
     }
-    debugPrint('AuthProvider: Notifying listeners with final state: $_authState');
     notifyListeners();
   }
 

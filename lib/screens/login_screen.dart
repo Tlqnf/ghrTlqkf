@@ -3,7 +3,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:pedal/api/firebase_message_api.dart';
 import 'package:pedal/api/oauth_login_auth.dart';
-import 'package:pedal/api/user_api.dart' as user;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/webview_screen.dart';
@@ -25,18 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin(String token) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     authProvider.login(token);
-
-    try {
-      // 1. 사용자 프로필 가져오기
-      await user.UserApi.fetchUserProfile(token);
-
-      // 2. FCM 토큰 업데이트
-      await _updateFcmToken(token);
-    } catch (e) {
-      debugPrint('로그인 프로세스 오류: $e');
-      if (!mounted) return;
-      authProvider.logout();
-    }
+    await _updateFcmToken(token); // FCM 토큰 업데이트
   }
 
   Future<void> _updateFcmToken(String token) async {

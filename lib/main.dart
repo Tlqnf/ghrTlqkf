@@ -1,3 +1,4 @@
+// import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -8,9 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:pedal/providers/auth_provider.dart';
-import 'package:pedal/screens/login_screen.dart';
-import 'package:pedal/screens/profile_setup_screen.dart';
-import 'package:pedal/screens/main_navigation_screen.dart';
+import 'package:pedal/route/app_route.dart';
 import 'package:pedal/config/firebase_options.dart';
 import 'package:pedal/services/fcm_service.dart';
 import 'package:provider/provider.dart';
@@ -130,9 +129,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.initialize();
+  WidgetsFlutterBinding.ensureInitialized(); // widget binding
 
+  // 환경 변수 설정
   await dotenv.load(fileName: ".env");
   await initializeDateFormatting('ko_KR', null);
 
@@ -141,14 +140,11 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Kakao SDK 초기화
-  KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']);
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler); // FCM background handler 등록
+  await FCMService().initialize(); // FCM
 
-  // FCM background handler 등록
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-
-  // FCM 초기화
-  await FCMService().initialize();
+  // Ads 초기화
+  MobileAds.instance.initialize();
 
   // Naver Map 초기화
   await FlutterNaverMap().init(
@@ -158,17 +154,18 @@ void main() async {
     },
   );
 
-  // Google Sign-In 초기화 (모바일 앱 기준 clientId->android / serverClientId->webClient)
+  // 인앱 로그인 진행
+  // Google Sign-In 초기화
   await GoogleSignIn.instance.initialize(
-    clientId: dotenv.env["GOOGLE_CLIENT_ID"],
-    serverClientId: dotenv.env["GOOGLE_SERVER_CLIENT_ID"], // 서버 검증용
+    clientId: dotenv.env["GOOGLE_CLIENT_ID"],// clientId->android
+    serverClientId: dotenv.env["GOOGLE_SERVER_CLIENT_ID"], // serverClientId->webClient
   );
+  // Kakao SDK 초기화
+  KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']);
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-      ],
+    ChangeNotifierProvider(
+      create: (_) => AuthProvider(),
       child: const PedalApp(),
     ),
   );
@@ -182,10 +179,14 @@ class PedalApp extends StatefulWidget {
 }
 
 class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
+  // // Firebase google analytics 설정 추가
+  // final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // 권한 확인 check 용도
     Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
   }
 
@@ -198,28 +199,58 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // navigatorObservers: [
+      //   // 감시자 추가
+      //   FirebaseAnalyticsObserver(analytics: analytics),
+      // ],
       title: 'Pedal',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: colorScheme,
-          extensions: [AppColors.light],
-        ),
-      home: Consumer<AuthProvider>(
-        builder: (context, auth, _) {
-          switch (auth.authState) {
-            case AuthState.loading:
-              return const Scaffold(body: Center(child: CircularProgressIndicator()));
-            case AuthState.loggedIn:
-              return MainNavigationScreen();
-            case AuthState.needsProfileSetup:
-              return ProfileSetupPage(
-                  token: auth.token!,
-                  onSetupComplete: () => auth.completeProfileSetup());
-            case AuthState.loggedOut:
-            return LoginScreen();
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: colorScheme,
+        extensions: [AppColors.light],
+      ),
+
+      routes: AppRoute.routes,
+      onGenerateRoute: AppRoute.onGenerateRoute,
+
+      home: FutureBuilder(
+        future: Provider.of<AuthProvider>(context, listen: false).tryAutoLogin(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
+
+          return Consumer<AuthProvider>(
+            builder: (context, auth, _) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                switch (auth.authState) {
+                  case AuthState.loggedIn:
+                    Navigator.pushReplacementNamed(context, AppRoute.main);
+                    break;
+                  case AuthState.needsProfileSetup:
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoute.profile,
+                      arguments: {
+                        "onSetupComplete": () => auth.completeProfileSetup(),
+                        "token": auth.token,
+                      },
+                    );
+                    break;
+                  case AuthState.loggedOut:
+                    Navigator.pushReplacementNamed(context, AppRoute.login);
+                    break;
+                  default:
+                    Navigator.pushReplacementNamed(context, AppRoute.login);
+                    break;
+                }
+              });
+
+              return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            },
+          );
         },
-      )
+      ),
     );
   }
 }

@@ -8,14 +8,14 @@ import 'package:pedal/widgets/post/card/activity_card.dart';
 import 'package:pedal/widgets/home/card/activity_summary_card.dart';
 import 'package:provider/provider.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _MainScreenState extends State<MainScreen> {
   Future<List<Post>>? _postsFuture;
   Analyze? _analyze;
 

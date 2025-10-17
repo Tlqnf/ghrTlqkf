@@ -30,8 +30,7 @@ class FCMService {
     );
 
     // Get the FCM token (for debugging/logging purposes within the service)
-    final String? fcmToken = await _firebaseMessaging.getToken();
-    debugPrint("FCM Token: $fcmToken");
+    await _firebaseMessaging.getToken();
 
     // Set up the background message handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
