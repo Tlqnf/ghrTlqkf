@@ -2,23 +2,22 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pedal/api/user_api.dart'; // New import
-import 'package:pedal/widgets/bar/logo_app_bar.dart';
 
-class ProfileSetupPage extends StatefulWidget {
+class ProfileSetupScreen extends StatefulWidget {
   final VoidCallback onSetupComplete;
   final String token;
 
-  const ProfileSetupPage({
+  const ProfileSetupScreen({
     super.key,
     required this.onSetupComplete,
     required this.token,
   });
 
   @override
-  State<ProfileSetupPage> createState() => _ProfileSetupPageState();
+  State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
 }
 
-class _ProfileSetupPageState extends State<ProfileSetupPage> {
+class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _usernameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
@@ -53,9 +52,12 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
         profileDescription: _descriptionController.text,
         profilePicFile: _imageFile,
       );
-
-      // Success
       widget.onSetupComplete();
+
+      await Navigator.pushReplacementNamed(context, "/main");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('정상적으로 프로필이 생성되었습니다.')),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -78,7 +80,18 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: LogoBar(),
+      appBar: AppBar(
+        title: const Text(
+          '프로필 설정',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0,
+        flexibleSpace: Container(color: Theme.of(context).colorScheme.surface),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -90,13 +103,6 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '프로필 설정',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                       const SizedBox(height: 32),
                       Row(
                         children: [

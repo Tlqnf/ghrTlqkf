@@ -16,9 +16,6 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   void dispose() {
-    // ignore: deprecated_member_use
-    _controller?.clearCache();
-    _controller?.dispose();
     super.dispose();
   }
 

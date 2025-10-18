@@ -95,6 +95,11 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         } catch (error) {
           debugPrint('Kakao login error: $error');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('카카오톡 앱이 설치되어 있지 않아, 로그인이 취소됩니다.')
+            ),
+          );
         }
       },
     );

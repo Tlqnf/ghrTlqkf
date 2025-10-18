@@ -20,7 +20,7 @@ class AppRoute {
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
           builder: (context) =>
-              ProfileSetupPage(
+              ProfileSetupScreen(
                 onSetupComplete: args?['onSetupComplete'],
                 token: args?['token'],
               ),

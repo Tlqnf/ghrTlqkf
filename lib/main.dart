@@ -186,8 +186,6 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // 권한 확인 check 용도
-    Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
   }
 
   @override
@@ -216,18 +214,22 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
       home: FutureBuilder(
         future: Provider.of<AuthProvider>(context, listen: false).tryAutoLogin(),
         builder: (context, snapshot) {
+          // 자동 로그인이 완료될 때까지 로딩 화면을 표시합니다.
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
 
+          // 자동 로그인 시도 후, Consumer를 사용하여 인증 상태에 따라 UI를 빌드합니다.
           return Consumer<AuthProvider>(
             builder: (context, auth, _) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                switch (auth.authState) {
-                  case AuthState.loggedIn:
-                    Navigator.pushReplacementNamed(context, AppRoute.main);
-                    break;
-                  case AuthState.needsProfileSetup:
+              switch (auth.authState) {
+                case AuthState.loggedIn:
+                  debugPrint("로그인 성공");
+                  // 메인 화면 위젯 반환
+                  return AppRoute.routes[AppRoute.main]!(context);
+                case AuthState.needsProfileSetup:
+                  // 빌드 후 네비게이션 실행
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
                     Navigator.pushReplacementNamed(
                       context,
                       AppRoute.profile,
@@ -236,17 +238,16 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
                         "token": auth.token,
                       },
                     );
-                    break;
-                  case AuthState.loggedOut:
-                    Navigator.pushReplacementNamed(context, AppRoute.login);
-                    break;
-                  default:
-                    Navigator.pushReplacementNamed(context, AppRoute.login);
-                    break;
-                }
-              });
-
-              return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                  });
+                  // 내비게이션이 실행될 때까지 로딩 화면을 표시합니다.
+                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                case AuthState.loggedOut:
+                  // 로그인 화면 위젯을 직접 반환합니다.
+                  return AppRoute.routes[AppRoute.login]!(context);
+                default: // AuthState.loading
+                  // 인증 상태가 변경되는 동안 로딩 화면을 표시합니다.
+                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+              }
             },
           );
         },
