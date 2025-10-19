@@ -377,13 +377,11 @@ class _CommentItemState extends State<CommentItem> {
                         ),
                       );
                       Navigator.pop(modalContext);
-                      if (!mounted) return;
                       ScaffoldMessenger.of(originalContext).showSnackBar(
                         const SnackBar(content: Text('대댓글이 등록되었습니다.')),
                       );
                       widget.onCommentMutated();
                     } catch (e) {
-                      if (!mounted) return;
                       ScaffoldMessenger.of(originalContext).showSnackBar(
                         SnackBar(content: Text('등록 실패: $e')),
                       );
@@ -487,13 +485,11 @@ class _CommentItemState extends State<CommentItem> {
                       
                       Navigator.pop(modalContext);
 
-                      if (!mounted) return;
                       ScaffoldMessenger.of(originalContext).showSnackBar(
                         const SnackBar(content: Text('댓글이 수정되었습니다.')),
                       );
                       widget.onCommentMutated();
                     } catch (e) {
-                      if (!mounted) return;
                       ScaffoldMessenger.of(originalContext).showSnackBar(
                         SnackBar(content: Text('수정 실패: $e')),
                       );

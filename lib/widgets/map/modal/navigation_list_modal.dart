@@ -166,7 +166,6 @@ class _NavigationListModalState extends State<NavigationListModal> {
                 );
               }
             } catch (e) {
-              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('경로를 불러오는데 실패했습니다: $e')),
               );

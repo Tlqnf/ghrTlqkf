@@ -69,6 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
       onAgreed: () async {
         await _extraAlertDialog();
         final url = '${ApiConfig.baseUrl}/oauth/naver/login';
+        if (!mounted) return;
         final token = await Navigator.push(
           context,
           MaterialPageRoute(
@@ -95,6 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         } catch (error) {
           debugPrint('Kakao login error: $error');
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('카카오톡 앱이 설치되어 있지 않아, 로그인이 취소됩니다.')
