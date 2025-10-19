@@ -4,13 +4,15 @@ import 'package:image_picker/image_picker.dart';
 import 'package:pedal/api/user_api.dart'; // New import
 
 class ProfileSetupScreen extends StatefulWidget {
-  final VoidCallback onSetupComplete;
+  final VoidCallback? onSetupComplete;
   final String token;
+  final bool? isEditing;
 
   const ProfileSetupScreen({
     super.key,
     required this.onSetupComplete,
     required this.token,
+    this.isEditing,
   });
 
   @override
@@ -23,9 +25,43 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final ImagePicker _picker = ImagePicker();
   XFile? _imageFile;
   bool _isLoading = false;
+  dynamic userInfo;
+  bool _isFetching = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if (widget.isEditing != null) {
+      _initProfile();
+    }
+  }
+
+  void _initProfile() async {
+    setState(() {
+      _isFetching = true;
+    });
+    try {
+      userInfo = await UserApi.fetchUserProfile(widget.token);
+      _usernameController.text = userInfo.username;
+      _descriptionController.text = userInfo.profileDescription ?? '';
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('프로필 정보를 불러오지 못했습니다: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isFetching = false;
+        });
+      }
+    }
+  }
 
   Future<void> _pickImage() async {
-    final XFile? selectedImage = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? selectedImage =
+        await _picker.pickImage(source: ImageSource.gallery);
     if (selectedImage != null) {
       setState(() {
         _imageFile = selectedImage;
@@ -52,12 +88,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         profileDescription: _descriptionController.text,
         profilePicFile: _imageFile,
       );
-      widget.onSetupComplete();
+      if (widget.onSetupComplete != null) {
+        widget.onSetupComplete!();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('정상적으로 프로필이 생성되었습니다.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('정상적으로 프로필이 수정되었습니다.')),
+        );
+      }
 
       await Navigator.pushReplacementNamed(context, "/main");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('정상적으로 프로필이 생성되었습니다.')),
-      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -106,22 +148,30 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       const SizedBox(height: 32),
                       Row(
                         children: [
-                          CircleAvatar(
-                            radius: 40,
-                            backgroundColor: const Color(0xFFE0E0E0),
-                            backgroundImage: _imageFile != null
-                                ? (() {
-                                    return FileImage(File(_imageFile!.path));
-                                  })()
+                          _isFetching
+                            ? const CircleAvatar(
+                                radius: 40,
+                                child: CircularProgressIndicator(),
+                              )
+                            : CircleAvatar(
+                              radius: 40,
+                              backgroundColor: const Color(0xFFE0E0E0),
+                              backgroundImage: _imageFile != null
+                                ? FileImage(File(_imageFile!.path))
+                                : (userInfo?.profilePic != null &&
+                                        userInfo.profilePic!.isNotEmpty
+                                    ? NetworkImage(userInfo.profilePic!)
+                                    : null) as ImageProvider?,
+                              child: (_imageFile == null &&
+                                      (userInfo?.profilePic == null ||
+                                          userInfo.profilePic!.isEmpty))
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: Colors.white,
+                                  )
                                 : null,
-                            child: _imageFile == null
-                              ? const Icon(
-                                  Icons.person,
-                                  size: 50,
-                                  color: Colors.white,
-                                )
-                              : null,
-                          ),
+                              ),
                           const SizedBox(width: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,7 +187,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                               const SizedBox(height: 8),
                               OutlinedButton(
                                 onPressed: _pickImage,
-                                child: const Text('업로드', style: TextStyle(fontWeight: FontWeight.w400),),
+                                child: const Text(
+                                  '업로드',
+                                  style: TextStyle(fontWeight: FontWeight.w400),
+                                ),
                               ),
                             ],
                           ),
@@ -153,7 +206,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(width: 4,),
+                          const SizedBox(
+                            width: 4,
+                          ),
                           const Text(
                             "*",
                             style: TextStyle(
@@ -167,7 +222,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       const SizedBox(height: 8),
                       TextField(
                         controller: _usernameController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: '닉네임을 입력해주세요.',
                           border: OutlineInputBorder(
                             borderSide: BorderSide(
@@ -201,7 +256,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       TextField(
                         controller: _descriptionController,
                         maxLines: 3,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: '자신을 소개하는 설명 문구를 입력해주세요.',
                           border: OutlineInputBorder(
                             borderSide: BorderSide(

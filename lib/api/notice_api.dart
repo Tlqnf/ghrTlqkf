@@ -22,19 +22,4 @@ class NoticeApi {
       throw Exception('Failed to load notice ${response.statusCode}');
     }
   }
-
-  static Future<Notice> getNotice(String noticeId, String token) async {
-    final response = await http.get(
-      Uri.parse("${ApiConfig.baseUrl}/notices/$noticeId"),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      return Notice.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load notice ${response.statusCode}');
-    }
-  }
 }

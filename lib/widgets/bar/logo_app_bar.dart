@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pedal/api/user_api.dart';
 import 'package:pedal/providers/auth_provider.dart';
-import 'package:pedal/screens/login_screen.dart';
+import 'package:pedal/route/app_route.dart';
 import 'package:pedal/screens/notice_list_screen.dart';
-import 'package:pedal/screens/profile_setup_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -13,7 +12,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     void showConfirmationDialog(String title, String content, VoidCallback onConfirm) {
       showDialog(
@@ -21,6 +20,9 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
         builder: (ctx) => AlertDialog(
           title: Text(title),
           content: Text(content),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
           actions: <Widget>[
             TextButton(
               child: const Text('취소'),
@@ -77,15 +79,16 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                           title: const Text('프로필 수정', style: TextStyle(color: Colors.black)),
                           onTap: () {
                             Navigator.pop(context); // Close the modal
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProfileSetupPage(
-                                  onSetupComplete: () => Navigator.pop(context),
-                                  token: authProvider.token!,
-                                ),
-                              ),
-                            );
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              Navigator.pushNamed(
+                                context,
+                                AppRoute.profile,
+                                arguments: {
+                                  "token": authProvider.token,
+                                  "isEditing": true,
+                                },
+                              );
+                            });
                           },
                         ),
                         ListTile(
@@ -94,13 +97,15 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                           onTap: () {
                             Navigator.pop(context); // Close the modal
                             showConfirmationDialog('로그아웃', '정말 로그아웃 하시겠습니까?', () async {
-                              await UserApi.logoutUserProfile(authProvider.token!);                              authProvider.logout();
+                              await UserApi.logoutUserProfile(authProvider.token!);
+                              authProvider.logout();
                               if (!context.mounted) return;
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(builder: (context) => const LoginScreen()),
-                                    (Route<dynamic> route) => false,
-                              );
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  AppRoute.login,
+                                );
+                              });
                             });
                           },
                         ),
@@ -117,11 +122,12 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('회원탈퇴가 완료되었습니다.')),
                                   );
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                                        (Route<dynamic> route) => false,
-                                  );
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      AppRoute.login,
+                                    );
+                                  });
                                 }
                               } catch (e) {
                                 if (context.mounted) {

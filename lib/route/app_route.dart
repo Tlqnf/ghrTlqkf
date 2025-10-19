@@ -23,6 +23,7 @@ class AppRoute {
               ProfileSetupScreen(
                 onSetupComplete: args?['onSetupComplete'],
                 token: args?['token'],
+                isEditing: args?['isEditing'],
               ),
         );
       default:
