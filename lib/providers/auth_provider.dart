@@ -42,7 +42,6 @@ class AuthProvider with ChangeNotifier {
     _token = token;
     _authState = AuthState.loading;
     notifyListeners();
-    debugPrint("토큰 확인하기 $token");
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
@@ -59,7 +58,6 @@ class AuthProvider with ChangeNotifier {
       await logout();
       debugPrint('AuthProvider: Logged out due to error.');
     }
-    debugPrint("$_authState");
     notifyListeners();
   }
 

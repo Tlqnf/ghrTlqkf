@@ -14,7 +14,7 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       {'icon': Icons.home, 'label': '홈'},
-      {'icon': Icons.person, 'label': '마이'},
+      {'icon': Icons.person, 'label': '내 정보'},
     ];
 
     return SafeArea(

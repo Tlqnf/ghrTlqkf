@@ -121,6 +121,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text(
           '프로필 설정',
@@ -134,169 +135,165 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         flexibleSpace: Container(color: Theme.of(context).colorScheme.surface),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 32),
-                      Row(
-                        children: [
-                          _isFetching
-                            ? const CircleAvatar(
-                                radius: 40,
-                                child: CircularProgressIndicator(),
-                              )
-                            : CircleAvatar(
-                              radius: 40,
-                              backgroundColor: const Color(0xFFE0E0E0),
-                              backgroundImage: _imageFile != null
-                                ? FileImage(File(_imageFile!.path))
-                                : (userInfo?.profilePic != null &&
-                                        userInfo.profilePic!.isNotEmpty
-                                    ? NetworkImage(userInfo.profilePic!)
-                                    : null) as ImageProvider?,
-                              child: (_imageFile == null &&
-                                      (userInfo?.profilePic == null ||
-                                          userInfo.profilePic!.isEmpty))
-                                ? const Icon(
-                                    Icons.person,
-                                    size: 50,
-                                    color: Colors.white,
-                                  )
-                                : null,
-                              ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                '프로필 이미지 선택',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              OutlinedButton(
-                                onPressed: _pickImage,
-                                child: const Text(
-                                  '업로드',
-                                  style: TextStyle(fontWeight: FontWeight.w400),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      Row(
-                        children: [
-                          const Text(
-                            '닉네임',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 4,
-                          ),
-                          const Text(
-                            "*",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.red,
-                            ),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _usernameController,
-                        decoration: const InputDecoration(
-                          hintText: '닉네임을 입력해주세요.',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey,
-                              width: 1.0,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey,
-                              width: 1.0,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey, // Focus 되어도 회색 그대로
-                              width: 1.0,
-                            ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _isFetching
+                        ? const CircleAvatar(
+                      radius: 40,
+                      child: CircularProgressIndicator(),
+                    )
+                        : CircleAvatar(
+                      radius: 40,
+                      backgroundColor: const Color(0xFFE0E0E0),
+                      backgroundImage: _imageFile != null
+                          ? FileImage(File(_imageFile!.path))
+                          : (userInfo?.profilePic != null &&
+                          userInfo.profilePic!.isNotEmpty
+                          ? NetworkImage(userInfo.profilePic!)
+                          : null) as ImageProvider?,
+                      child: (_imageFile == null &&
+                          (userInfo?.profilePic == null ||
+                              userInfo.profilePic!.isEmpty))
+                          ? const Icon(
+                        Icons.person,
+                        size: 50,
+                        color: Colors.white,
+                      )
+                          : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          '프로필 이미지 선택',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        '설명',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _descriptionController,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          hintText: '자신을 소개하는 설명 문구를 입력해주세요.',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey,
-                              width: 1.0,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey,
-                              width: 1.0,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey, // Focus 되어도 회색 그대로
-                              width: 1.0,
-                            ),
+                        const SizedBox(height: 8),
+                        OutlinedButton(
+                          onPressed: _pickImage,
+                          child: const Text(
+                            '업로드',
+                            style: TextStyle(fontWeight: FontWeight.w400),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              if (_isLoading)
-                const Center(child: CircularProgressIndicator())
-              else
-                ElevatedButton(
-                  onPressed: _submitProfile,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    const Text(
+                      '닉네임',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 4,
+                    ),
+                    const Text(
+                      "*",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red,
+                      ),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(
+                    hintText: '닉네임을 입력해주세요.',
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey,
+                        width: 1.0,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey,
+                        width: 1.0,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey, // Focus 되어도 회색 그대로
+                        width: 1.0,
+                      ),
                     ),
                   ),
-                  child: const Text('프로필 설정'),
                 ),
-            ],
+                const SizedBox(height: 24),
+                const Text(
+                  '설명',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _descriptionController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    hintText: '자신을 소개하는 설명 문구를 입력해주세요.',
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey,
+                        width: 1.0,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey,
+                        width: 1.0,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey, // Focus 되어도 회색 그대로
+                        width: 1.0,
+                      ),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                if (_isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  ElevatedButton(
+                    onPressed: _submitProfile,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                    child: const Text('프로필 설정'),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
