@@ -30,7 +30,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     if (widget.isEditing != null) {
       _initProfile();

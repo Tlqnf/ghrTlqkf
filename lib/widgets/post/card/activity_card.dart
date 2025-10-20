@@ -142,6 +142,7 @@ class _ActivityCardState extends State<ActivityCard>
                 _user!.profilePic!.isNotEmpty
                   ? CircleAvatar(
                       radius: 30,
+                      backgroundColor: Colors.white70,
                       backgroundImage: NetworkImage(_user!.profilePic!),
                     )
                   : const CircleAvatar(
