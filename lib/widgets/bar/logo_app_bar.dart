@@ -3,6 +3,7 @@ import 'package:pedal/api/user_api.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/route/app_route.dart';
 import 'package:pedal/screens/notice_list_screen.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -119,9 +120,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                                 await UserApi.deleteUserProfile(authProvider.token!);
                                 authProvider.logout();
                                 if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('회원탈퇴가 완료되었습니다.')),
-                                  );
+                                  showCustomSnackBar(context, '회원탈퇴가 완료되었습니다.');
                                   WidgetsBinding.instance.addPostFrameCallback((_) {
                                     Navigator.pushReplacementNamed(
                                       context,
@@ -131,9 +130,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                                 }
                               } catch (e) {
                                 if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('회원탈퇴 중 오류가 발생했습니다: $e')),
-                                  );
+                                  showCustomSnackBar(context, '회원탈퇴 중 오류가 발생했습니다: $e');
                                 }
                               }
                             });
@@ -160,9 +157,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                               await launchUrl(url, mode: LaunchMode.externalApplication);
                             } else {
                               if(context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('카카오톡 오픈채팅방을 열 수 없습니다.')),
-                                );
+                                showCustomSnackBar(context, '카카오톡 오픈채팅방을 열 수 없습니다.');
                               }
                             }
                           },

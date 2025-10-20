@@ -11,6 +11,7 @@ import 'package:pedal/services/google_sign_in_service.dart';
 import 'package:pedal/widgets/bar/logo_app_bar.dart';
 import 'package:pedal/widgets/login/button/social_login_button.dart';
 import 'package:pedal/widgets/login/modal/terms_of_service_modal.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -97,11 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
         } catch (error) {
           debugPrint('Kakao login error: $error');
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('카카오톡 앱이 설치되어 있지 않아, 로그인이 취소됩니다.')
-            ),
-          );
+          showCustomSnackBar(context, '카카오톡 앱이 설치되어 있지 않아, 로그인이 취소됩니다.');
         }
       },
     );
@@ -138,12 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await Geolocator.requestPermission();
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('위치정보 수집이 거부되어 일부 기능이 제한됩니다.'),
-            duration: Duration(seconds: 7),
-          ),
-        );
+        showCustomSnackBar(context, '위치정보 수집이 거부되어 일부 기능이 제한됩니다.');
       }
     }
 

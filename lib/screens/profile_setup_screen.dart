@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:pedal/api/user_api.dart'; // New import
+import 'package:pedal/api/user_api.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart'; // New import
 
 class ProfileSetupScreen extends StatefulWidget {
   final VoidCallback? onSetupComplete;
@@ -24,9 +25,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _descriptionController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   XFile? _imageFile;
-  bool _isLoading = false;
   dynamic userInfo;
-  bool _isFetching = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -38,7 +38,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   void _initProfile() async {
     setState(() {
-      _isFetching = true;
+      _isLoading = true;
     });
     try {
       userInfo = await UserApi.fetchUserProfile(widget.token);
@@ -46,13 +46,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       _descriptionController.text = userInfo.profileDescription ?? '';
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('프로필 정보를 불러오지 못했습니다: $e')),
-      );
+      showCustomSnackBar(context, '프로필 정보를 불러오지 못했습니다: $e');
     } finally {
       if (mounted) {
         setState(() {
-          _isFetching = false;
+          _isLoading = false;
         });
       }
     }
@@ -70,9 +68,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _submitProfile() async {
     if (_usernameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('닉네임은 필수 항목입니다.')),
-      );
+      showCustomSnackBar(context, '닉네임은 필수 항목입니다.');
       return;
     }
 
@@ -89,21 +85,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       );
       if (widget.onSetupComplete != null) {
         widget.onSetupComplete!();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('정상적으로 프로필이 생성되었습니다.')),
-        );
+        showCustomSnackBar(context, '정상적으로 프로필이 생성되었습니다.');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('정상적으로 프로필이 수정되었습니다.')),
-        );
+        showCustomSnackBar(context, "정상적으로 프로필이 수정되었습니다.");
       }
 
       await Navigator.pushReplacementNamed(context, "/main");
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('오류 발생: $e')),
-      );
+      showCustomSnackBar(context, "오류 발생: $e");
     } finally {
       setState(() {
         _isLoading = false;
@@ -120,6 +110,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -127,7 +121,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           '프로필 설정',
           style: TextStyle(
             fontSize: 24,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -146,7 +140,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    _isFetching
+                    _isLoading
                         ? const CircleAvatar(
                       radius: 40,
                       child: CircularProgressIndicator(),

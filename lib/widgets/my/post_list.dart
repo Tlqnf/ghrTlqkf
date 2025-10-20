@@ -29,34 +29,48 @@ class _PostListState extends State<PostList> {
     final items = widget.postData!;
     if (widget.postData != null) {
       if (items.isEmpty) {
-        return const Padding(
+        return Padding(
           padding: EdgeInsets.all(16),
-          child: Text('최근 기록이 없습니다.'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 16,),
+              widget.bookmarked
+                ? Text('북마크한 기록이 없습니다.')
+                : Text("최근 기록이 없습니다."),
+            ],
+          ),
         );
       }
 
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final p = items[index];
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final p = items[index];
 
-          final distance = _formatDistance(p.distance);
-          final date = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR')
-              .format(p.createdAt.toLocal());
-          final imageUrl = p.mapImageUrl;
+              final distance = _formatDistance(p.distance);
+              final date = DateFormat('yyyy.MM.dd a hh:mm', 'ko_KR')
+                  .format(p.createdAt.toLocal());
+              final imageUrl = p.mapImageUrl;
 
-          return PostCard(
-            routeName: widget.bookmarked ? p.title : p.routeName,
-            distance: distance,
-            time: p.time,
-            date: date,
-            imageUrl: imageUrl,
-            onTap: widget.onItemTap != null ? () => widget.onItemTap!(p) : null, // Pass tap event
-            onEdit: widget.onItemEdit != null ? () => widget.onItemEdit!(p) : null, // Pass edit event
-          );
-        },
+              return PostCard(
+                routeName: widget.bookmarked ? p.title : p.routeName,
+                distance: distance,
+                time: p.time,
+                date: date,
+                imageUrl: imageUrl,
+                onTap: widget.onItemTap != null ? () => widget.onItemTap!(p) : null, // Pass tap event
+                onEdit: widget.onItemEdit != null ? () => widget.onItemEdit!(p) : null, // Pass edit event
+              );
+            },
+          ),
+          const SizedBox(height: 32,),
+        ],
       );
     }
     return Center(

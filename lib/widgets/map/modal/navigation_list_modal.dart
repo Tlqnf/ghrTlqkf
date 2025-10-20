@@ -7,6 +7,7 @@ import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/providers/map_provider.dart';
 import 'package:pedal/widgets/post/card/post_card.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 
 class NavigationListModal extends StatefulWidget {
@@ -161,14 +162,10 @@ class _NavigationListModalState extends State<NavigationListModal> {
               if (routeCoords.isNotEmpty) {
                 mapProvider.startNavigation(routeCoords);
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('네비게이션 경로가 존재하지 않습니다.')),
-                );
+                showCustomSnackBar(context, '네비게이션 경로가 존재하지 않습니다.');
               }
             } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('경로를 불러오는데 실패했습니다: $e')),
-              );
+              showCustomSnackBar(context, '경로를 불러오는데 실패했습니다: $e');
             }
           },
         );

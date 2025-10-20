@@ -3,6 +3,7 @@ import 'package:pedal/api/user_api.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart';
 
 import 'card/activity_card.dart';
 
@@ -87,9 +88,7 @@ class _ActivityFeedState extends State<ActivityFeed> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('불러오기 실패: $e')),
-        );
+        showCustomSnackBar(context, '불러오기 실패: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -5,6 +5,7 @@ import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/post_form_screen.dart';
 import 'package:pedal/screens/report_detail_screen.dart';
 import 'package:pedal/widgets/my/post_list.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 
 class AllRecordsScreen extends StatefulWidget {
@@ -75,9 +76,7 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
       });
       // Optional: Show an error message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load records: $e')),
-        );
+        showCustomSnackBar(context, 'Failed to load records: $e');
       }
     }
   }

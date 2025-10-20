@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pedal/screens/main_screen.dart';
 import 'package:pedal/screens/my_page_screen.dart';
-import 'package:pedal/screens/map_screen.dart'; // Import MapScreen
+import 'package:pedal/screens/map_screen.dart';
 import 'package:pedal/widgets/bar/bottom_nav_bar.dart';
 import 'package:pedal/widgets/bar/logo_app_bar.dart';
 
@@ -39,7 +39,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
 
     return Scaffold(
-      appBar: const LogoBar(), // AppBar for HomePage and MyPageScreen
+      appBar: const LogoBar(),
       body: screens[_currentIndex],
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,

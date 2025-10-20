@@ -12,6 +12,7 @@ import 'package:pedal/screens/main_navigation_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pedal/services/admob_service.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart';
 
 
 class PostFormScreen extends StatefulWidget {
@@ -99,9 +100,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
   Future<void> _pickImage() async {
     if (_additionalImages.length + _additionalImageUrls.length >= 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('최대 2장의 사진만 추가할 수 있습니다.')),
-      );
+      showCustomSnackBar(context, '최대 2장의 사진만 추가할 수 있습니다.');
       return;
     }
     final XFile? selectedImage =
@@ -169,15 +168,11 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
   Future<void> _savePost() async {
     if (_routeNameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('경로 이름은 필수입니다.')),
-      );
+      showCustomSnackBar(context, '경로 이름은 필수입니다.');
       return;
     }
     if (_isCommunityUploadEnabled && _titleController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('커뮤니티에 업로드하려면 게시글 제목이 필요합니다.')),
-      );
+      showCustomSnackBar(context, '커뮤니티에 업로드하려면 게시글 제목이 필요합니다.');
       return;
     }
 
@@ -190,16 +185,12 @@ class _PostFormScreenState extends State<PostFormScreen> {
       final token = authProvider.token;
       if (token == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('인증 정보가 없습니다. 다시 로그인해주세요.')),
-          );
+          showCustomSnackBar(context, '인증 정보가 없습니다. 다시 로그인해주세요.');
         }
         setState(() => _isLoading = false);
         return;
       } else if (widget.routeId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('경로 ID가 없습니다.')),
-        );
+        showCustomSnackBar(context, '경로 ID가 없습니다.');
         return;
       }
 
@@ -249,9 +240,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
         _additionalImages.clear();
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('성공적으로 생성되었습니다.')),
-          );
+          showCustomSnackBar(context, '성공적으로 생성되었습니다.');
           if (_isAdLoaded && _interstitialAd != null) {
             _interstitialAd!.show();
           } else {
@@ -260,16 +249,12 @@ class _PostFormScreenState extends State<PostFormScreen> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('생성에 실패했습니다.')),
-          );
+          showCustomSnackBar(context, '생성에 실패했습니다.');
         }
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('생성 중 오류가 발생했습니다: $e')),
-      );
+      showCustomSnackBar(context, '생성 중 오류가 발생했습니다: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -281,15 +266,11 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
   Future<void> _updatePost() async {
     if (_routeNameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('경로 이름은 필수입니다.')),
-      );
+      showCustomSnackBar(context, '경로 이름은 필수입니다.');
       return;
     }
     if (_isCommunityUploadEnabled && _titleController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('커뮤니티에 업로드하려면 게시글 제목이 필요합니다.')),
-      );
+      showCustomSnackBar(context, '커뮤니티에 업로드하려면 게시글 제목이 필요합니다.');
       return;
     }
 
@@ -302,16 +283,12 @@ class _PostFormScreenState extends State<PostFormScreen> {
       final token = authProvider.token;
       if (token == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('인증 정보가 없습니다. 다시 로그인해주세요.')),
-          );
+          showCustomSnackBar(context, '인증 정보가 없습니다. 다시 로그인해주세요.');
         }
         setState(() => _isLoading = false);
         return;
       } else if (widget.routeId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('경로 ID가 없습니다.')),
-        );
+        showCustomSnackBar(context, '경로 ID가 없습니다.');
         return;
       }
 
@@ -360,23 +337,17 @@ class _PostFormScreenState extends State<PostFormScreen> {
         _additionalImages.clear();
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('성공적으로 수정되었습니다.')),
-          );
+          showCustomSnackBar(context, '성공적으로 수정되었습니다.');
           _navigateToHome();
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('수정에 실패했습니다.')),
-          );
+          showCustomSnackBar(context, '수정에 실패했습니다.');
         }
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')),
-      );
+      showCustomSnackBar(context, '저장 중 오류가 발생했습니다: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -394,9 +365,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
     if (!mounted) return;
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('성공적으로 삭제되었습니다.')),
-      );
+      showCustomSnackBar(context, '성공적으로 삭제되었습니다.');
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
             (Route<dynamic> route) => false,
@@ -404,9 +373,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
     } else {
       final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
       final errorMessage = responseBody['detail'] ?? '삭제에 실패했습니다.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('오류: ${response.statusCode} - $errorMessage')),
-      );
+      showCustomSnackBar(context, '오류: ${response.statusCode} - $errorMessage');
     }
   }
 

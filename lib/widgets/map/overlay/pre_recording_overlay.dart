@@ -5,6 +5,7 @@ import 'package:pedal/widgets/ad/banner_ad_widget.dart';
 import 'package:pedal/widgets/map/button/map_control_button.dart';
 import 'package:pedal/widgets/map/button/record_button.dart';
 import 'package:pedal/widgets/map/modal/navigation_list_modal.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 
 class PreRecordingOverlay extends StatelessWidget {
@@ -56,9 +57,7 @@ class PreRecordingOverlay extends StatelessWidget {
             alignment: Alignment.bottomCenter,
             child: GestureDetector(
               onTap: () async {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('주행을 기록합니다.')),
-                );
+                showCustomSnackBar(context, '주행을 기록합니다.');
                 await mapProviderReader.startRecording();
               },
               child: const RecordButton(),

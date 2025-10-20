@@ -6,6 +6,7 @@ import 'package:pedal/models/post.dart';
 import 'package:pedal/models/user.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/widgets/post/modal/comment_modal.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 import 'package:pedal/main.dart';
 
@@ -68,9 +69,7 @@ class _ActivityCardState extends State<ActivityCard>
         _likeCount = prevCount;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('요청 실패: $e')),
-        );
+        showCustomSnackBar(context, '요청 실패: $e');
       }
     }
   }

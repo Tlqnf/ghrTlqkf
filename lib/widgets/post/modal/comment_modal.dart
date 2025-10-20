@@ -6,6 +6,7 @@ import 'package:pedal/models/comment.dart';
 import 'package:pedal/models/user.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/widgets/post/card/reply_card.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 
 class CommentModal extends StatefulWidget {
@@ -84,15 +85,11 @@ class _CommentModalState extends State<CommentModal> {
       _commentController.clear();
       await _fetchComments();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('댓글이 등록되었습니다.')),
-        );
+        showCustomSnackBar(context, '댓글이 등록되었습니다.');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('댓글 등록 실패: $e')),
-        );
+        showCustomSnackBar(context, '댓글 등록 실패: $e');
       }
     }
   }
@@ -314,9 +311,7 @@ class _CommentItemState extends State<CommentItem> {
         _likeCount = prevCount;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('요청 실패: $e')),
-        );
+        showCustomSnackBar(context, '요청 실패: $e');
       }
     }
   }
@@ -377,14 +372,10 @@ class _CommentItemState extends State<CommentItem> {
                         ),
                       );
                       Navigator.pop(modalContext);
-                      ScaffoldMessenger.of(originalContext).showSnackBar(
-                        const SnackBar(content: Text('대댓글이 등록되었습니다.')),
-                      );
+                      showCustomSnackBar(originalContext, '대댓글이 등록되었습니다.');
                       widget.onCommentMutated();
                     } catch (e) {
-                      ScaffoldMessenger.of(originalContext).showSnackBar(
-                        SnackBar(content: Text('등록 실패: $e')),
-                      );
+                      showCustomSnackBar(originalContext, '등록 실패: $e');
                     }
                   },
                 ),
@@ -485,14 +476,10 @@ class _CommentItemState extends State<CommentItem> {
                       
                       Navigator.pop(modalContext);
 
-                      ScaffoldMessenger.of(originalContext).showSnackBar(
-                        const SnackBar(content: Text('댓글이 수정되었습니다.')),
-                      );
+                      showCustomSnackBar(originalContext, '댓글이 수정되었습니다.');
                       widget.onCommentMutated();
                     } catch (e) {
-                      ScaffoldMessenger.of(originalContext).showSnackBar(
-                        SnackBar(content: Text('수정 실패: $e')),
-                      );
+                      showCustomSnackBar(originalContext, '수정 실패: $e');
                     }
                   },
                 ),
@@ -509,15 +496,11 @@ class _CommentItemState extends State<CommentItem> {
     try {
       await CommentApi.deleteComment(token!, widget.comment.commentId);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('댓글이 삭제되었습니다.')),
-      );
+      showCustomSnackBar(context, '댓글이 삭제되었습니다.');
       widget.onCommentMutated();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('삭제 실패: $e')),
-      );
+      showCustomSnackBar(context, '삭제 실패: $e');
     }
   }
 
