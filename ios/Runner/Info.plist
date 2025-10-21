@@ -4,12 +4,14 @@
 <dict>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>This app needs access to location when open.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>주행 경로를 기록하기 위해 항상 위치 정보에 접근해야 합니다.</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>This app needs access to location when in the background.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Pedal</string>
+	<string>페달</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -32,6 +34,10 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+    <key>UIBackgroundModes</key>
+    <array>
+       <string>location</string>
+    </array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -49,5 +55,26 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-</dict>
-</plist>
+	    <key>NSPhotoLibraryUsageDescription</key>
+	    <string>This app needs access to your photo library to let you pick a profile picture.</string>
+	    <key>LSApplicationQueriesSchemes</key>
+	    <array>
+	      <string>kakaokompassauth</string>
+	      <string>kakaolink</string>
+	    </array>
+	    <key>CFBundleURLTypes</key>
+	    <array>
+	        <dict>
+	            <key>CFBundleTypeRole</key>
+	            <string>Editor</string>
+	            <key>CFBundleURLSchemes</key>
+	            <array>
+	                <string>kakao${YOUR_NATIVE_APP_KEY}</string>
+	                <string>com.googleusercontent.apps.955347166552-9d30ac6a1946989457f12d</string>
+	            </array>
+	        </dict>
+	    </array>
+	    <key>KAKAO_APP_KEY</key>
+	    <string>YOUR_NATIVE_APP_KEY</string>
+	</dict>
+	</plist>
