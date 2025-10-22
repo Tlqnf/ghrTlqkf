@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:pedal/providers/map_provider.dart';
-import 'package:pedal/widgets/ad/banner_ad_widget.dart';
+import 'package:pedal/widgets/bar/custom_snackbar.dart';
 import 'package:pedal/widgets/map/button/map_control_button.dart';
 import 'package:pedal/widgets/map/button/record_button.dart';
 import 'package:pedal/widgets/map/modal/navigation_list_modal.dart';
-import 'package:pedal/widgets/bar/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 
 class PreRecordingOverlay extends StatelessWidget {
@@ -50,7 +49,7 @@ class PreRecordingOverlay extends StatelessWidget {
 
         // 하단 기록 시작 버튼
         Positioned(
-          bottom: 100,
+          bottom: 70,
           left: 0,
           right: 0,
           child: Align(
@@ -64,27 +63,34 @@ class PreRecordingOverlay extends StatelessWidget {
             ),
           ),
         ),
+
+        // 네비게이션 -> 위치 변경
         Positioned(
-          // 모달
+          bottom: 60,
           left: 0,
           right: 0,
-          bottom: 60, // Above the ad banner
-          top: 0, // Allow it to go all the way to the top
-          child: DraggableScrollableSheet(
-            initialChildSize: 80 / (MediaQuery.of(context).size.height - 60),
-            minChildSize: 80 / (MediaQuery.of(context).size.height - 60),
-            maxChildSize: 600 / (MediaQuery.of(context).size.height - 60),
-            builder: (BuildContext context, ScrollController scrollController) {
-              return NavigationListModal(scrollController: scrollController);
+          child: GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => DraggableScrollableSheet(
+                  expand: false,
+                  initialChildSize: 0.5,
+                  maxChildSize: 0.9,
+                  minChildSize: 0.2,
+                  builder: (context, scrollController) =>
+                      NavigationListModal(
+                        scrollController: scrollController,
+                      ),
+                ),
+              );
             },
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: SafeArea(
-            child: Center(child: BannerAdWidget()),
+            child: Container(
+              height: 50.0,
+              color: Colors.transparent,
+            ),
           ),
         ),
       ],

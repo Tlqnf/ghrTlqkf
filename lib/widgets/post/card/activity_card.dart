@@ -350,29 +350,54 @@ class _ActivityCardState extends State<ActivityCard>
 
             // 게시물 내용
             _isMoreContent
-                ? Text(
-              widget.post.content,
-              style: const TextStyle(fontSize: 16),
-            )
-                : TextButton(
-              onPressed: () {
-                setState(() {
-                  _isMoreContent = true;
-                });
-              },
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: const Text(
-                "더보기",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.post.content,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 10,),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _isMoreContent = false;
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        "간략히",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      )
+                    ),
+                  ],
+                )
+              : TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isMoreContent = true;
+                    });
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    "더보기",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ],
         ),
       ),

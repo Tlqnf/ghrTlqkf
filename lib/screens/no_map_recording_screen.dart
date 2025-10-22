@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class NoMapRecordingView extends StatelessWidget {
   final double currentSpeed;
   final bool isPaused;
-  final VoidCallback togglePause;
+  final VoidCallback pauseAndRecording;
   final double distance;
   final String elapsedTime;
   final double avgSpeed;
@@ -13,7 +13,7 @@ class NoMapRecordingView extends StatelessWidget {
     super.key,
     required this.currentSpeed,
     required this.isPaused,
-    required this.togglePause,
+    required this.pauseAndRecording,
     required this.distance,
     required this.elapsedTime,
     required this.avgSpeed,
@@ -71,7 +71,7 @@ class NoMapRecordingView extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           OutlinedButton(
-            onPressed: togglePause,
+            onPressed: pauseAndRecording,
             style: OutlinedButton.styleFrom(
               side: BorderSide(
                 color: isPaused ? Colors.orange : Colors.green
@@ -89,7 +89,7 @@ class NoMapRecordingView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 60),
-          _buildNoMapStatRow('거리(km)', (distance / 1000).toStringAsFixed(2),
+          _buildNoMapStatRow('거리(km)', distance.toStringAsFixed(2),
               '시간', elapsedTime),
           const SizedBox(height: 30),
           _buildNoMapStatRow('평균 속력', avgSpeed.toStringAsFixed(1), '최고 속도',

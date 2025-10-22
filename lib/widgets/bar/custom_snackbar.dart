@@ -13,7 +13,7 @@ void showCustomSnackBar(BuildContext context, String message) {
         ),
       ),
       behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.black.withOpacity(0.7),
+      backgroundColor: Colors.black.withValues(alpha: 0.7),
       margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),

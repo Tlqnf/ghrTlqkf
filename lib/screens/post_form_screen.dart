@@ -4,34 +4,36 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pedal/api/post_api.dart';
+import 'package:pedal/api/report_api.dart';
 import 'package:pedal/api/route_api.dart';
 import 'package:pedal/models/post.dart';
+import 'package:pedal/models/report.dart';
 import 'package:pedal/models/route.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
+import 'package:pedal/utils/time_formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pedal/services/admob_service.dart';
 import 'package:pedal/widgets/bar/custom_snackbar.dart';
 
-
 class PostFormScreen extends StatefulWidget {
-  final int? reportId;
   final int? routeId;
-  final String? initialDistance;
+  final double? initialDistance;
   final String? initialTime;
-  final String? initialAvgSpeed;
+  final double? initialAvgSpeed;
+  final double? initialMaxSpeed;
   final String? mapImagePath;
   final List<List<double>>? routeCoords;
   final Post? postData;
 
   const PostFormScreen({
     super.key,
-    this.reportId,
-    this.routeId,
+    required this.routeId,
     this.initialDistance,
     this.initialTime,
     this.initialAvgSpeed,
+    this.initialMaxSpeed,
     this.mapImagePath,
     this.routeCoords,
     this.postData,
@@ -212,13 +214,24 @@ class _PostFormScreenState extends State<PostFormScreen> {
         token,
       );
 
+      final reportId = await ReportApi.createReport(
+          ReportCreate(
+            routeId: widget.routeId!,
+            healthTime: timeToInt(widget.initialTime!),
+            distance: widget.initialDistance,
+            averageSpeed: widget.initialAvgSpeed,
+            highestSpeed: widget.initialMaxSpeed,
+          ),
+          authProvider.token!
+      );
+
       final postData = CreatePost(
         title: _isCommunityUploadEnabled
             ? _titleController.text
             : _routeNameController.text,
         content: _isCommunityUploadEnabled ? _bodyController.text : '',
         hashTag: _tags,
-        reportId: widget.reportId,
+        reportId: reportId,
         public: _isCommunityUploadEnabled,
         routeId: widget.routeId,
       );
@@ -489,8 +502,8 @@ class _PostFormScreenState extends State<PostFormScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildStatItem('거리', widget.postData?.distance.toStringAsFixed(2) ?? widget.initialDistance ?? '0.00', 'km'),
-                        _buildStatItem('평균 속력', widget.postData?.speed.toStringAsFixed(1) ?? widget.initialAvgSpeed ?? '0.0', 'km/h'),
+                        _buildStatItem('거리', widget.postData?.distance.toStringAsFixed(2) ?? widget.initialDistance!.toStringAsFixed(2), 'km'),
+                        _buildStatItem('평균 속력', widget.postData?.speed.toStringAsFixed(1) ?? widget.initialAvgSpeed!.toStringAsFixed(1), 'km/h'),
                         _buildStatItem('총 시간', widget.postData?.time ?? widget.initialTime ?? '00:00:00', ''),
                       ],
                     ),
