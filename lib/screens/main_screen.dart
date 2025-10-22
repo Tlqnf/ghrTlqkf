@@ -122,19 +122,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ]),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 40)),
-            const SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
-              sliver: SliverToBoxAdapter(
-                child: Text(
-                  '커뮤니티',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
             FutureBuilder<List<Post>>(
               future: _postsFuture,
               builder: (context, snapshot) {

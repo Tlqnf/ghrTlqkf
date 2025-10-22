@@ -46,7 +46,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       _descriptionController.text = userInfo.profileDescription ?? '';
     } catch (e) {
       if (!mounted) return;
-      showCustomSnackBar(context, '프로필 정보를 불러오지 못했습니다: $e');
+      showOverlaySnackBar(context, '프로필 정보를 불러오지 못했습니다: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -68,7 +68,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _submitProfile() async {
     if (_usernameController.text.isEmpty) {
-      showCustomSnackBar(context, '닉네임은 필수 항목입니다.');
+      showOverlaySnackBar(context, '닉네임은 필수 항목입니다.');
       return;
     }
 
@@ -85,15 +85,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       );
       if (widget.onSetupComplete != null) {
         widget.onSetupComplete!();
-        showCustomSnackBar(context, '정상적으로 프로필이 생성되었습니다.');
+        showOverlaySnackBar(context, '정상적으로 프로필이 생성되었습니다.');
       } else {
-        showCustomSnackBar(context, "정상적으로 프로필이 수정되었습니다.");
+        showOverlaySnackBar(context, "정상적으로 프로필이 수정되었습니다.");
       }
 
       await Navigator.pushReplacementNamed(context, "/main");
     } catch (e) {
       if (!mounted) return;
-      showCustomSnackBar(context, "오류 발생: $e");
+      showOverlaySnackBar(context, "오류 발생: $e");
     } finally {
       setState(() {
         _isLoading = false;

@@ -1,76 +1,85 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:pedal/api/report_api.dart';
-import 'package:pedal/models/report.dart';
 import 'package:pedal/api/route_api.dart';
 import 'package:pedal/providers/auth_provider.dart';
-import 'package:pedal/services/notification_service.dart';
 import 'package:pedal/utils/route_utils.dart';
 import 'package:pedal/utils/time_formatter.dart';
 
 enum RecordingStatus { idle, recording, paused }
 
 class MapProvider with ChangeNotifier, WidgetsBindingObserver {
-  final NotificationService _notificationService = NotificationService();
-  AuthProvider? _authProvider;
-
-  NLatLng? _currentLocation; // 현재 위치
-  NaverMapController? _mapController; // 맵 컨트롤러
+  NaverMapController? _mapController; // naver_map 컨트롤러
   StreamSubscription<Position>? _positionStreamSubscription; // 실시간 위치 정보
+  AuthProvider? _authProvider;
 
   // 경로 지정
   final int _chunkSize = 25;
   final List<List<NLatLng>> _routeChunks = [[]];
 
-  bool _isFollowingUser = true;
-  bool _isMapVisible = true;
-  bool _isLoading = true;
+  // 사용자 위치
+  NLatLng? _currentUserLocation;
+  bool _isFollowing = true;
 
-  RecordingStatus recordingStatus = RecordingStatus.idle;
+  // 로딩 관리
+  bool _isLoading = false;
+  bool _isMapVisible = true;
+
+  // 기록
+  RecordingStatus _recordingStatus = RecordingStatus.idle;
+
   final Stopwatch _stopwatch = Stopwatch();
   Timer? _timer;
+  String _time = "00:00:00"; // format 형식
+  DateTime? _lastTimestamp;
 
-  String _elapsedTime = '00:00:00';
-  double _distance = 0.0;
-  double _avgSpeed = 0.0;
+  double _distance = 0.0; // km 단위
+  double _avgSpeed = 0.0; // km/h 단위
   double _currentSpeed = 0.0;
   double _maxSpeed = 0.0;
 
-  int? _currentRouteId;
+  late int _routeId;
 
-  bool get isRecording => recordingStatus == RecordingStatus.recording;
-  bool get isPaused => recordingStatus == RecordingStatus.paused;
-  bool get isMapVisible => _isMapVisible;
+  // 네비게이션 기능 todo
+  NPathOverlay? _navigationPath;
+  final List<NMarker> _arrowMarkers = [];
+
+  // 백그라운드 알림
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+
+  // getter 함수
   bool get isLoading => _isLoading;
-  bool get isMapReady => _mapController != null;
-  String get elapsedTime => _elapsedTime;
+  bool get isFollowing => _isFollowing;
+  bool get isMapVisible => _isMapVisible;
+  bool get isRecording => _recordingStatus == RecordingStatus.recording;
+  bool get isPaused => _recordingStatus == RecordingStatus.paused;
+  NLatLng? get currentUserLocation => _currentUserLocation;
+  NaverMapController? get mapController => _mapController;
+  String get time => _time;
   double get distance => _distance;
   double get avgSpeed => _avgSpeed;
   double get currentSpeed => _currentSpeed;
   double get maxSpeed => _maxSpeed;
-  NLatLng? get currentLocation => _currentLocation;
-  NaverMapController? get mapController => _mapController;
-  bool get isFollowingUser => _isFollowingUser;
-  bool get isNavigating => _isNavigating;
 
-  bool _isNavigating = false;
-  NPathOverlay? _navigationPath;
-  final List<NMarker> _arrowMarkers = [];
-
-  bool _isInitialized = false;
-
-  void update(AuthProvider authProvider) {
+  // setter 함수
+  set authProvider(AuthProvider authProvider) {
     _authProvider = authProvider;
+    notifyListeners();
+  }
+  set mapController(NaverMapController mapController) {
+    _mapController = mapController;
+    notifyListeners();
+  }
+  set isFollowingUser(bool isFollowing) {
+    _isFollowing = isFollowing;
+    notifyListeners();
   }
 
-  void setMapController(NaverMapController controller) {
-    _mapController = controller;
-  }
-
-  void toggleMapVisibility() {
+  void mapVisibility() {
     _isMapVisible = !_isMapVisible;
     if (_isMapVisible) {
       _positionStreamSubscription?.resume();
@@ -80,157 +89,120 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     notifyListeners();
   }
 
-  void togglePause() {
-    if (recordingStatus == RecordingStatus.idle) return;
-    recordingStatus = (recordingStatus == RecordingStatus.recording)
-        ? RecordingStatus.paused
-        : RecordingStatus.recording;
-
-    recordingStatus == RecordingStatus.paused
-        ? _stopwatch.stop()
-        : _stopwatch.start();
-
-    notifyListeners();
-  }
-
-  void _setError(String message) {
-    debugPrint("MapProvider error: $message");
-    _isLoading = false;
-  }
-
-  void setIsFollowingUser(bool isFollowing) {
-    _isFollowingUser = isFollowing;
-    notifyListeners();
-  }
-
-  void recenterMap() {
-    if (_currentLocation != null && _mapController != null) {
-      _isFollowingUser = true;
-      _mapController!.updateCamera(
-        NCameraUpdate.scrollAndZoomTo(
-          target: _currentLocation!,
-          zoom: 16.5,
-        ),
-      );
-      notifyListeners();
-    }
-  }
-
   Future<void> initialize() async {
-    if (_isInitialized) return;
-    _isInitialized = true;
-
     WidgetsBinding.instance.addObserver(this);
-    await _notificationService.init();
+    await initNotification();
     _isLoading = true;
     notifyListeners();
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      _setError('Location services are disabled.');
+      debugPrint('Location services are disabled.');
       return;
     }
 
-    // Check and request location permissions
+    // 권한 허용 케이스 분류
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        _setError('Location permissions are denied.');
+        debugPrint('Location permissions are denied.');
         return;
       }
     }
-
     if (permission == LocationPermission.deniedForever) {
-      _setError('Location permissions are permanently denied, we cannot request permissions.');
+      debugPrint('Location permissions are permanently denied, we cannot request permissions.');
       return;
     }
 
-    // Initial location fetching
-    Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
-    if (lastKnownPosition != null) {
-      _currentLocation = NLatLng(lastKnownPosition.latitude, lastKnownPosition.longitude);
+    // 사용자 위치 가져오기
+    Position? lastPos = await Geolocator.getLastKnownPosition(); // 1차로 불러오기
+    if (lastPos != null) {
+      _currentUserLocation = NLatLng(lastPos.latitude, lastPos.longitude);
       _isLoading = false;
       notifyListeners();
     }
-
     try {
-      Position currentPosition = await Geolocator.getCurrentPosition(
-        // ignore: deprecated_member_use
-        timeLimit: const Duration(seconds: 10),
-      );
-      _currentLocation = NLatLng(currentPosition.latitude, currentPosition.longitude);
+      Position currentPos = await Geolocator.getCurrentPosition(); // 최종 불러오기
+      _currentUserLocation = NLatLng(currentPos.latitude, currentPos.longitude);
       _isLoading = false;
-
-      if (_mapController != null && _currentLocation != null) {
-        final cameraUpdate = NCameraUpdate.scrollAndZoomTo(target: _currentLocation!, zoom: 16.5);
-        _mapController?.updateCamera(cameraUpdate);
-      }
       notifyListeners();
     } catch (e) {
-      if (_currentLocation == null) {
-        _setError("Failed to get current location.");
-      }
+      debugPrint("유저 정보를 불러오는데 실패함 $e");
     }
 
-    // Start listening to Geolocator stream
-    _positionStreamSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 0, // Receive updates even for small movements
-      ),
-    ).listen((Position position) {
+    // 위치 스트림 구독하기
+    positionStream();
+    notifyListeners();
+  }
 
-      final newPoint = NLatLng(position.latitude, position.longitude);
-      final currentSpeedKmh = position.speed * 3.6;
+  Future<void> initNotification() async {
+    const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initSettings = InitializationSettings(android: androidInit);
+    await _notifications.initialize(initSettings);
+  }
+
+  // 실시간 위치 스트림 구독
+  Future<void> positionStream() async {
+    _positionStreamSubscription = Geolocator.getPositionStream(
+      locationSettings: LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 0,
+      )
+    ).listen((Position pos) {
+      if (_mapController == null) return;
+      // 새로운 위치, 속도 정보 저장
+      final newPoint = NLatLng(pos.latitude, pos.longitude);
 
       final marker = NMarker(
-        id: 'current_location',
+        id: "user_pos",
         position: newPoint,
         icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
-        size: const Size(15, 15),
-        anchor: const NPoint(0.5, 0.5),
+        size: const Size(12, 12),
+        anchor: const NPoint(0.5, 0.5)
       );
+      // 사용자 위치 표시 (overlay)
       _mapController?.addOverlay(marker);
-
-      if (recordingStatus != RecordingStatus.idle) {
-        final lastPoint = _currentLocation;
-        if (lastPoint != null) {
-          final distance = Geolocator.distanceBetween(
-            lastPoint.latitude,
-            lastPoint.longitude,
-            newPoint.latitude,
-            newPoint.longitude,
-          );
-          if (distance >= 0 && distance < 100) { // Filter out large jumps
-            _distance += distance;
-          }
-        }
-
-        final elapsedSec = _stopwatch.elapsed.inSeconds;
-        if (_distance > 0 && elapsedSec > 0) {
-          _avgSpeed = (_distance / elapsedSec) * 3.6;
-        }
-
-        if (currentSpeedKmh > _maxSpeed) _maxSpeed = currentSpeedKmh;
-        _addPointToRoute(newPoint);
+      if (_recordingStatus == RecordingStatus.recording) {
+        recordingLogic(newPoint, pos);
       }
-
-      _currentLocation = newPoint;
-      _currentSpeed = currentSpeedKmh;
-      _isLoading = false;
-
-      if (_isFollowingUser && _isMapVisible && _mapController != null) {
-        _mapController!.getCameraPosition().then((p) {
-          final cameraUpdate = NCameraUpdate.scrollAndZoomTo(
-            target: newPoint,
-            zoom: p.zoom,
-          );
-          _mapController!.updateCamera(cameraUpdate);
-        });
-      }
-      notifyListeners();
     });
+  }
+
+  void recordingLogic(NLatLng newPoint, Position pos) {
+    final lastPoint = _currentUserLocation;
+    final lastTimestamp = _lastTimestamp;
+    if (lastPoint == null) return;
+
+    // 첫 위치일 경우 초기화만 하고 종료
+    if (lastTimestamp == null) {
+      _currentUserLocation = newPoint;
+      _lastTimestamp = pos.timestamp;
+      return;
+    }
+
+    // 거리 계산 km로 표시
+    final distance = Geolocator.distanceBetween(
+      lastPoint.latitude,
+      lastPoint.longitude,
+      newPoint.latitude,
+      newPoint.longitude
+    ) * 0.001;
+
+    if (distance >= 0 && distance < 0.1) {
+      _distance += distance;
+    }
+
+    // 속력
+    final instantSpeed = pos.speed * 3.6; // km/h
+    if (instantSpeed > _maxSpeed) _maxSpeed = instantSpeed;
+
+    // 현재 위치와 timestamp 갱신
+    _currentUserLocation = newPoint;
+    _lastTimestamp = pos.timestamp;
+    notifyListeners();
+
+    _addPointToRoute(newPoint);
   }
 
   void _addPointToRoute(NLatLng point) {
@@ -258,74 +230,82 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     notifyListeners();
   }
 
-  Future<bool> startRecording() async {
+  Future<void> _showTrackingNotification() async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'ride_tracking_channel',
+      '주행 기록',
+      channelDescription: '라이딩 중 상태를 표시합니다.',
+      importance: Importance.low,
+      priority: Priority.low,
+      ongoing: true,
+      showWhen: false,
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
+
+    await _notifications.show(
+      0, // notification ID
+      '라이딩 기록 중',
+      '시간: $_time \n 거리: ${_distance.toStringAsFixed(2)} km \n 최고 속력: $_maxSpeed',
+      notificationDetails,
+    );
+  }
+
+  Future<void> _cancelTrackingNotification() async {
+    await _notifications.cancel(0);
+  }
+
+  // 기록 시작
+  Future<void> startRecording() async {
     if (_authProvider?.token == null) {
-      _setError("Authentication information is missing. Please log in again.");
-      return false;
+      debugPrint("인증 정보가 존재하지 않습니다.");
+      return ;
     }
+    _recordingStatus = RecordingStatus.recording;
 
-    final int newRouteId = await RouteApi.getRouteId(_authProvider!.token!);
-    _currentRouteId = newRouteId;
+    // 경로 id 지정
+    _routeId = await RouteApi.getRouteId(_authProvider!.token!);
 
-    _mapController?.clearOverlays();
-    if (_mapController != null && _currentLocation != null) {
+    // 마커 초기화
+    await _mapController?.clearOverlays();
+    if (_mapController != null && _currentUserLocation != null) {
       final marker = NMarker(
-        id: 'current_location',
-        position: _currentLocation!,
+        id: 'user_pos',
+        position: _currentUserLocation!,
         icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
-        size: const Size(15, 15),
+        size: const Size(12, 12),
         anchor: const NPoint(0.5, 0.5),
       );
       _mapController!.addOverlay(marker);
     }
 
-    recordingStatus = RecordingStatus.recording;
-    _distance = 0.0;
-    _avgSpeed = 0.0;
-    _elapsedTime = '00:00:00';
-    _currentSpeed = 0.0;
-    _maxSpeed = 0.0;
-    _routeChunks.clear();
-    _routeChunks.add([]);
-
     _stopwatch.reset();
     _stopwatch.start();
     _timer?.cancel();
 
-    // Show initial notification
-    _notificationService.showRecordingNotification(
-      time: '00:00:00',
-      distance: '0.00 km',
-      speed: '0.0 km/h',
-    );
-
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _elapsedTime = formatTime(_stopwatch.elapsed.inSeconds);
-
-      if (recordingStatus == RecordingStatus.recording) {
-        _notificationService.showRecordingNotification(
-          time: _elapsedTime,
-          distance: '${(_distance / 1000).toStringAsFixed(2)} km',
-          speed: '${_currentSpeed.toStringAsFixed(1)} km/h',
-        );
-      }
+      _time = formatTime(_stopwatch.elapsed.inSeconds);
+      _showTrackingNotification();
       notifyListeners();
     });
-    return true;
   }
 
-  Future<Map<String, dynamic>?> stopRecordingAndNavigate() async {
-    await _notificationService.cancelNotification();
+  // 일시 정지
+  void pauseAndRecording() async {
+    _recordingStatus = (_recordingStatus == RecordingStatus.recording)
+        ? RecordingStatus.paused
+        : RecordingStatus.recording;
 
-    if (recordingStatus != RecordingStatus.recording || _authProvider?.token == null) return null;
+    _recordingStatus == RecordingStatus.paused
+        ? _stopwatch.stop()
+        : _stopwatch.start();
 
-    _isMapVisible = true;
-    _stopwatch.stop();
-    _timer?.cancel();
+    notifyListeners();
+  }
 
-    final distanceInKm = (_distance / 1000).toStringAsFixed(2);
-    final elapsedTime = _elapsedTime;
-    final avgSpeed = _avgSpeed.toStringAsFixed(1);
+  // 기록 종료
+  Future<Map<String, dynamic>?> stopRecording() async {
+    if (_recordingStatus != RecordingStatus.recording || _authProvider?.token == null) return null;
 
     String? snapshotPath;
     final fullRoute = _routeChunks.expand((chunk) => chunk).toList();
@@ -343,7 +323,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
           duration: Duration(milliseconds: durationMs),
         );
       } else {
-        cameraUpdate = NCameraUpdate.withParams(target: _currentLocation);
+        cameraUpdate = NCameraUpdate.withParams(target: _currentUserLocation);
         cameraUpdate.setAnimation(animation: NCameraAnimation.none);
       }
       await _mapController!.updateCamera(cameraUpdate);
@@ -354,59 +334,69 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
 
       recenterMap();
 
-      _mapController?.clearOverlays();
-      if (_currentLocation != null) {
+      await _mapController?.clearOverlays();
+      if (_currentUserLocation != null) {
         final marker = NMarker(
-          id: 'current_location',
-          position: _currentLocation!,
+          id: 'user_pos',
+          position: _currentUserLocation!,
           icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
-          size: const Size(15, 15),
+          size: const Size(12, 12),
           anchor: const NPoint(0.5, 0.5),
         );
         _mapController!.addOverlay(marker);
       }
     }
-
-    final reportId = await ReportApi.createReport(
-        ReportCreate(
-          routeId: _currentRouteId!,
-          healthTime: timeToInt(_elapsedTime),
-          distance: _distance / 1000,
-          averageSpeed: _avgSpeed,
-          highestSpeed: _maxSpeed,
-        ),
-        _authProvider!.token!
-    );
-
+    final distance = _distance;
+    final time = _time;
+    final avgSpeed = _avgSpeed;
+    final maxSpeed = _maxSpeed;
     final routeCoords = fullRoute.map((p) => [p.latitude, p.longitude]).toList();
 
-    recordingStatus = RecordingStatus.idle;
+    // 프로세스 종료
+    _stopwatch.stop();
+    _timer?.cancel();
+    _isMapVisible = true;
+    _recordingStatus = RecordingStatus.idle;
     _stopwatch.reset();
     _distance = 0.0;
     _avgSpeed = 0.0;
-    _elapsedTime = '00:00:00';
+    _time = '00:00:00';
     _currentSpeed = 0.0;
     _maxSpeed = 0.0;
     _routeChunks.clear();
     _routeChunks.add([]);
+    await _cancelTrackingNotification();
     notifyListeners();
 
     return {
-      'reportId': reportId,
-      'routeId': _currentRouteId,
-      'initialDistance': distanceInKm,
-      'initialTime': elapsedTime,
+      'routeId': _routeId,
+      'initialDistance': distance,
+      'initialTime': time,
       'initialAvgSpeed': avgSpeed,
+      'initialMaxSpeed': maxSpeed,
       'mapImagePath': snapshotPath,
       'routeCoords': routeCoords,
     };
+
   }
 
+  // 중앙 정렬
+  void recenterMap() {
+    if (_currentUserLocation != null && _mapController != null) {
+      _isFollowing = true;
+      _mapController!.updateCamera(
+        NCameraUpdate.scrollAndZoomTo(
+          target: _currentUserLocation!,
+          zoom: 16.5,
+        ),
+      );
+      notifyListeners();
+    }
+  }
+
+  // 네비게이션 기능들 todo
   Future<void> startNavigation(List<NLatLng> routeCoords) async {
     if (_mapController == null || routeCoords.isEmpty) return;
-
-    stopNavigation();
-    _isNavigating = true;
 
     // Draw the path
     _navigationPath = NPathOverlay(
@@ -450,7 +440,6 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   void stopNavigation() {
     if (_mapController == null) return;
 
-    _isNavigating = false;
     if (_navigationPath != null) {
       _mapController!.deleteOverlay(_navigationPath!.info);
       _navigationPath = null;
@@ -476,32 +465,8 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     return (bearing + 360) % 360;
   }
 
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (_authProvider == null) return;
-
-    if (!_authProvider!.hasBackgroundPermission) {
-      if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-        if (recordingStatus == RecordingStatus.recording) {
-          _stopwatch.stop();
-          _positionStreamSubscription?.pause();
-        }
-      } else if (state == AppLifecycleState.resumed) {
-        if (recordingStatus == RecordingStatus.recording && !_stopwatch.isRunning) {
-          _stopwatch.start();
-          if (_isMapVisible) {
-            _positionStreamSubscription?.resume();
-          }
-        }
-      }
-    }
-  }
-
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _notificationService.cancelNotification();
     _positionStreamSubscription?.cancel();
     _positionStreamSubscription = null;
     _timer?.cancel();

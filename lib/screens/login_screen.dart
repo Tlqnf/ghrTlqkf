@@ -98,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
         } catch (error) {
           debugPrint('Kakao login error: $error');
           if (!mounted) return;
-          showCustomSnackBar(context, '카카오톡 앱이 설치되어 있지 않아, 로그인이 취소됩니다.');
+          showOverlaySnackBar(context, '카카오톡 앱이 설치되어 있지 않아, 로그인이 취소됩니다.');
         }
       },
     );
@@ -135,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await Geolocator.requestPermission();
     } else {
       if (mounted) {
-        showCustomSnackBar(context, '위치정보 수집이 거부되어 일부 기능이 제한됩니다.');
+        showOverlaySnackBar(context, '위치정보 수집이 거부되어 일부 기능이 제한됩니다.');
       }
     }
 

@@ -12,7 +12,13 @@ import 'package:provider/provider.dart';
 
 class NavigationListModal extends StatefulWidget {
   final ScrollController scrollController;
-  const NavigationListModal({super.key, required this.scrollController});
+  final MapProvider mapProvider;
+
+  const NavigationListModal({
+    super.key,
+    required this.scrollController,
+    required this.mapProvider
+  });
 
   @override
   State<NavigationListModal> createState() => _NavigationListModalState();
@@ -153,19 +159,18 @@ class _NavigationListModalState extends State<NavigationListModal> {
           imageUrl: post.mapImageUrl,
           onTap: () async {
             final authProvider = context.read<AuthProvider>();
-            final mapProvider = context.read<MapProvider>();
             if (authProvider.token == null) return;
 
             try {
               final points = await RouteApi.getRoutePoint(post.routeId, authProvider.token!);
               final routeCoords = points.map((p) => NLatLng(p['lat'], p['lon'])).toList();
               if (routeCoords.isNotEmpty) {
-                mapProvider.startNavigation(routeCoords);
+                widget.mapProvider.startNavigation(routeCoords);
               } else {
-                showCustomSnackBar(context, '네비게이션 경로가 존재하지 않습니다.');
+                showOverlaySnackBar(context, '네비게이션 경로가 존재하지 않습니다.');
               }
             } catch (e) {
-              showCustomSnackBar(context, '경로를 불러오는데 실패했습니다: $e');
+              showOverlaySnackBar(context, '경로를 불러오는데 실패했습니다: $e');
             }
           },
         );

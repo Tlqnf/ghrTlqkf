@@ -58,8 +58,8 @@ class RouteApi {
   }
 
   // get - routes/{routeId}
-  // 경로 아이디를 통해 가져오기 todo
-  static Future<void> getRouteById(String token, String routeId) async {
+  // 경로 아이디를 통해 가져오기
+  static Future<List<dynamic>> getRouteById(int routeId, String token) async {
     final response = await http.get(
       Uri.parse("${ApiConfig.baseUrl}/routes/$routeId"),
       headers: {
@@ -68,7 +68,7 @@ class RouteApi {
     );
 
     if (response.statusCode == 200) {
-      return;
+      return jsonDecode(response.body)["points_json"];
     } else {
       throw Exception('Failed to load route: ${response.statusCode}');
     }

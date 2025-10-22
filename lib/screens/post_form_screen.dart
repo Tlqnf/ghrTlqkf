@@ -4,34 +4,36 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pedal/api/post_api.dart';
+import 'package:pedal/api/report_api.dart';
 import 'package:pedal/api/route_api.dart';
 import 'package:pedal/models/post.dart';
+import 'package:pedal/models/report.dart';
 import 'package:pedal/models/route.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/screens/main_navigation_screen.dart';
+import 'package:pedal/utils/time_formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pedal/services/admob_service.dart';
 import 'package:pedal/widgets/bar/custom_snackbar.dart';
 
-
 class PostFormScreen extends StatefulWidget {
-  final int? reportId;
   final int? routeId;
-  final String? initialDistance;
+  final double? initialDistance;
   final String? initialTime;
-  final String? initialAvgSpeed;
+  final double? initialAvgSpeed;
+  final double? initialMaxSpeed;
   final String? mapImagePath;
   final List<List<double>>? routeCoords;
   final Post? postData;
 
   const PostFormScreen({
     super.key,
-    this.reportId,
-    this.routeId,
+    required this.routeId,
     this.initialDistance,
     this.initialTime,
     this.initialAvgSpeed,
+    this.initialMaxSpeed,
     this.mapImagePath,
     this.routeCoords,
     this.postData,
@@ -100,7 +102,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
   Future<void> _pickImage() async {
     if (_additionalImages.length + _additionalImageUrls.length >= 2) {
-      showCustomSnackBar(context, '최대 2장의 사진만 추가할 수 있습니다.');
+      showOverlaySnackBar(context, '최대 2장의 사진만 추가할 수 있습니다.');
       return;
     }
     final XFile? selectedImage =
@@ -168,11 +170,11 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
   Future<void> _savePost() async {
     if (_routeNameController.text.isEmpty) {
-      showCustomSnackBar(context, '경로 이름은 필수입니다.');
+      showOverlaySnackBar(context, '경로 이름은 필수입니다.');
       return;
     }
     if (_isCommunityUploadEnabled && _titleController.text.isEmpty) {
-      showCustomSnackBar(context, '커뮤니티에 업로드하려면 게시글 제목이 필요합니다.');
+      showOverlaySnackBar(context, '커뮤니티에 업로드하려면 게시글 제목이 필요합니다.');
       return;
     }
 
@@ -185,12 +187,12 @@ class _PostFormScreenState extends State<PostFormScreen> {
       final token = authProvider.token;
       if (token == null) {
         if (mounted) {
-          showCustomSnackBar(context, '인증 정보가 없습니다. 다시 로그인해주세요.');
+          showOverlaySnackBar(context, '인증 정보가 없습니다. 다시 로그인해주세요.');
         }
         setState(() => _isLoading = false);
         return;
       } else if (widget.routeId == null) {
-        showCustomSnackBar(context, '경로 ID가 없습니다.');
+        showOverlaySnackBar(context, '경로 ID가 없습니다.');
         return;
       }
 
@@ -212,13 +214,24 @@ class _PostFormScreenState extends State<PostFormScreen> {
         token,
       );
 
+      final reportId = await ReportApi.createReport(
+          ReportCreate(
+            routeId: widget.routeId!,
+            healthTime: timeToInt(widget.initialTime!),
+            distance: widget.initialDistance,
+            averageSpeed: widget.initialAvgSpeed,
+            highestSpeed: widget.initialMaxSpeed,
+          ),
+          authProvider.token!
+      );
+
       final postData = CreatePost(
         title: _isCommunityUploadEnabled
             ? _titleController.text
             : _routeNameController.text,
         content: _isCommunityUploadEnabled ? _bodyController.text : '',
         hashTag: _tags,
-        reportId: widget.reportId,
+        reportId: reportId,
         public: _isCommunityUploadEnabled,
         routeId: widget.routeId,
       );
@@ -240,7 +253,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
         _additionalImages.clear();
 
         if (mounted) {
-          showCustomSnackBar(context, '성공적으로 생성되었습니다.');
+          showOverlaySnackBar(context, '성공적으로 생성되었습니다.');
           if (_isAdLoaded && _interstitialAd != null) {
             _interstitialAd!.show();
           } else {
@@ -249,12 +262,12 @@ class _PostFormScreenState extends State<PostFormScreen> {
         }
       } else {
         if (mounted) {
-          showCustomSnackBar(context, '생성에 실패했습니다.');
+          showOverlaySnackBar(context, '생성에 실패했습니다.');
         }
       }
     } catch (e) {
       if (!mounted) return;
-      showCustomSnackBar(context, '생성 중 오류가 발생했습니다: $e');
+      showOverlaySnackBar(context, '생성 중 오류가 발생했습니다: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -266,11 +279,11 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
   Future<void> _updatePost() async {
     if (_routeNameController.text.isEmpty) {
-      showCustomSnackBar(context, '경로 이름은 필수입니다.');
+      showOverlaySnackBar(context, '경로 이름은 필수입니다.');
       return;
     }
     if (_isCommunityUploadEnabled && _titleController.text.isEmpty) {
-      showCustomSnackBar(context, '커뮤니티에 업로드하려면 게시글 제목이 필요합니다.');
+      showOverlaySnackBar(context, '커뮤니티에 업로드하려면 게시글 제목이 필요합니다.');
       return;
     }
 
@@ -283,12 +296,12 @@ class _PostFormScreenState extends State<PostFormScreen> {
       final token = authProvider.token;
       if (token == null) {
         if (mounted) {
-          showCustomSnackBar(context, '인증 정보가 없습니다. 다시 로그인해주세요.');
+          showOverlaySnackBar(context, '인증 정보가 없습니다. 다시 로그인해주세요.');
         }
         setState(() => _isLoading = false);
         return;
       } else if (widget.routeId == null) {
-        showCustomSnackBar(context, '경로 ID가 없습니다.');
+        showOverlaySnackBar(context, '경로 ID가 없습니다.');
         return;
       }
 
@@ -337,17 +350,17 @@ class _PostFormScreenState extends State<PostFormScreen> {
         _additionalImages.clear();
 
         if (mounted) {
-          showCustomSnackBar(context, '성공적으로 수정되었습니다.');
+          showOverlaySnackBar(context, '성공적으로 수정되었습니다.');
           _navigateToHome();
         }
       } else {
         if (mounted) {
-          showCustomSnackBar(context, '수정에 실패했습니다.');
+          showOverlaySnackBar(context, '수정에 실패했습니다.');
         }
       }
     } catch (e) {
       if (!mounted) return;
-      showCustomSnackBar(context, '저장 중 오류가 발생했습니다: $e');
+      showOverlaySnackBar(context, '저장 중 오류가 발생했습니다: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -365,7 +378,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
 
     if (!mounted) return;
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      showCustomSnackBar(context, '성공적으로 삭제되었습니다.');
+      showOverlaySnackBar(context, '성공적으로 삭제되었습니다.');
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
             (Route<dynamic> route) => false,
@@ -373,7 +386,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
     } else {
       final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
       final errorMessage = responseBody['detail'] ?? '삭제에 실패했습니다.';
-      showCustomSnackBar(context, '오류: ${response.statusCode} - $errorMessage');
+      showOverlaySnackBar(context, '오류: ${response.statusCode} - $errorMessage');
     }
   }
 
@@ -489,8 +502,8 @@ class _PostFormScreenState extends State<PostFormScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildStatItem('거리', widget.postData?.distance.toStringAsFixed(2) ?? widget.initialDistance ?? '0.00', 'km'),
-                        _buildStatItem('평균 속력', widget.postData?.speed.toStringAsFixed(1) ?? widget.initialAvgSpeed ?? '0.0', 'km/h'),
+                        _buildStatItem('거리', widget.postData?.distance.toStringAsFixed(2) ?? widget.initialDistance!.toStringAsFixed(2), 'km'),
+                        _buildStatItem('평균 속력', widget.postData?.speed.toStringAsFixed(1) ?? widget.initialAvgSpeed!.toStringAsFixed(1), 'km/h'),
                         _buildStatItem('총 시간', widget.postData?.time ?? widget.initialTime ?? '00:00:00', ''),
                       ],
                     ),

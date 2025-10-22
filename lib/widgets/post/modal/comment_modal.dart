@@ -85,11 +85,11 @@ class _CommentModalState extends State<CommentModal> {
       _commentController.clear();
       await _fetchComments();
       if (mounted) {
-        showCustomSnackBar(context, '댓글이 등록되었습니다.');
+        showOverlaySnackBar(context, '댓글이 등록되었습니다.');
       }
     } catch (e) {
       if (mounted) {
-        showCustomSnackBar(context, '댓글 등록 실패: $e');
+        showOverlaySnackBar(context, '댓글 등록 실패: $e');
       }
     }
   }
@@ -311,7 +311,7 @@ class _CommentItemState extends State<CommentItem> {
         _likeCount = prevCount;
       });
       if (mounted) {
-        showCustomSnackBar(context, '요청 실패: $e');
+        showOverlaySnackBar(context, '요청 실패: $e');
       }
     }
   }
@@ -372,10 +372,10 @@ class _CommentItemState extends State<CommentItem> {
                         ),
                       );
                       Navigator.pop(modalContext);
-                      showCustomSnackBar(originalContext, '대댓글이 등록되었습니다.');
+                      showOverlaySnackBar(originalContext, '대댓글이 등록되었습니다.');
                       widget.onCommentMutated();
                     } catch (e) {
-                      showCustomSnackBar(originalContext, '등록 실패: $e');
+                      showOverlaySnackBar(originalContext, '등록 실패: $e');
                     }
                   },
                 ),
@@ -476,10 +476,10 @@ class _CommentItemState extends State<CommentItem> {
                       
                       Navigator.pop(modalContext);
 
-                      showCustomSnackBar(originalContext, '댓글이 수정되었습니다.');
+                      showOverlaySnackBar(originalContext, '댓글이 수정되었습니다.');
                       widget.onCommentMutated();
                     } catch (e) {
-                      showCustomSnackBar(originalContext, '수정 실패: $e');
+                      showOverlaySnackBar(originalContext, '수정 실패: $e');
                     }
                   },
                 ),
@@ -496,11 +496,11 @@ class _CommentItemState extends State<CommentItem> {
     try {
       await CommentApi.deleteComment(token!, widget.comment.commentId);
       if (!mounted) return;
-      showCustomSnackBar(context, '댓글이 삭제되었습니다.');
+      showOverlaySnackBar(context, '댓글이 삭제되었습니다.');
       widget.onCommentMutated();
     } catch (e) {
       if (!mounted) return;
-      showCustomSnackBar(context, '삭제 실패: $e');
+      showOverlaySnackBar(context, '삭제 실패: $e');
     }
   }
 

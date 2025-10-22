@@ -181,7 +181,6 @@ class PedalApp extends StatefulWidget {
 class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
   // // Firebase google analytics 설정 추가
   // final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-
   @override
   void initState() {
     super.initState();
