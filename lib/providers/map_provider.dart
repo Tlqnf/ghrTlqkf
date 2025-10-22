@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pedal/api/route_api.dart';
@@ -47,6 +48,9 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   NPathOverlay? _navigationPath;
   final List<NMarker> _arrowMarkers = [];
 
+  // 백그라운드 알림
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+
   // getter 함수
   bool get isLoading => _isLoading;
   bool get isFollowing => _isFollowing;
@@ -87,6 +91,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
 
   Future<void> initialize() async {
     WidgetsBinding.instance.addObserver(this);
+    await initNotification();
     _isLoading = true;
     notifyListeners();
 
@@ -129,6 +134,12 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     // 위치 스트림 구독하기
     positionStream();
     notifyListeners();
+  }
+
+  Future<void> initNotification() async {
+    const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initSettings = InitializationSettings(android: androidInit);
+    await _notifications.initialize(initSettings);
   }
 
   // 실시간 위치 스트림 구독
@@ -219,6 +230,31 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     notifyListeners();
   }
 
+  Future<void> _showTrackingNotification() async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'ride_tracking_channel',
+      '주행 기록',
+      channelDescription: '라이딩 중 상태를 표시합니다.',
+      importance: Importance.low,
+      priority: Priority.low,
+      ongoing: true,
+      showWhen: false,
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
+
+    await _notifications.show(
+      0, // notification ID
+      '라이딩 기록 중',
+      '시간: $_time \n 거리: ${_distance.toStringAsFixed(2)} km \n 최고 속력: $_maxSpeed',
+      notificationDetails,
+    );
+  }
+
+  Future<void> _cancelTrackingNotification() async {
+    await _notifications.cancel(0);
+  }
+
   // 기록 시작
   Future<void> startRecording() async {
     if (_authProvider?.token == null) {
@@ -249,6 +285,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _time = formatTime(_stopwatch.elapsed.inSeconds);
+      _showTrackingNotification();
       notifyListeners();
     });
   }
@@ -328,6 +365,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     _maxSpeed = 0.0;
     _routeChunks.clear();
     _routeChunks.add([]);
+    await _cancelTrackingNotification();
     notifyListeners();
 
     return {
