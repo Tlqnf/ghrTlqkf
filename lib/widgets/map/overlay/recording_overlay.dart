@@ -34,7 +34,7 @@ class RecordingOverlay extends StatelessWidget {
                         children: [
                           StatCard(
                             title: '거리',
-                            value: (mapProvider.distance / 1000).toStringAsFixed(2),
+                            value: mapProvider.distance.toStringAsFixed(2),
                             unit: 'km',
                           ),
                           const SizedBox(width: 10),
@@ -46,7 +46,7 @@ class RecordingOverlay extends StatelessWidget {
                           const SizedBox(width: 10),
                           StatCard(
                             title: '시간',
-                            value: mapProvider.elapsedTime,
+                            value: mapProvider.time,
                             unit: '',
                           ),
                         ],
@@ -78,9 +78,9 @@ class RecordingOverlay extends StatelessWidget {
                 child: NoMapRecordingView(
                   currentSpeed: mapProvider.currentSpeed,
                   isPaused: mapProvider.isPaused,
-                  togglePause: mapProviderReader.togglePause,
+                  pauseAndRecording: mapProviderReader.pauseAndRecording,
                   distance: mapProvider.distance,
-                  elapsedTime: mapProvider.elapsedTime,
+                  elapsedTime: mapProvider.time,
                   avgSpeed: mapProvider.avgSpeed,
                   maxSpeed: mapProvider.maxSpeed,
                 ),
@@ -119,22 +119,22 @@ class RecordingOverlay extends StatelessWidget {
                             mapProvider.isPaused ? Icons.play_arrow : Icons.pause,
                             size: 50,
                           ),
-                          onPressed: mapProviderReader.togglePause,
+                          onPressed: mapProviderReader.pauseAndRecording,
                         ),
                         const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Icons.stop, size: 50),
                           onPressed: () async {
-                            final navData = await mapProviderReader.stopRecordingAndNavigate();
+                            final navData = await mapProviderReader.stopRecording();
                             if (navData != null && context.mounted) {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => PostFormScreen(
-                                    reportId: navData['reportId'],
                                     routeId: navData['routeId'],
                                     initialDistance: navData['initialDistance'],
                                     initialTime: navData['initialTime'],
                                     initialAvgSpeed: navData['initialAvgSpeed'],
+                                    initialMaxSpeed: navData['initialMaxSpeed'],
                                     mapImagePath: navData['mapImagePath'],
                                     routeCoords: navData['routeCoords'],
                                   ),
@@ -149,7 +149,7 @@ class RecordingOverlay extends StatelessWidget {
                   const SizedBox(width: 16),
                   MapControlButton(
                     icon: mapProvider.isMapVisible ? Icons.layers_clear : Icons.layers,
-                    onPressed: mapProviderReader.toggleMapVisibility,
+                    onPressed: mapProviderReader.mapVisibility,
                   ),
                 ],
               ),

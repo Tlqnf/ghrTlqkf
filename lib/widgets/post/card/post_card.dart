@@ -7,7 +7,7 @@ class PostCard extends StatelessWidget {
   final String? date;
   final String? user;
   final VoidCallback? onTap;
-  final String? imageUrl; // Optional image URL
+  final String? imageUrl;
   final VoidCallback? onEdit;
 
   const PostCard({
@@ -32,7 +32,6 @@ class PostCard extends StatelessWidget {
           padding: const EdgeInsets.all(12.0),
           child: Row(
             children: [
-              // Image or Map Placeholder
               Container(
                 width: 80,
                 height: 80,
@@ -41,21 +40,21 @@ class PostCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: imageUrl != null && imageUrl!.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          imageUrl!,
-                          fit: BoxFit.cover,
-                          width: 80,
-                          height: 80,
-                          errorBuilder: (context, error, stackTrace) => Center(
-                            child: Icon(Icons.broken_image, color: Theme.of(context).colorScheme.outline),
-                          ),
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        imageUrl!,
+                        fit: BoxFit.cover,
+                        width: 80,
+                        height: 80,
+                        errorBuilder: (context, error, stackTrace) => Center(
+                          child: Icon(Icons.broken_image, color: Theme.of(context).colorScheme.outline),
                         ),
-                      )
-                    : Center(
-                        child: Icon(Icons.map, color: Theme.of(context).colorScheme.outline),
                       ),
+                    )
+                  : Center(
+                      child: Icon(Icons.map, color: Theme.of(context).colorScheme.outline),
+                    ),
               ),
               const SizedBox(width: 16),
               Expanded(

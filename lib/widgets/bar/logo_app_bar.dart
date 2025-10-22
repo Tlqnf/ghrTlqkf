@@ -120,7 +120,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                                 await UserApi.deleteUserProfile(authProvider.token!);
                                 authProvider.logout();
                                 if (context.mounted) {
-                                  showCustomSnackBar(context, '회원탈퇴가 완료되었습니다.');
+                                  showOverlaySnackBar(context, '회원탈퇴가 완료되었습니다.');
                                   WidgetsBinding.instance.addPostFrameCallback((_) {
                                     Navigator.pushReplacementNamed(
                                       context,
@@ -130,7 +130,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                                 }
                               } catch (e) {
                                 if (context.mounted) {
-                                  showCustomSnackBar(context, '회원탈퇴 중 오류가 발생했습니다: $e');
+                                  showOverlaySnackBar(context, '회원탈퇴 중 오류가 발생했습니다: $e');
                                 }
                               }
                             });
@@ -157,7 +157,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                               await launchUrl(url, mode: LaunchMode.externalApplication);
                             } else {
                               if(context.mounted) {
-                                showCustomSnackBar(context, '카카오톡 오픈채팅방을 열 수 없습니다.');
+                                showOverlaySnackBar(context, '카카오톡 오픈채팅방을 열 수 없습니다.');
                               }
                             }
                           },
