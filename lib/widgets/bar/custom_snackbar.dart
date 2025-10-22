@@ -1,24 +1,29 @@
 import 'package:flutter/material.dart';
 
-void showCustomSnackBar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar() // 이전 SnackBar 삭제
-    ..showSnackBar(
-    SnackBar(
-      content: Text(
-        message,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
+void showOverlaySnackBar(BuildContext context, String message) {
+  final overlay = Overlay.of(context);
+  final entry = OverlayEntry(
+    builder: (context) => Positioned(
+      bottom: MediaQuery.of(context).padding.bottom + 16,
+      left: 16,
+      right: 16,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            message,
+            style: const TextStyle(color: Colors.white),
+          ),
         ),
       ),
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.black.withValues(alpha: 0.7),
-      margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      duration: const Duration(seconds: 3),
     ),
   );
+
+  overlay.insert(entry);
+  Future.delayed(const Duration(seconds: 3), () => entry.remove());
 }

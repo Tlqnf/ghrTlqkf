@@ -88,7 +88,7 @@ class _ActivityFeedState extends State<ActivityFeed> {
       });
     } catch (e) {
       if (mounted) {
-        showCustomSnackBar(context, '불러오기 실패: $e');
+        showOverlaySnackBar(context, '불러오기 실패: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

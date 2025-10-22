@@ -80,10 +80,10 @@ class _MapScreenViewState extends State<MapScreenView> {
         ),
         // Conditional Overlays
         mapProvider.isRecording
-            ? const RecordingOverlay()
-            : PreRecordingOverlay(
-          onBackPressed: () => Navigator.of(context).pop(),
-        ),
+          ? const RecordingOverlay()
+          : PreRecordingOverlay(
+              onBackPressed: () => Navigator.of(context).pop(),
+            ),
         // Common UI - Ad Banner
         Positioned(
           bottom: 0,

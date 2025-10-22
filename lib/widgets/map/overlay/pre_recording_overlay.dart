@@ -22,12 +22,12 @@ class PreRecordingOverlay extends StatelessWidget {
 
     return Stack(
       children: [
-        // 상단 뒤로가기 버튼
         Positioned(
           top: MediaQuery.of(context).padding.top + 20,
           left: 16,
           child: Column(
             children: [
+              // 상단 뒤로가기 버튼
               MapControlButton(
                 icon: Icons.arrow_back,
                 onPressed: onBackPressed,
@@ -43,6 +43,31 @@ class PreRecordingOverlay extends StatelessWidget {
                 icon: Icons.my_location,
                 onPressed: mapProviderReader.recenterMap,
               ),
+              const SizedBox(height: 8),
+              MapControlButton(
+                icon: Icons.route,
+                onPressed: () {
+                  final parentContext = context;
+
+                  showModalBottomSheet(
+                    context: parentContext,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => DraggableScrollableSheet(
+                      expand: false,
+                      initialChildSize: 0.5,
+                      maxChildSize: 0.7,
+                      minChildSize: 0.2,
+                      builder: (context, scrollController) =>
+                        NavigationListModal(
+                          scrollController: scrollController,
+                          mapProvider: mapProvider,
+                        ),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -56,40 +81,10 @@ class PreRecordingOverlay extends StatelessWidget {
             alignment: Alignment.bottomCenter,
             child: GestureDetector(
               onTap: () async {
-                showCustomSnackBar(context, '주행을 기록합니다.');
+                showOverlaySnackBar(context, '주행을 기록합니다.');
                 await mapProviderReader.startRecording();
               },
               child: const RecordButton(),
-            ),
-          ),
-        ),
-
-        // 네비게이션 -> 위치 변경
-        Positioned(
-          bottom: 60,
-          left: 0,
-          right: 0,
-          child: GestureDetector(
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => DraggableScrollableSheet(
-                  expand: false,
-                  initialChildSize: 0.5,
-                  maxChildSize: 0.9,
-                  minChildSize: 0.2,
-                  builder: (context, scrollController) =>
-                      NavigationListModal(
-                        scrollController: scrollController,
-                      ),
-                ),
-              );
-            },
-            child: Container(
-              height: 50.0,
-              color: Colors.transparent,
             ),
           ),
         ),

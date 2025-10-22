@@ -69,7 +69,7 @@ class _ActivityCardState extends State<ActivityCard>
         _likeCount = prevCount;
       });
       if (mounted) {
-        showCustomSnackBar(context, '요청 실패: $e');
+        showOverlaySnackBar(context, '요청 실패: $e');
       }
     }
   }

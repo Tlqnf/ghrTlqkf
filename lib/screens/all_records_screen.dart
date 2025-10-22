@@ -76,7 +76,7 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
       });
       // Optional: Show an error message
       if (mounted) {
-        showCustomSnackBar(context, 'Failed to load records: $e');
+        showOverlaySnackBar(context, 'Failed to load records: $e');
       }
     }
   }
