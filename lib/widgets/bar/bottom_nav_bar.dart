@@ -18,24 +18,26 @@ class CustomBottomNavBar extends StatelessWidget {
     ];
 
     return SafeArea(
-      child: Container(
-      color: Colors.white, // 바 배경색
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (index) {
-          final item = items[index];
-          final selected = currentIndex == index;
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: ColoredBox(
+          color: Colors.white,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(items.length, (index) {
+              final item = items[index];
+              final selected = currentIndex == index;
 
-          return _NavBarItem(
-            icon: item['icon'] as IconData,
-            label: item['label'] as String,
-            selected: selected,
-            onTap: () => onTap(index),
-          );
-        }),
+              return _NavBarItem(
+                icon: item['icon'] as IconData,
+                label: item['label'] as String,
+                selected: selected,
+                onTap: () => onTap(index),
+              );
+            }),
+          ),
+        ),
       ),
-    ),
     );
   }
 }

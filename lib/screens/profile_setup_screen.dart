@@ -126,7 +126,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
-        flexibleSpace: Container(color: Theme.of(context).colorScheme.surface),
+        flexibleSpace: ColoredBox(color: Theme.of(context).colorScheme.surface),
       ),
       body: SafeArea(
         child: GestureDetector(

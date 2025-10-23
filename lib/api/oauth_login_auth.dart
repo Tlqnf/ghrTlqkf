@@ -12,7 +12,6 @@ class OauthLoginApi {
       );
 
       if (response.statusCode == 200) {
-        // debugPrint("${jsonDecode(response.body)}");
         return jsonDecode(response.body)["access_token"];
       }
     } catch (e) {
@@ -30,7 +29,6 @@ class OauthLoginApi {
       );
 
       if (response.statusCode == 200) {
-        // debugPrint("${jsonDecode(response.body)}");
         return jsonDecode(response.body)["access_token"];
       }
     } catch (e) {

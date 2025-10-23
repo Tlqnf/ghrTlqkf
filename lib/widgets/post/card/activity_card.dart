@@ -277,7 +277,7 @@ class _ActivityCardState extends State<ActivityCard>
                         initialChildSize: 0.7,
                         maxChildSize: 0.9,
                         minChildSize: 0.4,
-                        builder: (context, scrollController) => Container(
+                        builder: (context, scrollController) => DecoratedBox(
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.surface,
                             borderRadius: const BorderRadius.only(

@@ -23,7 +23,7 @@ class TermsScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
-        flexibleSpace: Container(color: Theme.of(context).colorScheme.surface),
+        flexibleSpace: ColoredBox(color: Theme.of(context).colorScheme.surface),
         elevation: 0,
       ),
       body: SafeArea(

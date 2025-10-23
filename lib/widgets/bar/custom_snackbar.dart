@@ -9,15 +9,17 @@ void showOverlaySnackBar(BuildContext context, String message) {
       right: 16,
       child: Material(
         color: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(12),
+        child: DecoratedBox(
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(
-            message,
-            style: const TextStyle(color: Colors.white),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ),
       ),
