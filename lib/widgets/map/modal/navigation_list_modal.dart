@@ -60,7 +60,7 @@ class _NavigationListModalState extends State<NavigationListModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(
@@ -74,13 +74,17 @@ class _NavigationListModalState extends State<NavigationListModal> {
           children: [
             // Top grey handle bar
             Center(
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 16),
-                height: 4,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outline,
-                  borderRadius: BorderRadius.circular(2),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: SizedBox(
+                  height: 4,
+                  width: 40,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.outline,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
                 ),
               ),
             ),

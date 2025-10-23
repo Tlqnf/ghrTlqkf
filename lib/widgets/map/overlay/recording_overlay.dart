@@ -100,8 +100,7 @@ class RecordingOverlay extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  DecoratedBox(
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(50),
@@ -112,38 +111,41 @@ class RecordingOverlay extends StatelessWidget {
                         )
                       ],
                     ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            mapProvider.isPaused ? Icons.play_arrow : Icons.pause,
-                            size: 50,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              mapProvider.isPaused ? Icons.play_arrow : Icons.pause,
+                              size: 50,
+                            ),
+                            onPressed: mapProviderReader.pauseAndRecording,
                           ),
-                          onPressed: mapProviderReader.pauseAndRecording,
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.stop, size: 50),
-                          onPressed: () async {
-                            final navData = await mapProviderReader.stopRecording();
-                            if (navData != null && context.mounted) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => PostFormScreen(
-                                    routeId: navData['routeId'],
-                                    initialDistance: navData['initialDistance'],
-                                    initialTime: navData['initialTime'],
-                                    initialAvgSpeed: navData['initialAvgSpeed'],
-                                    initialMaxSpeed: navData['initialMaxSpeed'],
-                                    mapImagePath: navData['mapImagePath'],
-                                    routeCoords: navData['routeCoords'],
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.stop, size: 50),
+                            onPressed: () async {
+                              final navData = await mapProviderReader.stopRecording();
+                              if (navData != null && context.mounted) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => PostFormScreen(
+                                      routeId: navData['routeId'],
+                                      initialDistance: navData['initialDistance'],
+                                      initialTime: navData['initialTime'],
+                                      initialAvgSpeed: navData['initialAvgSpeed'],
+                                      initialMaxSpeed: navData['initialMaxSpeed'],
+                                      mapImagePath: navData['mapImagePath'],
+                                      routeCoords: navData['routeCoords'],
+                                    ),
                                   ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ],
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),

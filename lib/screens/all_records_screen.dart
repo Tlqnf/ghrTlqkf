@@ -88,7 +88,7 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
         title: Text(widget.title),
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
-        flexibleSpace: Container(color: Theme.of(context).colorScheme.surface),
+        flexibleSpace: ColoredBox(color: Theme.of(context).colorScheme.surface),
       ),
       body: _records.isEmpty && _isLoading
           ? const Center(child: CircularProgressIndicator())

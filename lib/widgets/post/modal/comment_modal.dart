@@ -5,6 +5,7 @@ import 'package:pedal/main.dart';
 import 'package:pedal/models/comment.dart';
 import 'package:pedal/models/user.dart';
 import 'package:pedal/providers/auth_provider.dart';
+import 'package:pedal/utils/comment_mention.dart';
 import 'package:pedal/widgets/post/card/reply_card.dart';
 import 'package:pedal/widgets/bar/custom_snackbar.dart';
 import 'package:provider/provider.dart';
@@ -20,33 +21,49 @@ class CommentModal extends StatefulWidget {
 class _CommentModalState extends State<CommentModal> {
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
-  bool _isMainInputFocused = false;
 
   late final String? token = context.read<AuthProvider>().token;
   Future<List<Comment>>? _commentsFuture;
 
   User? _user;
 
+  int? _replyingToCommentId;
+  String? _replyingToUsername;
+  bool get _isReplying => _replyingToCommentId != null;
+
   @override
   void initState() {
     super.initState();
-    _commentFocusNode.addListener(_onFocusChange);
     _commentsFuture = CommentApi.getPostComments(token!, widget.postId);
     _fetchCurrentUser();
-  }
-
-  void _onFocusChange() {
-    setState(() {
-      _isMainInputFocused = _commentFocusNode.hasFocus;
-    });
   }
 
   @override
   void dispose() {
     _commentController.dispose();
-    _commentFocusNode.removeListener(_onFocusChange);
     _commentFocusNode.dispose();
     super.dispose();
+  }
+
+  void startReplying(int commentId, String username) {
+    setState(() {
+      _replyingToCommentId = commentId;
+      _replyingToUsername = username;
+      _commentController.text = '@$username ';
+      _commentController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _commentController.text.length),
+      );
+      _commentFocusNode.requestFocus();
+    });
+  }
+
+  void cancelReplying() {
+    setState(() {
+      _replyingToCommentId = null;
+      _replyingToUsername = null;
+      _commentController.clear();
+      FocusScope.of(context).unfocus();
+    });
   }
 
   Future<void> _fetchCurrentUser() async {
@@ -78,18 +95,22 @@ class _CommentModalState extends State<CommentModal> {
         token!,
         CreateComment(
           content: content,
-          parentId: null,
+          parentId: _replyingToCommentId,
           postId: widget.postId,
         ),
       );
       _commentController.clear();
       await _fetchComments();
       if (mounted) {
-        showOverlaySnackBar(context, '댓글이 등록되었습니다.');
+        showOverlaySnackBar(
+            context, _isReplying ? '대댓글이 등록되었습니다.' : '댓글이 등록되었습니다.');
+      }
+      if (_isReplying) {
+        cancelReplying();
       }
     } catch (e) {
       if (mounted) {
-        showOverlaySnackBar(context, '댓글 등록 실패: $e');
+        showOverlaySnackBar(context, '등록 실패: $e');
       }
     }
   }
@@ -98,19 +119,21 @@ class _CommentModalState extends State<CommentModal> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         backgroundColor: Colors.transparent,
         body: Column(
           children: [
             // 모달 드래그 핸들
             Padding(
               padding: const EdgeInsets.only(top: 8.0, bottom: 12.0),
-              child: Container(
+              child: SizedBox(
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[400],
-                  borderRadius: BorderRadius.circular(2),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
             ),
@@ -133,6 +156,7 @@ class _CommentModalState extends State<CommentModal> {
                         return CommentItem(
                           comment: comments[index],
                           onCommentMutated: _fetchComments,
+                          onStartReply: startReplying,
                         );
                       },
                     );
@@ -142,11 +166,7 @@ class _CommentModalState extends State<CommentModal> {
             ),
             // 댓글 입력창
             Padding(
-              padding: EdgeInsets.only(
-                bottom: _isMainInputFocused
-                    ? MediaQuery.of(context).viewInsets.bottom
-                    : 0,
-              ),
+              padding: EdgeInsets.only(),
               child: _buildCommentInput(context),
             ),
           ],
@@ -156,37 +176,63 @@ class _CommentModalState extends State<CommentModal> {
   }
 
   Widget _buildCommentInput(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+    return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _user != null &&
-          _user!.profilePic != null &&
-          _user!.profilePic!.isNotEmpty
-            ? CircleAvatar(
-                radius: 18,
-                backgroundImage: NetworkImage(_user!.profilePic!),
-              )
-            : const CircleAvatar(
-                radius: 18,
-                backgroundImage:
-                AssetImage('assets/image/not_profile.png'),
-              ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _commentController,
-              focusNode: _commentFocusNode,
-              decoration: const InputDecoration(
-                hintText: '댓글을 입력해주세요.',
-                border: InputBorder.none,
+          if (_isReplying)
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              child: Row(
+                children: [
+                  Text(
+                    '$_replyingToUsername 님에게 답글 남기는 중',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    onPressed: cancelReplying,
+                  )
+                ],
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: _sendComment,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Row(
+              children: [
+                _user != null &&
+                        _user!.profilePic != null &&
+                        _user!.profilePic!.isNotEmpty
+                    ? CircleAvatar(
+                        radius: 18,
+                        backgroundImage: NetworkImage(_user!.profilePic!),
+                      )
+                    : const CircleAvatar(
+                        radius: 18,
+                        backgroundImage:
+                            AssetImage('assets/image/not_profile.png'),
+                      ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _commentController,
+                    focusNode: _commentFocusNode,
+                    decoration: InputDecoration(
+                      hintText:
+                          _isReplying ? '대댓글을 입력해주세요.' : '댓글을 입력해주세요.',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: _sendComment,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -197,9 +243,13 @@ class _CommentModalState extends State<CommentModal> {
 class CommentItem extends StatefulWidget {
   final dynamic comment;
   final VoidCallback onCommentMutated;
+  final Function(int commentId, String username) onStartReply;
 
   const CommentItem(
-      {super.key, required this.comment, required this.onCommentMutated});
+      {super.key,
+      required this.comment,
+      required this.onCommentMutated,
+      required this.onStartReply});
 
   @override
   State<CommentItem> createState() => _CommentItemState();
@@ -221,48 +271,32 @@ class _CommentItemState extends State<CommentItem> {
     _likeCount = widget.comment.likeCount ?? 0;
     _initComment();
     _getUser();
-    if (token != null) {
-      _buildTextSpans(widget.comment.content);
-    } else {
-      _textSpans = [TextSpan(text: widget.comment.content)];
-      _isBuildingText = false;
-    }
+    _buildSpans();
   }
 
-  Future<void> _buildTextSpans(String text) async {
-    final List<TextSpan> spans = [];
-    final RegExp mentionRegex = RegExp(r'@(\w+)');
-    int lastMatchEnd = 0;
-
-    for (final Match match in mentionRegex.allMatches(text)) {
-      if (match.start > lastMatchEnd) {
-        spans.add(TextSpan(text: text.substring(lastMatchEnd, match.start)));
-      }
-
-      final String username = match.group(1)!;
-      final bool? isValid =
-          token != null ? await UserApi.checkUserMention(username, token!) : null;
-
-      if (isValid == true) {
-        spans.add(TextSpan(
-          text: match.group(0),
-          style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-        ));
-      } else {
-        spans.add(TextSpan(text: match.group(0)));
-      }
-      lastMatchEnd = match.end;
-    }
-
-    if (lastMatchEnd < text.length) {
-      spans.add(TextSpan(text: text.substring(lastMatchEnd)));
-    }
-
+  void _buildSpans() async {
     if (!mounted) return;
+
     setState(() {
-      _textSpans = spans;
-      _isBuildingText = false;
+      _isBuildingText = true;
     });
+
+    try {
+      final spans = await buildMentionTextSpans(widget.comment.content, token);
+      if (mounted) {
+        setState(() {
+          _textSpans = spans;
+          _isBuildingText = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _textSpans = [TextSpan(text: widget.comment.content)];
+          _isBuildingText = false;
+        });
+      }
+    }
   }
 
   void _initComment() async {
@@ -317,74 +351,7 @@ class _CommentItemState extends State<CommentItem> {
   }
 
   void _handleReply() {
-    if (token == null) return;
-    final TextEditingController replyController = TextEditingController();
-    final BuildContext originalContext = context;
-
-    showModalBottomSheet(
-      isScrollControlled: true,
-      context: context,
-      builder: (modalContext) => SafeArea(
-        child: Padding(
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.of(modalContext).viewInsets.bottom),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            color: Theme.of(modalContext).scaffoldBackgroundColor,
-            child: Row(
-              children: [
-                _user != null &&
-                _user!.profilePic != null &&
-                _user!.profilePic!.isNotEmpty
-                  ? CircleAvatar(
-                      radius: 18,
-                      backgroundImage: NetworkImage(_user!.profilePic!),
-                    )
-                  : const CircleAvatar(
-                      radius: 18,
-                      backgroundImage:
-                      AssetImage('assets/image/not_profile.png'),
-                    ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: replyController,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      hintText: '대댓글을 입력해주세요.',
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () async {
-                    final content = replyController.text.trim();
-                    if (content.isEmpty) return;
-
-                    try {
-                      await CommentApi.createComment(
-                        token!,
-                        CreateComment(
-                          content: content,
-                          parentId: widget.comment.commentId,
-                          postId: widget.comment.postId,
-                        ),
-                      );
-                      Navigator.pop(modalContext);
-                      showOverlaySnackBar(originalContext, '대댓글이 등록되었습니다.');
-                      widget.onCommentMutated();
-                    } catch (e) {
-                      showOverlaySnackBar(originalContext, '등록 실패: $e');
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+    widget.onStartReply(widget.comment.commentId, _user?.username ?? '알 수 없는 사용자');
   }
 
   void _showEditDeleteModal() {
@@ -436,54 +403,56 @@ class _CommentItemState extends State<CommentItem> {
             right: 8,
             top: 8,
           ),
-          child: Container(
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            color: Theme.of(modalContext).scaffoldBackgroundColor,
-            child: Row(
-              children: [
-                _user != null &&
-                _user!.profilePic != null &&
-                _user!.profilePic!.isNotEmpty
-                  ? CircleAvatar(
-                      radius: 18,
-                      backgroundImage: NetworkImage(_user!.profilePic!),
-                    )
-                  : const CircleAvatar(
-                      radius: 18,
-                      backgroundImage:
-                      AssetImage('assets/image/not_profile.png'),
-                    ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: editController,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      hintText: '수정할 댓글을 입력해주세요.',
-                      border: InputBorder.none,
+            child: ColoredBox(
+              color: Theme.of(modalContext).scaffoldBackgroundColor,
+              child: Row(
+                children: [
+                  _user != null &&
+                      _user!.profilePic != null &&
+                      _user!.profilePic!.isNotEmpty
+                      ? CircleAvatar(
+                    radius: 18,
+                    backgroundImage: NetworkImage(_user!.profilePic!),
+                  )
+                      : const CircleAvatar(
+                    radius: 18,
+                    backgroundImage:
+                    AssetImage('assets/image/not_profile.png'),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: editController,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        hintText: '수정할 댓글을 입력해주세요.',
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () async {
-                    final newContent = editController.text.trim();
-                    if (newContent.isEmpty) return;
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: () async {
+                      final newContent = editController.text.trim();
+                      if (newContent.isEmpty) return;
 
-                    try {
-                      await CommentApi.updateComment(
-                          token!, widget.comment.commentId, newContent);
-                      
-                      Navigator.pop(modalContext);
+                      try {
+                        await CommentApi.updateComment(
+                            token!, widget.comment.commentId, newContent);
 
-                      showOverlaySnackBar(originalContext, '댓글이 수정되었습니다.');
-                      widget.onCommentMutated();
-                    } catch (e) {
-                      showOverlaySnackBar(originalContext, '수정 실패: $e');
-                    }
-                  },
-                ),
-              ],
+                        Navigator.pop(modalContext);
+
+                        showOverlaySnackBar(originalContext, '댓글이 수정되었습니다.');
+                        widget.onCommentMutated();
+                      } catch (e) {
+                        showOverlaySnackBar(originalContext, '수정 실패: $e');
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
