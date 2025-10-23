@@ -11,7 +11,7 @@ void showOverlaySnackBar(BuildContext context, String message) {
         color: Colors.transparent,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Padding(

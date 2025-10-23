@@ -3,7 +3,7 @@ import 'package:pedal/api/comment_api.dart';
 import 'package:pedal/models/comment.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:pedal/api/user_api.dart';
+import 'package:pedal/utils/comment_mention.dart';
 
 class ReplyArea extends StatefulWidget {
   final int commentId;
@@ -157,45 +157,8 @@ class _ReplyItemState extends State<ReplyItem> {
     likeCount = widget.reply.likeCount!;
     _getLiked();
     if (token != null) {
-      _textSpansFuture = _buildTextSpans(widget.reply.content!);
+      _textSpansFuture = buildMentionTextSpans(widget.reply.content!, token);
     }
-  }
-
-  Future<List<TextSpan>> _buildTextSpans(String text) async {
-    final List<TextSpan> spans = [];
-    if (token == null) {
-      spans.add(TextSpan(text: text));
-      return spans;
-    }
-
-    final RegExp mentionRegex = RegExp(r'@(\w+)');
-    int lastMatchEnd = 0;
-
-    for (final Match match in mentionRegex.allMatches(text)) {
-      if (match.start > lastMatchEnd) {
-        spans.add(TextSpan(text: text.substring(lastMatchEnd, match.start)));
-      }
-
-      final String username = match.group(1)!;
-      final bool? isValid = await UserApi.checkUserMention(username, token!);
-
-      if (isValid == true) {
-        spans.add(TextSpan(
-          text: match.group(0),
-          style: const TextStyle(
-              color: Colors.blue, fontWeight: FontWeight.bold),
-        ));
-      } else {
-        spans.add(TextSpan(text: match.group(0)));
-      }
-      lastMatchEnd = match.end;
-    }
-
-    if (lastMatchEnd < text.length) {
-      spans.add(TextSpan(text: text.substring(lastMatchEnd)));
-    }
-
-    return spans;
   }
 
   void _getLiked() async {
