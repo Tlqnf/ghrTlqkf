@@ -431,8 +431,8 @@ class _PostFormScreenState extends State<PostFormScreen> {
                               width: double.infinity,
                             )
                           else
-                            Container(
-                              color: Colors.grey[300],
+                            ColoredBox(
+                              color: Colors.grey,
                               child: const Center(child: Text('Map Placeholder')),
                             ),
                           ..._additionalImages.map((image) => Image.file(
@@ -452,19 +452,21 @@ class _PostFormScreenState extends State<PostFormScreen> {
                   Positioned(
                     top: 40,
                     left: 16,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        shape: BoxShape.circle,
-                      ),
+                    child: SizedBox(
                       width: 50,
                       height: 50,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        iconSize: 20.0,
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          iconSize: 20.0,
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -475,17 +477,21 @@ class _PostFormScreenState extends State<PostFormScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
                           imageCount,
-                              (index) => Container(
-                            width: 8,
-                            height: 8,
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _currentImagePage == index
-                                  ? Colors.white
-                                  : Colors.white.withValues(alpha: 0.5),
+                            (index) => Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4),
+                              child: SizedBox(
+                                width: 8,
+                                height: 8,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: _currentImagePage == index
+                                        ? Colors.white
+                                        : Colors.white.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
                         ),
                       ),
                     ),
@@ -614,22 +620,26 @@ class _PostFormScreenState extends State<PostFormScreen> {
                           if (index == _additionalImages.length + _additionalImageUrls.length) {
                             return GestureDetector(
                               onTap: _pickImage,
-                              child: Container(
-                                width: 200,
-                                height: 100,
-                                margin: const EdgeInsets.only(right: 16.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.add_a_photo_outlined, color: Colors.grey, size: 30),
-                                    const SizedBox(height: 8),
-                                    Text('사진 추가 (${_additionalImages.length + _additionalImageUrls.length}/2)',
-                                        style: const TextStyle(color: Colors.grey)),
-                                  ],
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 16.0),
+                                child: SizedBox(
+                                  width: 200,
+                                  height: 100,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.add_a_photo_outlined, color: Colors.grey, size: 30),
+                                        const SizedBox(height: 8),
+                                        Text('사진 추가 (${_additionalImages.length + _additionalImageUrls.length}/2)',
+                                            style: const TextStyle(color: Colors.grey)),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             );
@@ -658,7 +668,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                                           _additionalImages.removeAt(index);
                                         });
                                       },
-                                      child: Container(
+                                      child: DecoratedBox(
                                         decoration: BoxDecoration(
                                           color: Colors.black.withValues(alpha: 0.6),
                                           shape: BoxShape.circle,
@@ -695,7 +705,7 @@ class _PostFormScreenState extends State<PostFormScreen> {
                                           _additionalImageInfos.removeAt(urlIndex);
                                         });
                                       },
-                                      child: Container(
+                                      child: DecoratedBox(
                                         decoration: BoxDecoration(
                                           color: Colors.black.withValues(alpha: 0.6),
                                           shape: BoxShape.circle,

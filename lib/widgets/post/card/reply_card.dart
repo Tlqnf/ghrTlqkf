@@ -327,7 +327,7 @@ class _ReplyItemState extends State<ReplyItem> {
   void _handleEdit() {
     showModalBottomSheet(
       context: context,
-      builder: (_) => Container(
+      builder: (_) => Padding(
         padding: const EdgeInsets.all(16),
         child: const Text('댓글 수정 UI'),
       ),

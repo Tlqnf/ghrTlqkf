@@ -105,12 +105,14 @@ class _CommentModalState extends State<CommentModal> {
             // 모달 드래그 핸들
             Padding(
               padding: const EdgeInsets.only(top: 8.0, bottom: 12.0),
-              child: Container(
+              child: SizedBox(
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[400],
-                  borderRadius: BorderRadius.circular(2),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
             ),
@@ -156,39 +158,41 @@ class _CommentModalState extends State<CommentModal> {
   }
 
   Widget _buildCommentInput(BuildContext context) {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: Row(
-        children: [
-          _user != null &&
-          _user!.profilePic != null &&
-          _user!.profilePic!.isNotEmpty
-            ? CircleAvatar(
-                radius: 18,
-                backgroundImage: NetworkImage(_user!.profilePic!),
-              )
-            : const CircleAvatar(
-                radius: 18,
-                backgroundImage:
-                AssetImage('assets/image/not_profile.png'),
-              ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _commentController,
-              focusNode: _commentFocusNode,
-              decoration: const InputDecoration(
-                hintText: '댓글을 입력해주세요.',
-                border: InputBorder.none,
+      child: ColoredBox(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Row(
+          children: [
+            _user != null &&
+                _user!.profilePic != null &&
+                _user!.profilePic!.isNotEmpty
+                ? CircleAvatar(
+              radius: 18,
+              backgroundImage: NetworkImage(_user!.profilePic!),
+            )
+                : const CircleAvatar(
+              radius: 18,
+              backgroundImage:
+              AssetImage('assets/image/not_profile.png'),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _commentController,
+                focusNode: _commentFocusNode,
+                decoration: const InputDecoration(
+                  hintText: '댓글을 입력해주세요.',
+                  border: InputBorder.none,
+                ),
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: _sendComment,
-          ),
-        ],
+            IconButton(
+              icon: const Icon(Icons.send),
+              onPressed: _sendComment,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -328,58 +332,60 @@ class _CommentItemState extends State<CommentItem> {
         child: Padding(
           padding:
               EdgeInsets.only(bottom: MediaQuery.of(modalContext).viewInsets.bottom),
-          child: Container(
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            color: Theme.of(modalContext).scaffoldBackgroundColor,
-            child: Row(
-              children: [
-                _user != null &&
-                _user!.profilePic != null &&
-                _user!.profilePic!.isNotEmpty
-                  ? CircleAvatar(
-                      radius: 18,
-                      backgroundImage: NetworkImage(_user!.profilePic!),
-                    )
-                  : const CircleAvatar(
-                      radius: 18,
-                      backgroundImage:
-                      AssetImage('assets/image/not_profile.png'),
-                    ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: replyController,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      hintText: '대댓글을 입력해주세요.',
-                      border: InputBorder.none,
+            child: ColoredBox(
+              color: Theme.of(modalContext).scaffoldBackgroundColor,
+              child: Row(
+                children: [
+                  _user != null &&
+                      _user!.profilePic != null &&
+                      _user!.profilePic!.isNotEmpty
+                      ? CircleAvatar(
+                    radius: 18,
+                    backgroundImage: NetworkImage(_user!.profilePic!),
+                  )
+                      : const CircleAvatar(
+                    radius: 18,
+                    backgroundImage:
+                    AssetImage('assets/image/not_profile.png'),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: replyController,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        hintText: '대댓글을 입력해주세요.',
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () async {
-                    final content = replyController.text.trim();
-                    if (content.isEmpty) return;
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: () async {
+                      final content = replyController.text.trim();
+                      if (content.isEmpty) return;
 
-                    try {
-                      await CommentApi.createComment(
-                        token!,
-                        CreateComment(
-                          content: content,
-                          parentId: widget.comment.commentId,
-                          postId: widget.comment.postId,
-                        ),
-                      );
-                      Navigator.pop(modalContext);
-                      showOverlaySnackBar(originalContext, '대댓글이 등록되었습니다.');
-                      widget.onCommentMutated();
-                    } catch (e) {
-                      showOverlaySnackBar(originalContext, '등록 실패: $e');
-                    }
-                  },
-                ),
-              ],
+                      try {
+                        await CommentApi.createComment(
+                          token!,
+                          CreateComment(
+                            content: content,
+                            parentId: widget.comment.commentId,
+                            postId: widget.comment.postId,
+                          ),
+                        );
+                        Navigator.pop(modalContext);
+                        showOverlaySnackBar(originalContext, '대댓글이 등록되었습니다.');
+                        widget.onCommentMutated();
+                      } catch (e) {
+                        showOverlaySnackBar(originalContext, '등록 실패: $e');
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -436,54 +442,56 @@ class _CommentItemState extends State<CommentItem> {
             right: 8,
             top: 8,
           ),
-          child: Container(
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            color: Theme.of(modalContext).scaffoldBackgroundColor,
-            child: Row(
-              children: [
-                _user != null &&
-                _user!.profilePic != null &&
-                _user!.profilePic!.isNotEmpty
-                  ? CircleAvatar(
-                      radius: 18,
-                      backgroundImage: NetworkImage(_user!.profilePic!),
-                    )
-                  : const CircleAvatar(
-                      radius: 18,
-                      backgroundImage:
-                      AssetImage('assets/image/not_profile.png'),
-                    ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: editController,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      hintText: '수정할 댓글을 입력해주세요.',
-                      border: InputBorder.none,
+            child: ColoredBox(
+              color: Theme.of(modalContext).scaffoldBackgroundColor,
+              child: Row(
+                children: [
+                  _user != null &&
+                      _user!.profilePic != null &&
+                      _user!.profilePic!.isNotEmpty
+                      ? CircleAvatar(
+                    radius: 18,
+                    backgroundImage: NetworkImage(_user!.profilePic!),
+                  )
+                      : const CircleAvatar(
+                    radius: 18,
+                    backgroundImage:
+                    AssetImage('assets/image/not_profile.png'),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: editController,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        hintText: '수정할 댓글을 입력해주세요.',
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () async {
-                    final newContent = editController.text.trim();
-                    if (newContent.isEmpty) return;
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: () async {
+                      final newContent = editController.text.trim();
+                      if (newContent.isEmpty) return;
 
-                    try {
-                      await CommentApi.updateComment(
-                          token!, widget.comment.commentId, newContent);
-                      
-                      Navigator.pop(modalContext);
+                      try {
+                        await CommentApi.updateComment(
+                            token!, widget.comment.commentId, newContent);
 
-                      showOverlaySnackBar(originalContext, '댓글이 수정되었습니다.');
-                      widget.onCommentMutated();
-                    } catch (e) {
-                      showOverlaySnackBar(originalContext, '수정 실패: $e');
-                    }
-                  },
-                ),
-              ],
+                        Navigator.pop(modalContext);
+
+                        showOverlaySnackBar(originalContext, '댓글이 수정되었습니다.');
+                        widget.onCommentMutated();
+                      } catch (e) {
+                        showOverlaySnackBar(originalContext, '수정 실패: $e');
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
