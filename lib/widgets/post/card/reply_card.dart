@@ -107,7 +107,6 @@ class _ReplyAreaState extends State<ReplyArea> {
             onPressed: () {
               setState(() {
                 _showReplies = !_showReplies;
-                debugPrint('build - _showReplies: $_showReplies');
               });
             },
             child: Text(

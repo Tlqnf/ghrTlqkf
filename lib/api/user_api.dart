@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/analyze.dart';
@@ -239,7 +238,6 @@ class UserApi {
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
-      debugPrint(response.body);
       // 응답이 List<Map<String, dynamic>> 형태라고 가정
       if (decoded is List) {
         return decoded
