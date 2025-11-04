@@ -56,6 +56,7 @@ dependencies:
   kakao_flutter_sdk_user: ^1.9.7+3
   google_mobile_ads: ^6.0.0
   in_app_purchase: ^3.2.3
+  fl_chart: ^1.1.1
 
 dev_dependencies:
   flutter_test:
@@ -85,6 +86,8 @@ flutter:
   assets:
     - assets/
     - assets/image/
+    - assets/on_boarding/
+    - assets/image/kal_food/
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
