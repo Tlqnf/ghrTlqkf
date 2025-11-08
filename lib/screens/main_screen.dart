@@ -4,6 +4,7 @@ import 'package:pedal/api/user_api.dart';
 import 'package:pedal/models/analyze.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/providers/auth_provider.dart';
+import 'package:pedal/screens/calendar_daily_log_screen.dart';
 import 'package:pedal/widgets/post/card/activity_card.dart';
 import 'package:pedal/widgets/home/card/activity_summary_card.dart';
 import 'package:provider/provider.dart';
@@ -68,12 +69,32 @@ class _MainScreenState extends State<MainScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '이번주 활동',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            '이번주 활동',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const RidingStatsScreen()),
+                              );
+                            },
+                            child: const Text(
+                              '더보기',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 16,
+                              ),
+                            ),
+                          )
+                        ],
                       ),
                       const SizedBox(height: 16),
                       _analyze == null

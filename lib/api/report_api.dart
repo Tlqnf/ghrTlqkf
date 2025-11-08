@@ -3,7 +3,36 @@ import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/report.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/calendar_summary.dart';
+
+import 'package:pedal/models/daily_distance.dart';
+
 class ReportApi {
+  // get - report/daily-distance
+  // 주간 하루 거리 정보를 반환
+  static Future<List<DailyDistance>> fetchDailyDistances(String token) async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/report/daily-distance'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      if (decoded is List) {
+        return decoded
+            .map((e) => DailyDistance.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Unexpected response format (not a List)');
+      }
+    } else {
+      throw Exception('Failed to load daily distances: ${response.statusCode}');
+    }
+  }
+
   // post - report
   // 리포트 생성
   static Future<int> createReport(ReportCreate reportData, String token) async {
@@ -107,6 +136,85 @@ class ReportApi {
       return data.map((json) => Report.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load reports for route $routeId and user $userId: ${response.statusCode}');
+    }
+  }
+
+
+
+  // get - report/weekly-summary
+  // 주간 기록 요약 가져오기
+  static Future<WeeklySummary> getWeeklySummary(String token, DateTime date) async {
+    final formattedDate = date.toIso8601String();
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/report/weekly-summary?date=$formattedDate'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return WeeklySummary.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
+    } else {
+      print('Failed to load weekly record: ${utf8.decode(response.bodyBytes)}');
+      throw Exception('Failed to load weekly record: ${response.statusCode}');
+    }
+  }
+
+  // get - report/lev
+  // 유저 레벨 및 경험치 조회
+  static Future<UserLevel> fetchUserLevel(String token) async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/report/lev'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return UserLevel.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load user level: ${response.statusCode}');
+    }
+  }
+
+  // get - /monthly-comparison
+  // 지난달 대비 상승률 반환
+  static Future<MonthlyComparison> fetchMonthlyComparison(String token) async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/report/monthly-comparison'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return MonthlyComparison.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(
+          'Failed to load monthly comparison: ${response.statusCode}');
+    }
+  }
+
+  // get - report/daily-summary
+  // 오늘 하루 통계 가져오기
+  static Future<DailySummary> fetchDailySummary(String token, DateTime date) async {
+    final formattedDate = date.toIso8601String();
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/report/daily-summary/?date=$formattedDate'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return DailySummary.fromJson(jsonDecode(response.body));
+    } else {
+      print('Failed to load daily summary: ${response.body}');
+      throw Exception('Failed to load daily summary: ${response.statusCode}');
     }
   }
 }

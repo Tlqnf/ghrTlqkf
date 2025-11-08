@@ -159,7 +159,7 @@ class UserApi {
   // 유저의 주간 기록 표시 (완)
   static Future<Analyze> analyzeUser(String token) async {
     final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/report/weekly_summary'),
+      Uri.parse('${ApiConfig.baseUrl}/report/weekly-summary'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

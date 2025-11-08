@@ -7,13 +7,15 @@ class StatCard extends StatelessWidget {
   final String value;
   final Color color;
   final Color textColor;
+  final double? progress; // Nullable progress value
 
   const StatCard({
     super.key,
     required this.title,
     required this.value,
     required this.color,
-    required this.textColor
+    required this.textColor,
+    this.progress,
   });
 
   @override
@@ -35,24 +37,58 @@ class StatCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Center(
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: color, width: 10),
-              ),
-              child: Center(
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    color: textColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+            child: progress != null
+                ? Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 100,
+                        height: 100,
+                        child: CircularProgressIndicator(
+                          value: 1.0, // Background track
+                          strokeWidth: 10,
+                          color: color.withOpacity(0.2),
+                          strokeCap: StrokeCap.round,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 100,
+                        height: 100,
+                        child: CircularProgressIndicator(
+                          value: progress, // Actual progress
+                          strokeWidth: 10,
+                          color: color,
+                          strokeCap: StrokeCap.round,
+                        ),
+                      ),
+                      Text(
+                        value,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  )
+                : Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: color, width: 10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        value,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
           ),
         ],
       ),

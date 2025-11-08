@@ -16,10 +16,8 @@ class TodayMessageCard extends StatelessWidget {
       return {'name': '김밥 한 개', 'image': 'assets/image/kal_food/gimbap.png'};
     } else if (calories >= 250) {
       return {'name': '샌드위치 한 개', 'image': 'assets/image/kal_food/sandwich.png'};
-    } else if (calories > 0) {
-      return {'name': '가벼운 간식', 'image': 'assets/image_mock.png'}; // 400 미만일 때
-    } else {
-      return {'name': '...', 'image': 'assets/image_mock.png'}; // 0일 때
+    } else { // calories < 250
+      return {'name': '아직 아무것도 태우지 못했어요....', 'image': 'assets/image_mock.png'};
     }
   }
 
@@ -68,22 +66,29 @@ class TodayMessageCard extends StatelessWidget {
           Text.rich(
             TextSpan(
               children: [
-                const TextSpan(
-                  text: '오늘 ',
-                  style: TextStyle(fontSize: 16),
-                ),
-                TextSpan(
-                  text: '$foodName ',
-                  style: const TextStyle(
-                    color: Color(0xFFE74C3C),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                if (foodName == '아직 아무것도 태우지 못했어요....')
+                  TextSpan(
+                    text: foodName,
+                    style: const TextStyle(fontSize: 16),
+                  )
+                else ...[
+                  const TextSpan(
+                    text: '오늘 ',
+                    style: TextStyle(fontSize: 16),
                   ),
-                ),
-                const TextSpan(
-                  text: '이상을 라이딩에 불태웠어요!',
-                  style: TextStyle(fontSize: 16),
-                ),
+                  TextSpan(
+                    text: '$foodName ',
+                    style: const TextStyle(
+                      color: Color(0xFFE74C3C),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const TextSpan(
+                    text: '이상을 라이딩에 불태웠어요!',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
               ],
             ),
             textAlign: TextAlign.center, // Center the text

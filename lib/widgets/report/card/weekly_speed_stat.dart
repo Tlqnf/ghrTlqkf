@@ -1,12 +1,21 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:pedal/widgets/report/card/stat_card.dart';
 
 class HalfCirclePainter extends CustomPainter {
+  final double progress; // 0.0 to 1.0
+
+  HalfCirclePainter({required this.progress});
+
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.pinkAccent
+    final Paint backgroundPaint = Paint()
+      ..color = Colors.pinkAccent.withOpacity(0.2) // 배경 색상
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 15
+      ..strokeCap = StrokeCap.round;
+
+    final Paint progressPaint = Paint()
+      ..color = Colors.pinkAccent // 진행 상태 색상
       ..style = PaintingStyle.stroke
       ..strokeWidth = 15
       ..strokeCap = StrokeCap.round;
@@ -16,21 +25,33 @@ class HalfCirclePainter extends CustomPainter {
     final double radius = diameter / 2;
 
     final rect = Rect.fromLTWH(padding, size.height - radius, diameter, diameter);
-    const startAngle = 3.14; // 180 degrees (start from left)
-    const sweepAngle = 3.14; // 180 degrees (draw a half circle)
+    const double startAngle = pi; // 180도 (왼쪽에서 시작)
+    const double fullSweepAngle = pi; // 180도 (반원)
 
-    canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
+    // 배경 반원 그리기
+    canvas.drawArc(rect, startAngle, fullSweepAngle, false, backgroundPaint);
+
+    // 진행 상태 반원 그리기
+    final double progressSweepAngle = fullSweepAngle * progress;
+    canvas.drawArc(rect, startAngle, progressSweepAngle, false, progressPaint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant HalfCirclePainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
 }
 
 class WeeklySpeedStat extends StatelessWidget {
-  const WeeklySpeedStat({super.key});
+  final double topSpeed;
+
+  const WeeklySpeedStat({super.key, required this.topSpeed});
 
   @override
   Widget build(BuildContext context) {
+    const double goal = 30.0; // 목표 속도
+    final double progress = topSpeed / goal;
+
     return Container(
       width: 180,
       height: 170,
@@ -50,16 +71,16 @@ class WeeklySpeedStat extends StatelessWidget {
           Center(
             child: CustomPaint(
               size: const Size(120, 60), // 반원 크기
-              painter: HalfCirclePainter(),
-              child: const Center(
+              painter: HalfCirclePainter(progress: progress.clamp(0.0, 1.0)),
+              child: Center(
                 child: Padding(
-                  padding: EdgeInsets.only(top: 40),
+                  padding: const EdgeInsets.only(top: 40),
                   child: Text(
-                    '32 km/h',
-                    style: TextStyle(
-                       color: Colors.black,
-                       fontWeight: FontWeight.bold,
-                       fontSize: 18,
+                    '${topSpeed.toStringAsFixed(1)} km/h',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
                     ),
                   ),
                 ),

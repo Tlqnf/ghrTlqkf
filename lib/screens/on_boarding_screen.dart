@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pedal/screens/login_screen.dart';
+import 'package:pedal/widgets/auth_wrapper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        MaterialPageRoute(builder: (context) => const AuthWrapper()),
       );
     }
   }

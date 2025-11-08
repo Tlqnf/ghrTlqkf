@@ -2,24 +2,24 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../../models/daily_distance.dart';
+
 class WeeklyDistanceChart extends StatelessWidget {
-  const WeeklyDistanceChart({super.key});
+  final List<DailyDistance> distances;
+
+  const WeeklyDistanceChart({super.key, required this.distances});
 
   @override
   Widget build(BuildContext context) {
-    const spots = [
-      FlSpot(0, 40),
-      FlSpot(1, 38),
-      FlSpot(2, 30),
-      FlSpot(3, 45),
-      FlSpot(4, 50),
-      FlSpot(5, 47),
-      FlSpot(6, 43),
-    ];
+    final spots = distances
+        .asMap()
+        .entries
+        .map((e) => FlSpot(e.key.toDouble(), e.value.distance.toDouble()))
+        .toList();
 
     final yValues = spots.map((spot) => spot.y).toList();
-    final minY = (yValues.reduce((a, b) => a < b ? a : b) -10).clamp(0, double.infinity).toDouble();
-    final maxY = (yValues.reduce((a, b) => a > b ? a : b) +10).toDouble();
+    final minY = yValues.isEmpty ? 0.0 : (((yValues.reduce((a, b) => a < b ? a : b) - 10) / 10).floor() * 10).clamp(0, double.infinity).toDouble();
+    final maxY = yValues.isEmpty ? 50.0 : (((yValues.reduce((a, b) => a > b ? a : b) + 10) / 10).ceil() * 10).toDouble();
 
     return Container(
       padding: const EdgeInsets.all(16),
