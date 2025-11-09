@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pedal/screens/login_screen.dart';
 import 'package:pedal/widgets/auth_wrapper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

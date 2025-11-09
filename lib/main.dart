@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+// import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -223,6 +225,7 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
 
+          // 자동 로그인 시도 후, Consumer를 사용하여 인증 상태에 따라 UI를 빌드합니다.
           return Consumer<AuthProvider>(
             builder: (context, auth, _) {
               if (auth.authState == AuthState.loggedIn) {
