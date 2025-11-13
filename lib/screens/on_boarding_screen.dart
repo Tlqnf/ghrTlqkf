@@ -65,11 +65,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             // 1. Fixed Logo
             Padding(
               padding: const EdgeInsets.only(top: 40),
-              child: Image.asset(
-                'assets/Logo.png',
-                width: 60,
-                height: 60,
-              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: Image.asset("assets/Logo.png", height: 50),
+              )
             ),
             const SizedBox(height: 16),
 
@@ -94,7 +93,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       // Image
                       Image.asset(
                         page['image']!,
-                        width: MediaQuery.of(context).size.width * 0.66,
+                        width: MediaQuery.of(context).size.width * 0.5,
                       ),
                     ],
                   );
@@ -123,7 +122,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   child: const Text(
                     '바로 시작하기',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -184,7 +183,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       if (highlight2Index > 0) {
         spans.add(TextSpan(
           text: title2.substring(0, highlight2Index),
-          style: const TextStyle(color: Colors.black, fontSize: 16),
+          style: const TextStyle(color: Colors.black, fontSize: 20),
         ));
       }
       spans.add(TextSpan(
@@ -192,19 +191,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         style: const TextStyle(
           color: Color(0xFFE74C3C),
           fontWeight: FontWeight.bold,
-          fontSize: 16,
+          fontSize: 20,
         ),
       ));
       if (highlight2Index + highlight2.length < title2.length) {
         spans.add(TextSpan(
           text: title2.substring(highlight2Index + highlight2.length),
-          style: const TextStyle(color: Colors.black, fontSize: 16),
+          style: const TextStyle(color: Colors.black, fontSize: 20),
         ));
       }
     } else {
       spans.add(TextSpan(
         text: title2,
-        style: const TextStyle(color: Colors.black, fontSize: 16),
+        style: const TextStyle(color: Colors.black, fontSize: 20),
       ));
     }
 

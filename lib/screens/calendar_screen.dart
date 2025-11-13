@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pedal/api/calendar_api.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/widgets/calendar/card/medal_summary_card.dart';
-import 'package:pedal/widgets/calendar/card/riding_calendar_card.dart';
 import 'package:provider/provider.dart';
 
 import '../models/calendar_summary.dart';
@@ -25,15 +24,10 @@ class _CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAlive
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_monthlyStampReportFuture == null) {
-      final token = Provider.of<AuthProvider>(context, listen: false).token!=null? Provider.of<AuthProvider>(context, listen: false).token:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzc2NTAxNDY2fQ.xBgQTC9zWmDBlL5VyXCylbmfdR0f37nr7MBgoOgG9fQ";
-      if (token != null) {
+      final token = Provider.of<AuthProvider>(context, listen: false).token;
         final now = DateTime.now();
-        _monthlyStampReportFuture = CalendarApi.fetchMonthlyStampReport(token, now.year, now.month);
+        _monthlyStampReportFuture = CalendarApi.fetchMonthlyStampReport(token!, now.year, now.month);
         _rideStampsFuture = CalendarApi.fetchMonthStampList(token);
-      } else {
-        _monthlyStampReportFuture = Future.error('Not authenticated');
-        _rideStampsFuture = Future.error('Not authenticated');
-      }
     }
   }
 

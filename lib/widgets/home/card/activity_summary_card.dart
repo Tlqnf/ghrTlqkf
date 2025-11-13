@@ -24,7 +24,7 @@ class ActivitySummaryCard extends StatelessWidget {
       ),
       color: Colors.grey[100], // 카드 배경색
       child: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

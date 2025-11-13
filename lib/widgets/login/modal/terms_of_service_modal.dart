@@ -30,7 +30,7 @@ class _TermsOfServiceModalState extends State<TermsOfServiceModal> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      contentPadding: EdgeInsets.all(20.0),
+      contentPadding: const EdgeInsets.all(20.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
       title: const Text('약관 동의', style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w600)),
       content: Column(

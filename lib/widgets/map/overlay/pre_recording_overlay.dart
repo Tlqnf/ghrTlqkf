@@ -56,9 +56,9 @@ class PreRecordingOverlay extends StatelessWidget {
                     backgroundColor: Colors.transparent,
                     builder: (_) => DraggableScrollableSheet(
                       expand: false,
-                      initialChildSize: 0.5,
+                      initialChildSize: 0.7,
                       maxChildSize: 0.7,
-                      minChildSize: 0.2,
+                      minChildSize: 0.3,
                       builder: (context, scrollController) =>
                         NavigationListModal(
                           scrollController: scrollController,

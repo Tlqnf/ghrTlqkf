@@ -157,6 +157,7 @@ class _CommentModalState extends State<CommentModal> {
                           comment: comments[index],
                           onCommentMutated: _fetchComments,
                           onStartReply: startReplying,
+                          currentUser: _user,
                         );
                       },
                     );
@@ -244,12 +245,14 @@ class CommentItem extends StatefulWidget {
   final dynamic comment;
   final VoidCallback onCommentMutated;
   final Function(int commentId, String username) onStartReply;
+  final User? currentUser;
 
   const CommentItem(
       {super.key,
       required this.comment,
       required this.onCommentMutated,
-      required this.onStartReply});
+      required this.onStartReply,
+      this.currentUser});
 
   @override
   State<CommentItem> createState() => _CommentItemState();
@@ -355,6 +358,9 @@ class _CommentItemState extends State<CommentItem> {
   }
 
   void _showEditDeleteModal() {
+    final isAuthor = widget.currentUser?.id == widget.comment.userId;
+    if (!isAuthor) return;
+
     showModalBottomSheet(
       context: context,
       builder: (_) => SafeArea(

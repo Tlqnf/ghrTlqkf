@@ -82,7 +82,7 @@ class _RidingProgressBarState extends State<RidingProgressBar> {
         0.0, maxProgressWidth);
     final bool isCompleted = widget.currentKm >= displayMaxKm;
 
-    String _getMedalImage(int index) {
+    String getMedalImage(int index) {
       switch (index) {
         case 0:
           return 'assets/image/medal/bronze.png';
@@ -139,7 +139,7 @@ class _RidingProgressBarState extends State<RidingProgressBar> {
                 left: startOffset + (widget.medalDistances[i] * pixelsPerKm) -
                     32,
                 child: Image.asset(
-                  _getMedalImage(i),
+                  getMedalImage(i),
                   width: 65,
                 ),
               ),

@@ -9,14 +9,14 @@ import 'package:pedal/widgets/post/card/activity_card.dart';
 import 'package:pedal/widgets/home/card/activity_summary_card.dart';
 import 'package:provider/provider.dart';
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _HomeScreenState extends State<HomeScreen> {
   Future<List<Post>>? _postsFuture;
   Analyze? _analyze;
 
@@ -89,7 +89,7 @@ class _MainScreenState extends State<MainScreen> {
                             child: const Text(
                               '더보기',
                               style: TextStyle(
-                                color: Colors.blue,
+                                color: Colors.red,
                                 fontSize: 16,
                               ),
                             ),
@@ -114,7 +114,7 @@ class _MainScreenState extends State<MainScreen> {
                                 unit: '회',
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 4),
                             SizedBox(
                               width:
                               MediaQuery.of(context).size.width / 2.5,
@@ -124,7 +124,7 @@ class _MainScreenState extends State<MainScreen> {
                                 unit: '',
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 4),
                             SizedBox(
                               width:
                               MediaQuery.of(context).size.width / 2.5,

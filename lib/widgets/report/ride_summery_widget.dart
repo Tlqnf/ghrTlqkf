@@ -56,7 +56,7 @@ class RidingSummaryWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 3,
                       offset: const Offset(0, 1),
                     ),
@@ -125,8 +125,8 @@ class RidingSummaryWidget extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.white.withOpacity(0.0), // Start transparent
-                    Colors.white.withOpacity(0.8), // Fade to white
+                    Colors.white.withValues(alpha: 0.0), // Start transparent
+                    Colors.white.withValues(alpha: 0.8), // Fade to white
                     Colors.white, // Fully white at the bottom
                   ],
                   stops: const [0.5, 2.5, 5.0],

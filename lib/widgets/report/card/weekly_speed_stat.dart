@@ -9,7 +9,7 @@ class HalfCirclePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint backgroundPaint = Paint()
-      ..color = Colors.pinkAccent.withOpacity(0.2) // 배경 색상
+      ..color = Colors.pinkAccent.withValues(alpha: 0.2) // 배경 색상
       ..style = PaintingStyle.stroke
       ..strokeWidth = 15
       ..strokeCap = StrokeCap.round;

@@ -109,6 +109,8 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        contentPadding: const EdgeInsets.all(20.0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
         title: const Text(
           '위치정보 수집 안내',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

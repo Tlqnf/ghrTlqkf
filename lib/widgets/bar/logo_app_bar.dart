@@ -19,6 +19,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
+          contentPadding: const EdgeInsets.all(20.0),
           title: Text(title),
           content: Text(content),
           shape: RoundedRectangleBorder(
@@ -65,6 +66,15 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: authProvider.authState == AuthState.loggedIn ? [
+        IconButton(
+          icon: const Icon(Icons.notifications_none, color: Colors.black,),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NoticeListScreen()),
+            );
+          },
+        ),
         IconButton(
           icon: const Icon(Icons.menu, color: Colors.black),
           onPressed: () {
@@ -134,17 +144,6 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
                                 }
                               }
                             });
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.notifications, color: Colors.black),
-                          title: const Text('공지사항', style: TextStyle(color: Colors.black)),
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const NoticeListScreen()),
-                            );
                           },
                         ),
                         ListTile(

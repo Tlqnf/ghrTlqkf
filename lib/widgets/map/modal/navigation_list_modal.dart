@@ -113,7 +113,7 @@ class _NavigationListModalState extends State<NavigationListModal> {
                   children: [
                     if (myRoutes.isNotEmpty) ...[
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16.0),
                         child: Text(
                           '내 경로',
                           style: TextStyle(
@@ -127,7 +127,7 @@ class _NavigationListModalState extends State<NavigationListModal> {
                     ],
                     if (bookmarkedRoutes.isNotEmpty) ...[
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16.0),
                         child: Text(
                           '저장한 경로',
                           style: TextStyle(

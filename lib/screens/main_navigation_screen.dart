@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pedal/screens/main_screen.dart';
+import 'package:pedal/screens/home_screen.dart';
 import 'package:pedal/screens/my_page_screen.dart';
 import 'package:pedal/screens/map_screen.dart';
 import 'package:pedal/widgets/bar/bottom_nav_bar.dart';
@@ -34,7 +34,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
-      const MainScreen(),
+      const HomeScreen(),
       const MyPageScreen(),
     ];
 

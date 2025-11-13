@@ -1,5 +1,3 @@
-import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class StatCard extends StatelessWidget {
@@ -47,7 +45,7 @@ class StatCard extends StatelessWidget {
                         child: CircularProgressIndicator(
                           value: 1.0, // Background track
                           strokeWidth: 10,
-                          color: color.withOpacity(0.2),
+                          color: color.withValues(alpha: 0.2),
                           strokeCap: StrokeCap.round,
                         ),
                       ),

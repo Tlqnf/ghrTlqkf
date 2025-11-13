@@ -30,8 +30,8 @@ class InAppPurchaseService {
 
   void listenToPurchaseUpdated() {
     final purchaseUpdated = _iap.purchaseStream;
-    purchaseUpdated.listen((purchaseDetailsList) {
-      purchaseDetailsList.forEach((purchaseDetails) async {
+    purchaseUpdated.listen((purchaseDetailsList) async {
+      for (final purchaseDetails in purchaseDetailsList) {
         if (purchaseDetails.status == PurchaseStatus.pending) {
           // 구매 진행중
           debugPrint("구독 구매 진행중");
@@ -48,7 +48,7 @@ class InAppPurchaseService {
             }
           }
         }
-      });
+      }
     });
   }
 
@@ -80,6 +80,8 @@ class InAppPurchaseService {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          contentPadding: const EdgeInsets.all(20.0),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
           title: Text("${Intl.message('pay')}$text"),
           actions: <Widget>[
             ElevatedButton(

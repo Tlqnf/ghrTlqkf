@@ -29,16 +29,11 @@ class _StatsScreenState extends State<StatsScreen> with AutomaticKeepAliveClient
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_dailySummaryFuture == null) {
-      final token = Provider.of<AuthProvider>(context, listen: false).token!=null? Provider.of<AuthProvider>(context, listen: false).token:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzc2NTAxNDY2fQ.xBgQTC9zWmDBlL5VyXCylbmfdR0f37nr7MBgoOgG9fQ";
-      if (token != null) {
-        _dailySummaryFuture = ReportApi.fetchDailySummary(token, DateTime.now());
-        _weeklySummaryFuture = ReportApi.getWeeklySummary(token, DateTime.now());
-        _dailyDistancesFuture = ReportApi.fetchDailyDistances(token);
-      } else {
-        _dailySummaryFuture = Future.error('Not authenticated');
-        _weeklySummaryFuture = Future.error('Not authenticated');
-        _dailyDistancesFuture = Future.error('Not authenticated');
-      }
+      final token = Provider.of<AuthProvider>(context, listen: false).token;
+
+      _dailySummaryFuture = ReportApi.fetchDailySummary(token!, DateTime.now());
+      _weeklySummaryFuture = ReportApi.getWeeklySummary(token, DateTime.now());
+      _dailyDistancesFuture = ReportApi.fetchDailyDistances(token);
     }
   }
 

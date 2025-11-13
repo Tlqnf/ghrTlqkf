@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/report.dart';
 import 'package:http/http.dart' as http;
@@ -156,7 +157,7 @@ class ReportApi {
     if (response.statusCode == 200) {
       return WeeklySummary.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
     } else {
-      print('Failed to load weekly record: ${utf8.decode(response.bodyBytes)}');
+      debugPrint('Failed to load weekly record: ${utf8.decode(response.bodyBytes)}');
       throw Exception('Failed to load weekly record: ${response.statusCode}');
     }
   }
@@ -213,7 +214,7 @@ class ReportApi {
     if (response.statusCode == 200) {
       return DailySummary.fromJson(jsonDecode(response.body));
     } else {
-      print('Failed to load daily summary: ${response.body}');
+      debugPrint('Failed to load daily summary: ${response.body}');
       throw Exception('Failed to load daily summary: ${response.statusCode}');
     }
   }
