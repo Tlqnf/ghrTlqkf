@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 
-import '../models/calendar_summary.dart';
+import 'package:pedal/models/calendar_summary.dart';
 
 class CalendarApi {
 

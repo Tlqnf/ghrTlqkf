@@ -4,7 +4,7 @@ import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/report.dart';
 import 'package:http/http.dart' as http;
 
-import '../models/calendar_summary.dart';
+import 'package:pedal/models/calendar_summary.dart';
 
 import 'package:pedal/models/daily_distance.dart';
 

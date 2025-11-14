@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '../../../models/calendar_summary.dart';
+import 'package:pedal/models/calendar_summary.dart';
 
 // 서버 데이터 모델
 

@@ -4,7 +4,7 @@ import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/widgets/calendar/card/medal_summary_card.dart';
 import 'package:provider/provider.dart';
 
-import '../models/calendar_summary.dart';
+import 'package:pedal/models/calendar_summary.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});

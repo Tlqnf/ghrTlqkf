@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../api/report_api.dart';
-import '../models/calendar_summary.dart';
-import '../providers/auth_provider.dart';
-import '../widgets/report/ride_summery_widget.dart';
+import 'package:pedal/api/report_api.dart';
+import 'package:pedal/models/calendar_summary.dart';
+import 'package:pedal/providers/auth_provider.dart';
+import 'package:pedal/widgets/report/ride_summery_widget.dart';
 import 'calendar_screen.dart';
 import 'daily_log_screen.dart';
 
@@ -15,21 +15,40 @@ class RidingStatsScreen extends StatefulWidget {
   State<RidingStatsScreen> createState() => _RidingStatsScreenState();
 }
 
-
 class _RidingStatsScreenState extends State<RidingStatsScreen> {
   final PageController _pageController = PageController();
   int _selectedIndex = 0;
 
+  // Future를 분리하여 개별 관리
   Future<DailySummary>? _dailySummaryFuture;
   Future<UserLevel>? _userLevelFuture;
+
+  // 캐시된 데이터 (로딩 완료 후)
+  DailySummary? _cachedDailySummary;
+  UserLevel? _cachedUserLevel;
+
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = const [
+      CalendarScreen(),
+      StatsScreen(),
+    ];
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_dailySummaryFuture == null) {
       final token = Provider.of<AuthProvider>(context, listen: false).token;
-        _dailySummaryFuture = ReportApi.fetchDailySummary(token!, DateTime.now());
-        _userLevelFuture = ReportApi.fetchUserLevel(token);
+      _dailySummaryFuture = ReportApi.fetchDailySummary(token!, DateTime.now());
+      _userLevelFuture = ReportApi.fetchUserLevel(token);
+
+      // 데이터 캐싱
+      _dailySummaryFuture!.then((value) => _cachedDailySummary = value);
+      _userLevelFuture!.then((value) => _cachedUserLevel = value);
     }
   }
 
@@ -45,74 +64,52 @@ class _RidingStatsScreenState extends State<RidingStatsScreen> {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
-    const double headerHeight = 70; // 원하면 조절
+    const double headerHeight = 70;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
-
       body: SafeArea(
         top: false,
         child: Column(
           children: [
-            Container(
-              height: headerHeight + topPadding,
-              width: double.infinity,
-              color: const Color(0xFFB9E9FF),
-              padding: EdgeInsets.only(top: topPadding),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(width: 4),
-                  const Text(
-                    '일지',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+            // 헤더를 RepaintBoundary로 감싸서 재빌드 최소화
+            RepaintBoundary(
+              child: Container(
+                height: headerHeight + topPadding,
+                width: double.infinity,
+                color: const Color(0xFFB9E9FF),
+                padding: EdgeInsets.only(top: topPadding),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    const Text(
+                      '일지',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
-            // ✅ 🔹 Expanded로 기존 내용 그대로 표시
             Expanded(
               child: NestedScrollView(
                 physics: const BouncingScrollPhysics(),
-
-                // 🔻 NestedScrollView가 custom header 아래에서 시작되도록 padding 추가
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
                   return [
-                    SliverToBoxAdapter(child: SizedBox(height: 0)),
+                    // Summary 위젯
                     SliverToBoxAdapter(
-                      child: (_dailySummaryFuture == null || _userLevelFuture == null)
-                          ? const Center(child: CircularProgressIndicator())
-                          : FutureBuilder<List<Object>>(
-                        future: Future.wait([_dailySummaryFuture!, _userLevelFuture!]),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
-                          } else if (snapshot.hasError) {
-                            return Center(child: Text('Error: ${snapshot.error}'));
-                          } else if (!snapshot.hasData) {
-                            return const Center(child: Text('No data'));
-                          } else {
-                            final dailySummary = snapshot.data![0] as DailySummary;
-                            final userLevel = snapshot.data![1] as UserLevel;
-
-                            return RidingSummaryWidget(
-                              distanceKm: dailySummary.totalActivityDistanceKm,
-                              calories: dailySummary.totalKal,
-                              rank: userLevel.lev,
-                            );
-                          }
-                        },
-                      ),
+                      child: _buildSummarySection(),
                     ),
+                    // 탭 버튼
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -142,22 +139,74 @@ class _RidingStatsScreenState extends State<RidingStatsScreen> {
                     ),
                   ];
                 },
-
                 body: PageView(
                   controller: _pageController,
                   onPageChanged: (index) {
                     setState(() => _selectedIndex = index);
                   },
-                  children: const [
-                    CalendarScreen(),
-                    StatsScreen(),
-                  ],
+                  children: _pages,
                 ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  // Summary 섹션을 별도 메서드로 분리
+  Widget _buildSummarySection() {
+    // 캐시된 데이터가 있으면 즉시 표시 (재빌드 시 깜빡임 방지)
+    if (_cachedDailySummary != null && _cachedUserLevel != null) {
+      return RepaintBoundary(
+        child: RidingSummaryWidget(
+          distanceKm: _cachedDailySummary!.totalActivityDistanceKm,
+          calories: _cachedDailySummary!.totalKal,
+          rank: _cachedUserLevel!.lev,
+        ),
+      );
+    }
+
+    // 로딩 중일 때만 FutureBuilder 사용
+    if (_dailySummaryFuture == null || _userLevelFuture == null) {
+      return const SizedBox(
+        height: 200,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return FutureBuilder<List<Object>>(
+      future: Future.wait([_dailySummaryFuture!, _userLevelFuture!]),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            height: 200,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        } else if (snapshot.hasError) {
+          return SizedBox(
+            height: 200,
+            child: Center(child: Text('Error: ${snapshot.error}')),
+          );
+        } else if (!snapshot.hasData) {
+          return const SizedBox(
+            height: 200,
+            child: Center(child: Text('No data')),
+          );
+        }
+
+        final dailySummary = snapshot.data![0] as DailySummary;
+        final userLevel = snapshot.data![1] as UserLevel;
+
+        // RepaintBoundary를 실제 위젯에만 적용
+        return RepaintBoundary(
+          child: RidingSummaryWidget(
+            distanceKm: dailySummary.totalActivityDistanceKm,
+            calories: dailySummary.totalKal,
+            rank: userLevel.lev,
+          ),
+        );
+      },
     );
   }
 

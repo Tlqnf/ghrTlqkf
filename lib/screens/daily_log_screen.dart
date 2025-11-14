@@ -7,8 +7,8 @@ import 'package:pedal/widgets/report/card/weekly_speed_stat.dart';
 import 'package:pedal/widgets/report/card/weekly_time_stat.dart';
 import 'package:provider/provider.dart';
 
-import '../models/calendar_summary.dart';
-import '../models/daily_distance.dart';
+import 'package:pedal/models/calendar_summary.dart';
+import 'package:pedal/models/daily_distance.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
