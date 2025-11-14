@@ -16,8 +16,10 @@ class DailySummary {
   factory DailySummary.fromJson(Map<String, dynamic> json) {
     return DailySummary(
       routesTakenCount: (json['routes_taken_count'] as num?)?.toInt() ?? 0,
-      totalActivityTimeFormatted: json['total_activity_time_formatted'] as String? ?? '00:00:00',
-      totalActivityDistanceKm: (json['total_activity_distance_km'] as num?)?.toDouble() ?? 0.0,
+      totalActivityTimeFormatted:
+          json['total_activity_time_formatted'] as String? ?? '00:00:00',
+      totalActivityDistanceKm:
+          (json['total_activity_distance_km'] as num?)?.toDouble() ?? 0.0,
       maxSpeed: (json['max_speed'] as num?)?.toDouble() ?? 0.0,
       totalKal: (json['total_kal'] as num?)?.toInt() ?? 0,
     );
@@ -38,10 +40,7 @@ class MonthlyComparison {
   final int changeType;
   final double distanceChange;
 
-  MonthlyComparison({
-    required this.changeType,
-    required this.distanceChange,
-  });
+  MonthlyComparison({required this.changeType, required this.distanceChange});
 
   factory MonthlyComparison.fromJson(Map<String, dynamic> json) {
     return MonthlyComparison(
@@ -51,10 +50,7 @@ class MonthlyComparison {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'change_type': changeType,
-      'distance_change': distanceChange,
-    };
+    return {'change_type': changeType, 'distance_change': distanceChange};
   }
 }
 
@@ -103,11 +99,7 @@ class UserLevel {
   final int exp;
   final int nextLevExp;
 
-  UserLevel({
-    required this.lev,
-    required this.exp,
-    required this.nextLevExp,
-  });
+  UserLevel({required this.lev, required this.exp, required this.nextLevExp});
 
   factory UserLevel.fromJson(Map<String, dynamic> json) {
     return UserLevel(
@@ -118,11 +110,7 @@ class UserLevel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'lev': lev,
-      'exp': exp,
-      'next_lev_exp': nextLevExp,
-    };
+    return {'lev': lev, 'exp': exp, 'next_lev_exp': nextLevExp};
   }
 }
 
@@ -144,13 +132,14 @@ class WeeklySummary {
   factory WeeklySummary.fromJson(Map<String, dynamic> json) {
     return WeeklySummary(
       routesTakenCount: json['routes_taken_count'] as int,
-      totalActivityTimeFormatted: json['total_activity_time_formatted'] as String,
-      totalActivityDistanceKm: (json['total_activity_distance_km'] as num).toDouble(),
+      totalActivityTimeFormatted:
+          json['total_activity_time_formatted'] as String,
+      totalActivityDistanceKm: (json['total_activity_distance_km'] as num)
+          .toDouble(),
       maxSpeed: (json['max_speed'] as num).toDouble(),
       totalKal: json['total_kal'] as int,
     );
   }
-
 }
 
 class RideStamp {

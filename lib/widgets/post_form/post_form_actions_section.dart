@@ -30,9 +30,7 @@ class PostFormActionsSection extends StatelessWidget {
           backgroundColor: Colors.red,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           disabledBackgroundColor: Colors.grey[400],
         ),
         child: viewModel.isLoading
@@ -40,7 +38,9 @@ class PostFormActionsSection extends StatelessWidget {
                 height: 20,
                 width: 20,
                 child: CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 3),
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
               )
             : const Text('저장', style: TextStyle(fontSize: 18)),
       ),
@@ -65,7 +65,9 @@ class PostFormActionsSection extends StatelessWidget {
                   height: 20,
                   width: 20,
                   child: CircularProgressIndicator(
-                      color: Colors.red, strokeWidth: 3),
+                    color: Colors.red,
+                    strokeWidth: 3,
+                  ),
                 )
               : const Text('삭제', style: TextStyle(fontSize: 18)),
         ),
@@ -86,7 +88,9 @@ class PostFormActionsSection extends StatelessWidget {
                   height: 20,
                   width: 20,
                   child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 3),
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
                 )
               : const Text('저장', style: TextStyle(fontSize: 18)),
         ),

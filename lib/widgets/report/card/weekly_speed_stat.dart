@@ -9,13 +9,15 @@ class HalfCirclePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint backgroundPaint = Paint()
-      ..color = Colors.pinkAccent.withValues(alpha: 0.2) // 배경 색상
+      ..color = Colors.pinkAccent
+          .withValues(alpha: 0.2) // 배경 색상
       ..style = PaintingStyle.stroke
       ..strokeWidth = 15
       ..strokeCap = StrokeCap.round;
 
     final Paint progressPaint = Paint()
-      ..color = Colors.pinkAccent // 진행 상태 색상
+      ..color = Colors
+          .pinkAccent // 진행 상태 색상
       ..style = PaintingStyle.stroke
       ..strokeWidth = 15
       ..strokeCap = StrokeCap.round;
@@ -24,7 +26,12 @@ class HalfCirclePainter extends CustomPainter {
     final double diameter = size.width - 2 * padding;
     final double radius = diameter / 2;
 
-    final rect = Rect.fromLTWH(padding, size.height - radius, diameter, diameter);
+    final rect = Rect.fromLTWH(
+      padding,
+      size.height - radius,
+      diameter,
+      diameter,
+    );
     const double startAngle = pi; // 180도 (왼쪽에서 시작)
     const double fullSweepAngle = pi; // 180도 (반원)
 

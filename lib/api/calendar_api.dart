@@ -7,13 +7,17 @@ import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/calendar_summary.dart';
 
 class CalendarApi {
-
-
   // get - calender/stamp-report/{YYYY-MM}
   // 해당 달의 스탬프 총 통계 반환
-  static Future<MonthlyStampReport> fetchMonthlyStampReport(String token, int year, int month) async {
+  static Future<MonthlyStampReport> fetchMonthlyStampReport(
+    String token,
+    int year,
+    int month,
+  ) async {
     final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/calender/stamp-report/$year-${month.toString().padLeft(2, '0')}'),
+      Uri.parse(
+        '${ApiConfig.baseUrl}/calender/stamp-report/$year-${month.toString().padLeft(2, '0')}',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -23,7 +27,9 @@ class CalendarApi {
     if (response.statusCode == 200) {
       return MonthlyStampReport.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to load monthly stamp report: ${response.statusCode}');
+      throw Exception(
+        'Failed to load monthly stamp report: ${response.statusCode}',
+      );
     }
   }
 
@@ -48,9 +54,12 @@ class CalendarApi {
         throw Exception('Unexpected response format (not a List)');
       }
     } else {
-      throw Exception('Failed to load monthly stamp list: ${response.statusCode}');
+      throw Exception(
+        'Failed to load monthly stamp list: ${response.statusCode}',
+      );
     }
   }
+
   // get - calender/today-stamp
   // 오늘 스탬프 레벨을 불러옴
   static Future<RideStamp> fetchTodayStamp(String token) async {
@@ -68,5 +77,4 @@ class CalendarApi {
       throw Exception('Failed to load today\'s stamp: ${response.statusCode}');
     }
   }
-
 }

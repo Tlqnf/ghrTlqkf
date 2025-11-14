@@ -32,7 +32,10 @@ class _TermsOfServiceModalState extends State<TermsOfServiceModal> {
     return AlertDialog(
       contentPadding: const EdgeInsets.all(20.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-      title: const Text('약관 동의', style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w600)),
+      title: const Text(
+        '약관 동의',
+        style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w600),
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -124,28 +127,26 @@ class _TermsOfServiceModalState extends State<TermsOfServiceModal> {
   }) {
     return Row(
       children: [
-        Checkbox(
-          value: value,
-          onChanged: onChanged,
-          checkColor: Colors.white,
-        ),
+        Checkbox(value: value, onChanged: onChanged, checkColor: Colors.white),
         Expanded(
           child: Text(
             label,
-            style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal),
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
         ),
         if (onView != null)
-          TextButton(
-            onPressed: onView,
-            child: const Text('보기'),
-          ),
+          TextButton(onPressed: onView, child: const Text('보기')),
       ],
     );
   }
 }
 
-void showTermsOfServiceModal(BuildContext context, {required VoidCallback onAgreed}) {
+void showTermsOfServiceModal(
+  BuildContext context, {
+  required VoidCallback onAgreed,
+}) {
   showDialog(
     context: context,
     builder: (BuildContext context) {

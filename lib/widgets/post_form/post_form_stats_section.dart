@@ -18,17 +18,22 @@ class PostFormStatsSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildStatItem(
-                  '거리',
-                  viewModel.postData?.distance.toStringAsFixed(2) ??
-                      viewModel.initialDistance!.toStringAsFixed(2),
-                  'km'),
+                '거리',
+                viewModel.postData?.distance.toStringAsFixed(2) ??
+                    viewModel.initialDistance!.toStringAsFixed(2),
+                'km',
+              ),
               _buildStatItem(
-                  '평균 속력',
-                  viewModel.postData?.speed.toStringAsFixed(1) ??
-                      viewModel.initialAvgSpeed!.toStringAsFixed(1),
-                  'km/h'),
-              _buildStatItem('총 시간',
-                  viewModel.postData?.time ?? viewModel.initialTime ?? '00:00:00', ''),
+                '평균 속력',
+                viewModel.postData?.speed.toStringAsFixed(1) ??
+                    viewModel.initialAvgSpeed!.toStringAsFixed(1),
+                'km/h',
+              ),
+              _buildStatItem(
+                '총 시간',
+                viewModel.postData?.time ?? viewModel.initialTime ?? '00:00:00',
+                '',
+              ),
             ],
           ),
         ],
@@ -45,15 +50,20 @@ class PostFormStatsSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            Text(value,
-                style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.red)),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.red,
+              ),
+            ),
             if (unit.isNotEmpty) ...[
               const SizedBox(width: 4),
-              Text(unit,
-                  style: const TextStyle(fontSize: 16, color: Colors.grey)),
+              Text(
+                unit,
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
+              ),
             ],
           ],
         ),

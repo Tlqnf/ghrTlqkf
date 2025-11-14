@@ -21,6 +21,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       );
     }
   }
+
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -68,7 +69,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(5),
                 child: Image.asset("assets/Logo.png", height: 50),
-              )
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -104,7 +105,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             // 3. Fixed Indicator
             _buildIndicator(),
             const SizedBox(height: 10), // Add some space
-
             // 4. Fixed Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
@@ -146,30 +146,38 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     if (highlight1Index != -1) {
       if (highlight1Index > 0) {
-        spans.add(TextSpan(
-          text: title1.substring(0, highlight1Index),
-          style: const TextStyle(color: Colors.black, fontSize: 20),
-        ));
+        spans.add(
+          TextSpan(
+            text: title1.substring(0, highlight1Index),
+            style: const TextStyle(color: Colors.black, fontSize: 20),
+          ),
+        );
       }
-      spans.add(TextSpan(
-        text: highlight1,
-        style: const TextStyle(
-          color: Color(0xFFE74C3C),
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
+      spans.add(
+        TextSpan(
+          text: highlight1,
+          style: const TextStyle(
+            color: Color(0xFFE74C3C),
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
         ),
-      ));
+      );
       if (highlight1Index + highlight1.length < title1.length) {
-        spans.add(TextSpan(
-          text: title1.substring(highlight1Index + highlight1.length),
-          style: const TextStyle(color: Colors.black, fontSize: 20),
-        ));
+        spans.add(
+          TextSpan(
+            text: title1.substring(highlight1Index + highlight1.length),
+            style: const TextStyle(color: Colors.black, fontSize: 20),
+          ),
+        );
       }
     } else {
-      spans.add(TextSpan(
-        text: title1,
-        style: const TextStyle(color: Colors.black, fontSize: 20),
-      ));
+      spans.add(
+        TextSpan(
+          text: title1,
+          style: const TextStyle(color: Colors.black, fontSize: 20),
+        ),
+      );
     }
 
     spans.add(const TextSpan(text: '\n')); // New line
@@ -181,36 +189,41 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     if (highlight2Index != -1) {
       if (highlight2Index > 0) {
-        spans.add(TextSpan(
-          text: title2.substring(0, highlight2Index),
-          style: const TextStyle(color: Colors.black, fontSize: 20),
-        ));
+        spans.add(
+          TextSpan(
+            text: title2.substring(0, highlight2Index),
+            style: const TextStyle(color: Colors.black, fontSize: 20),
+          ),
+        );
       }
-      spans.add(TextSpan(
-        text: highlight2,
-        style: const TextStyle(
-          color: Color(0xFFE74C3C),
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
+      spans.add(
+        TextSpan(
+          text: highlight2,
+          style: const TextStyle(
+            color: Color(0xFFE74C3C),
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
         ),
-      ));
+      );
       if (highlight2Index + highlight2.length < title2.length) {
-        spans.add(TextSpan(
-          text: title2.substring(highlight2Index + highlight2.length),
-          style: const TextStyle(color: Colors.black, fontSize: 20),
-        ));
+        spans.add(
+          TextSpan(
+            text: title2.substring(highlight2Index + highlight2.length),
+            style: const TextStyle(color: Colors.black, fontSize: 20),
+          ),
+        );
       }
     } else {
-      spans.add(TextSpan(
-        text: title2,
-        style: const TextStyle(color: Colors.black, fontSize: 20),
-      ));
+      spans.add(
+        TextSpan(
+          text: title2,
+          style: const TextStyle(color: Colors.black, fontSize: 20),
+        ),
+      );
     }
 
-    return Text.rich(
-      TextSpan(children: spans),
-      textAlign: TextAlign.center,
-    );
+    return Text.rich(TextSpan(children: spans), textAlign: TextAlign.center);
   }
 
   Widget _buildIndicator() {
@@ -233,4 +246,3 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 }
-

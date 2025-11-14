@@ -33,17 +33,17 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.highlight,
   });
 
-  final Color? primary;    // 메인 컬러
+  final Color? primary; // 메인 컬러
   final Color? background; // 이전 background
-  final Color? subBg;      // 이전 surface (Sub Bg)
-  final Color? text;       // 이전 onSurface (Text)
-  final Color? subText;    // 이전 onSurfaceVariant (Sub Text)
-  final Color? stroke;     // 이전 outline (Stroke)
-  final Color? success;    // Success (성공 상태)
-  final Color? info;       // 이전 secondary (정보)
-  final Color? warning;    // Warning (경고 상태)
-  final Color? error;      // Error (오류 상태)
-  final Color? highlight;  // 이전 primary (강조, 메인 레드)
+  final Color? subBg; // 이전 surface (Sub Bg)
+  final Color? text; // 이전 onSurface (Text)
+  final Color? subText; // 이전 onSurfaceVariant (Sub Text)
+  final Color? stroke; // 이전 outline (Stroke)
+  final Color? success; // Success (성공 상태)
+  final Color? info; // 이전 secondary (정보)
+  final Color? warning; // Warning (경고 상태)
+  final Color? error; // Error (오류 상태)
+  final Color? highlight; // 이전 primary (강조, 메인 레드)
 
   // 기본 'light' 테마 색상을 static 상수로 정의합니다.
   static const light = AppColors(
@@ -138,11 +138,11 @@ void main() async {
   await initializeDateFormatting('ko_KR', null);
 
   // Firebase 초기화
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler); // FCM background handler 등록
+  FirebaseMessaging.onBackgroundMessage(
+    firebaseMessagingBackgroundHandler,
+  ); // FCM background handler 등록
   await FCMService().initialize(); // FCM
 
   // Ads 초기화
@@ -159,8 +159,9 @@ void main() async {
   // 인앱 로그인 진행
   // Google Sign-In 초기화
   await GoogleSignIn.instance.initialize(
-    clientId: dotenv.env["GOOGLE_CLIENT_ID"],// clientId->android
-    serverClientId: dotenv.env["GOOGLE_SERVER_CLIENT_ID"], // serverClientId->webClient
+    clientId: dotenv.env["GOOGLE_CLIENT_ID"], // clientId->android
+    serverClientId:
+        dotenv.env["GOOGLE_SERVER_CLIENT_ID"], // serverClientId->webClient
   );
   // Kakao SDK 초기화
   KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']);
@@ -203,7 +204,6 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
     await prefs.setBool('onboarding_complete', false);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -218,10 +218,15 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
       onGenerateRoute: AppRoute.onGenerateRoute,
 
       home: FutureBuilder(
-        future: Provider.of<AuthProvider>(context, listen: false).tryAutoLogin(),
+        future: Provider.of<AuthProvider>(
+          context,
+          listen: false,
+        ).tryAutoLogin(),
         builder: (context, authSnapshot) {
           if (authSnapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           }
 
           // 자동 로그인 시도 후, Consumer를 사용하여 인증 상태에 따라 UI를 빌드합니다.
@@ -240,14 +245,19 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
                     },
                   );
                 });
-                return const Scaffold(body: Center(child: CircularProgressIndicator()));
-              }
-              else { // loggedOut
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              } else {
+                // loggedOut
                 return FutureBuilder<bool>(
                   future: _checkOnboardingStatus(),
                   builder: (context, onboardingSnapshot) {
-                    if (onboardingSnapshot.connectionState == ConnectionState.waiting) {
-                      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                    if (onboardingSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
                     }
 
                     final onboardingComplete = onboardingSnapshot.data ?? false;

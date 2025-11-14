@@ -9,14 +9,14 @@ class GoogleSignInService {
     _googleSignIn
         .initialize(clientId: clientId, serverClientId: serverClientId)
         .then((_) {
-      // 인증 이벤트 스트림 구독
-      _googleSignIn.authenticationEvents
-          .listen(_handleAuthenticationEvent)
-          .onError(_handleAuthenticationError);
+          // 인증 이벤트 스트림 구독
+          _googleSignIn.authenticationEvents
+              .listen(_handleAuthenticationEvent)
+              .onError(_handleAuthenticationError);
 
-      // 경량 인증 시도
-      _googleSignIn.attemptLightweightAuthentication();
-    });
+          // 경량 인증 시도
+          _googleSignIn.attemptLightweightAuthentication();
+        });
   }
 
   void _handleAuthenticationEvent(GoogleSignInAuthenticationEvent event) {
@@ -47,23 +47,26 @@ class GoogleSignInService {
 
   /// 특정 scope 요청 (null-safety 적용)
   Future<GoogleSignInClientAuthorization?> requestScopes(
-      GoogleSignInAccount user, List<String> scopes) async {
-    final authorization = await user.authorizationClient
-        .authorizationForScopes(scopes);
+    GoogleSignInAccount user,
+    List<String> scopes,
+  ) async {
+    final authorization = await user.authorizationClient.authorizationForScopes(
+      scopes,
+    );
 
     if (authorization == null) {
       return await user.authorizationClient.authorizeScopes(scopes);
     }
 
     return authorization;
-
   }
 
   /// 서버용 인증 코드 요청 (null-safety 적용)
   Future<GoogleSignInServerAuthorization?> getServerAuthCode(
-      GoogleSignInAccount user, List<String> scopes) async {
-    final serverAuth =
-    await user.authorizationClient.authorizeServer(scopes);
+    GoogleSignInAccount user,
+    List<String> scopes,
+  ) async {
+    final serverAuth = await user.authorizationClient.authorizeServer(scopes);
     return serverAuth;
   }
 

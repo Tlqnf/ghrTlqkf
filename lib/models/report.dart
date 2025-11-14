@@ -29,20 +29,19 @@ class ReportCreate {
     int? lowestHigh,
     double? increaseSlope,
     double? decreaseSlope,
-  })  : healthTime = healthTime ?? 0,
-        halfTime = halfTime ?? 0,
-        distance = distance ?? 0.0,
-        kcal = kcal ?? 0,
-        averageSpeed = averageSpeed ?? 0.0,
-        highestSpeed = highestSpeed ?? 0.0,
-        averageFace = averageFace ?? 0.0,
-        highestFace = highestFace ?? 0.0,
-        cumulativeHigh = cumulativeHigh ?? 0,
-        highestHigh = highestHigh ?? 0,
-        lowestHigh = lowestHigh ?? 0,
-        increaseSlope = increaseSlope ?? 0.0,
-        decreaseSlope = decreaseSlope ?? 0.0;
-
+  }) : healthTime = healthTime ?? 0,
+       halfTime = halfTime ?? 0,
+       distance = distance ?? 0.0,
+       kcal = kcal ?? 0,
+       averageSpeed = averageSpeed ?? 0.0,
+       highestSpeed = highestSpeed ?? 0.0,
+       averageFace = averageFace ?? 0.0,
+       highestFace = highestFace ?? 0.0,
+       cumulativeHigh = cumulativeHigh ?? 0,
+       highestHigh = highestHigh ?? 0,
+       lowestHigh = lowestHigh ?? 0,
+       increaseSlope = increaseSlope ?? 0.0,
+       decreaseSlope = decreaseSlope ?? 0.0;
 
   factory ReportCreate.fromJson(Map<String, dynamic> json) {
     return ReportCreate(

@@ -15,7 +15,11 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    void showConfirmationDialog(String title, String content, VoidCallback onConfirm) {
+    void showConfirmationDialog(
+      String title,
+      String content,
+      VoidCallback onConfirm,
+    ) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -58,117 +62,172 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: 8),
           const Text(
             'PEDAL',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
           ),
         ],
       ),
-      actions: authProvider.authState == AuthState.loggedIn ? [
-        IconButton(
-          icon: const Icon(Icons.notifications_none, color: Colors.black,),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const NoticeListScreen()),
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.menu, color: Colors.black),
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              builder: (BuildContext context) {
-                return SafeArea(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        ListTile(
-                          leading: const Icon(Icons.person, color: Colors.black),
-                          title: const Text('프로필 수정', style: TextStyle(color: Colors.black)),
-                          onTap: () {
-                            Navigator.pop(context); // Close the modal
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              Navigator.pushNamed(
-                                context,
-                                AppRoute.profile,
-                                arguments: {
-                                  "token": authProvider.token,
-                                  "isEditing": true,
-                                },
-                              );
-                            });
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.logout, color: Colors.black),
-                          title: const Text('로그아웃', style: TextStyle(color: Colors.black)),
-                          onTap: () {
-                            Navigator.pop(context); // Close the modal
-                            showConfirmationDialog('로그아웃', '정말 로그아웃 하시겠습니까?', () async {
-                              await UserApi.logoutUserProfile(authProvider.token!);
-                              authProvider.logout();
-                              if (!context.mounted) return;
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  AppRoute.login,
-                                );
-                              });
-                            });
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.delete_forever, color: Colors.black),
-                          title: const Text('회원탈퇴', style: TextStyle(color: Colors.black)),
-                          onTap: () async {
-                            Navigator.pop(context); // Close the modal
-                            showConfirmationDialog('회원탈퇴', '정말 탈퇴하시겠습니까? 모든 정보가 삭제됩니다.', () async {
-                              try {
-                                await UserApi.deleteUserProfile(authProvider.token!);
-                                authProvider.logout();
-                                if (context.mounted) {
-                                  showOverlaySnackBar(context, '회원탈퇴가 완료되었습니다.');
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    Navigator.pushReplacementNamed(
-                                      context,
-                                      AppRoute.login,
+      actions: authProvider.authState == AuthState.loggedIn
+          ? [
+              IconButton(
+                icon: const Icon(Icons.notifications_none, color: Colors.black),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NoticeListScreen(),
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.menu, color: Colors.black),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            ListTile(
+                              leading: const Icon(
+                                Icons.person,
+                                color: Colors.black,
+                              ),
+                              title: const Text(
+                                '프로필 수정',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context); // Close the modal
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoute.profile,
+                                    arguments: {
+                                      "token": authProvider.token,
+                                      "isEditing": true,
+                                    },
+                                  );
+                                });
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(
+                                Icons.logout,
+                                color: Colors.black,
+                              ),
+                              title: const Text(
+                                '로그아웃',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context); // Close the modal
+                                showConfirmationDialog(
+                                  '로그아웃',
+                                  '정말 로그아웃 하시겠습니까?',
+                                  () async {
+                                    await UserApi.logoutUserProfile(
+                                      authProvider.token!,
                                     );
-                                  });
+                                    authProvider.logout();
+                                    if (!context.mounted) return;
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                          Navigator.pushReplacementNamed(
+                                            context,
+                                            AppRoute.login,
+                                          );
+                                        });
+                                  },
+                                );
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(
+                                Icons.delete_forever,
+                                color: Colors.black,
+                              ),
+                              title: const Text(
+                                '회원탈퇴',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                              onTap: () async {
+                                Navigator.pop(context); // Close the modal
+                                showConfirmationDialog(
+                                  '회원탈퇴',
+                                  '정말 탈퇴하시겠습니까? 모든 정보가 삭제됩니다.',
+                                  () async {
+                                    try {
+                                      await UserApi.deleteUserProfile(
+                                        authProvider.token!,
+                                      );
+                                      authProvider.logout();
+                                      if (context.mounted) {
+                                        showOverlaySnackBar(
+                                          context,
+                                          '회원탈퇴가 완료되었습니다.',
+                                        );
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) {
+                                              Navigator.pushReplacementNamed(
+                                                context,
+                                                AppRoute.login,
+                                              );
+                                            });
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        showOverlaySnackBar(
+                                          context,
+                                          '회원탈퇴 중 오류가 발생했습니다: $e',
+                                        );
+                                      }
+                                    }
+                                  },
+                                );
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(
+                                Icons.help_outline,
+                                color: Colors.black,
+                              ),
+                              title: const Text(
+                                '문의하기',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                              onTap: () async {
+                                Navigator.pop(context); // Close the modal
+                                final url = Uri.parse(
+                                  'http://pf.kakao.com/_fxoxoUn/chat',
+                                );
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(
+                                    url,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                } else {
+                                  if (context.mounted) {
+                                    showOverlaySnackBar(
+                                      context,
+                                      '카카오톡 오픈채팅방을 열 수 없습니다.',
+                                    );
+                                  }
                                 }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  showOverlaySnackBar(context, '회원탈퇴 중 오류가 발생했습니다: $e');
-                                }
-                              }
-                            });
-                          },
+                              },
+                            ),
+                          ],
                         ),
-                        ListTile(
-                          leading: const Icon(Icons.help_outline, color: Colors.black),
-                          title: const Text('문의하기', style: TextStyle(color: Colors.black)),
-                          onTap: () async {
-                            Navigator.pop(context); // Close the modal
-                            final url = Uri.parse('http://pf.kakao.com/_fxoxoUn/chat');
-                            if (await canLaunchUrl(url)) {
-                              await launchUrl(url, mode: LaunchMode.externalApplication);
-                            } else {
-                              if(context.mounted) {
-                                showOverlaySnackBar(context, '카카오톡 오픈채팅방을 열 수 없습니다.');
-                              }
-                            }
-                          },
-                        ),
-                      ],
-                    )
-                );
-              },
-            );
-          },
-        ),
-      ] : [],
+                      );
+                    },
+                  );
+                },
+              ),
+            ]
+          : [],
     );
   }
 

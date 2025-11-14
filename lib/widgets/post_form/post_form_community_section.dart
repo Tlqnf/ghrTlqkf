@@ -19,7 +19,7 @@ class PostFormCommunitySection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Title
-          const SizedBox(height: 16,),
+          const SizedBox(height: 16),
           _buildSectionTitle('게시글 제목', isRequired: true),
           const SizedBox(height: 8),
           TextField(
@@ -27,11 +27,14 @@ class PostFormCommunitySection extends StatelessWidget {
             decoration: const InputDecoration(
               hintText: '게시글 제목을 입력해주세요.',
               border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
               enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
               focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -47,11 +50,14 @@ class PostFormCommunitySection extends StatelessWidget {
             decoration: const InputDecoration(
               hintText: '게시글에 올릴 내용을 입력해주세요.',
               border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
               enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
               focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
             ),
           ),
           const SizedBox(height: 32),
@@ -63,17 +69,21 @@ class PostFormCommunitySection extends StatelessWidget {
   Widget _buildSectionTitle(String title, {bool isRequired = false}) {
     return Row(
       children: [
-        Text(title,
-            style:
-                const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
         if (isRequired) ...[
           const SizedBox(width: 4),
-          const Text("*",
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red)),
-        ]
+          const Text(
+            "*",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.red,
+            ),
+          ),
+        ],
       ],
     );
   }

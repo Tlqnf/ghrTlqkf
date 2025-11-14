@@ -22,7 +22,9 @@ class RidingSummaryWidget extends StatelessWidget {
           decoration: const BoxDecoration(
             color: Color(0xFFadd455), // 하늘색 배경 (필요시 수정 가능)
             image: DecorationImage(
-              image: AssetImage('assets/image/report_background.png'), // 배경 구름 이미지(선택)
+              image: AssetImage(
+                'assets/image/report_background.png',
+              ), // 배경 구름 이미지(선택)
               fit: BoxFit.fitWidth, // 이미지 비율을 유지하면서 가로로 꽉 채우도록 수정
               alignment: Alignment.topCenter, // 이미지를 상단에 고정
             ),
@@ -31,13 +33,10 @@ class RidingSummaryWidget extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 30,),
+              SizedBox(height: 140),
               const Text(
                 '오늘도 와주셨군요!',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black87,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.black87),
               ),
               const SizedBox(height: 8),
               Text(
@@ -50,7 +49,10 @@ class RidingSummaryWidget extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(30),
@@ -86,7 +88,8 @@ class RidingSummaryWidget extends StatelessWidget {
                           style: TextStyle(
                             color: Colors.grey.shade600,
                             fontSize: 13,
-                          ),),
+                          ),
+                        ),
                         const SizedBox(width: 4),
                         Icon(
                           Icons.info_outline,

@@ -24,31 +24,35 @@ class PostFormImageSection extends StatelessWidget {
               children: [
                 if (viewModel.mapImagePath != null)
                   viewModel.mapImagePath!.startsWith('http')
-                    ? Image.network(
-                        viewModel.mapImagePath!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      )
-                    : Image.file(
-                        File(viewModel.mapImagePath!),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      )
+                      ? Image.network(
+                          viewModel.mapImagePath!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        )
+                      : Image.file(
+                          File(viewModel.mapImagePath!),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        )
                 else
                   const ColoredBox(
                     color: Colors.grey,
                     child: Center(child: Text('Map Placeholder')),
                   ),
-                ...viewModel.additionalImages.map((image) => Image.file(
-                      File(image.path),
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    )),
-                ...viewModel.additionalImageUrls.map((url) => Image.network(
-                      url,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    )),
+                ...viewModel.additionalImages.map(
+                  (image) => Image.file(
+                    File(image.path),
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                  ),
+                ),
+                ...viewModel.additionalImageUrls.map(
+                  (url) => Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                  ),
+                ),
               ],
             ),
           ),
@@ -89,8 +93,8 @@ class PostFormImageSection extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: viewModel.currentImagePage == index
-                          ? Colors.red
-                          : Colors.white.withValues(alpha: 0.5),
+                            ? Colors.red
+                            : Colors.white.withValues(alpha: 0.5),
                       ),
                     ),
                   ),

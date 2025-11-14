@@ -60,8 +60,10 @@ class RecordingOverlay extends StatelessWidget {
                       children: [
                         MapControlButton(
                           icon: Icons.explore_outlined,
-                          onPressed: () => mapProvider.mapController
-                              ?.updateCamera(NCameraUpdate.withParams(bearing: 0)),
+                          onPressed: () =>
+                              mapProvider.mapController?.updateCamera(
+                                NCameraUpdate.withParams(bearing: 0),
+                              ),
                         ),
                         const SizedBox(height: 8),
                         MapControlButton(
@@ -108,7 +110,7 @@ class RecordingOverlay extends StatelessWidget {
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 10,
-                        )
+                        ),
                       ],
                     ),
                     child: Padding(
@@ -117,7 +119,9 @@ class RecordingOverlay extends StatelessWidget {
                         children: [
                           IconButton(
                             icon: Icon(
-                              mapProvider.isPaused ? Icons.play_arrow : Icons.pause,
+                              mapProvider.isPaused
+                                  ? Icons.play_arrow
+                                  : Icons.pause,
                               size: 50,
                             ),
                             onPressed: mapProviderReader.pauseAndRecording,
@@ -126,16 +130,20 @@ class RecordingOverlay extends StatelessWidget {
                           IconButton(
                             icon: const Icon(Icons.stop, size: 50),
                             onPressed: () async {
-                              final navData = await mapProviderReader.stopRecording();
+                              final navData = await mapProviderReader
+                                  .stopRecording();
                               if (navData != null && context.mounted) {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) => PostFormScreen(
                                       routeId: navData['routeId'],
-                                      initialDistance: navData['initialDistance'],
+                                      initialDistance:
+                                          navData['initialDistance'],
                                       initialTime: navData['initialTime'],
-                                      initialAvgSpeed: navData['initialAvgSpeed'],
-                                      initialMaxSpeed: navData['initialMaxSpeed'],
+                                      initialAvgSpeed:
+                                          navData['initialAvgSpeed'],
+                                      initialMaxSpeed:
+                                          navData['initialMaxSpeed'],
                                       mapImagePath: navData['mapImagePath'],
                                       routeCoords: navData['routeCoords'],
                                     ),
@@ -150,7 +158,9 @@ class RecordingOverlay extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   MapControlButton(
-                    icon: mapProvider.isMapVisible ? Icons.layers_clear : Icons.layers,
+                    icon: mapProvider.isMapVisible
+                        ? Icons.layers_clear
+                        : Icons.layers,
                     onPressed: mapProviderReader.mapVisibility,
                   ),
                 ],
@@ -162,9 +172,7 @@ class RecordingOverlay extends StatelessWidget {
           bottom: 0,
           left: 0,
           right: 0,
-          child: SafeArea(
-            child: Center(child: BannerAdWidget()),
-          ),
+          child: SafeArea(child: Center(child: BannerAdWidget())),
         ),
       ],
     );

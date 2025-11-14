@@ -57,7 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: RefreshIndicator( // Pull-to-Refresh 적용
+      body: RefreshIndicator(
+        // Pull-to-Refresh 적용
         onRefresh: _refreshData,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -83,61 +84,65 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const RidingStatsScreen()),
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const RidingStatsScreen(),
+                                ),
                               );
                             },
                             child: const Text(
                               '더보기',
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 16,
-                              ),
+                              style: TextStyle(color: Colors.red, fontSize: 16),
                             ),
-                          )
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
                       _analyze == null
-                          ? const Center(
-                          child:
-                          Text("활동 요약 데이터를 불러오는 중입니다..."))
+                          ? const Center(child: Text("활동 요약 데이터를 불러오는 중입니다..."))
                           : SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width:
-                              MediaQuery.of(context).size.width / 2.5,
-                              child: ActivitySummaryCard(
-                                label: '활동 횟수',
-                                value: '${_analyze?.routesTakenCount ?? 0}',
-                                unit: '회',
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.width / 2.5,
+                                    child: ActivitySummaryCard(
+                                      label: '활동 횟수',
+                                      value:
+                                          '${_analyze?.routesTakenCount ?? 0}',
+                                      unit: '회',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.width / 2.5,
+                                    child: ActivitySummaryCard(
+                                      label: '활동 시간',
+                                      value:
+                                          _analyze
+                                              ?.totalActivityTimeFormatted ??
+                                          '00:00:00',
+                                      unit: '',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.width / 2.5,
+                                    child: ActivitySummaryCard(
+                                      label: '활동 거리',
+                                      value:
+                                          _analyze?.totalActivityDistanceKm
+                                              .toStringAsFixed(2) ??
+                                          '0.00',
+                                      unit: 'km',
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            SizedBox(
-                              width:
-                              MediaQuery.of(context).size.width / 2.5,
-                              child: ActivitySummaryCard(
-                                label: '활동 시간',
-                                value: _analyze?.totalActivityTimeFormatted ?? '00:00:00',
-                                unit: '',
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            SizedBox(
-                              width:
-                              MediaQuery.of(context).size.width / 2.5,
-                              child: ActivitySummaryCard(
-                                label: '활동 거리',
-                                value:
-                                _analyze?.totalActivityDistanceKm.toStringAsFixed(2) ?? '0.00',
-                                unit: 'km',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -162,12 +167,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else {
                   final posts = snapshot.data!;
                   return SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                        return ActivityCard(post: posts[index]);
-                      },
-                      childCount: posts.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      return ActivityCard(post: posts[index]);
+                    }, childCount: posts.length),
                   );
                 }
               },

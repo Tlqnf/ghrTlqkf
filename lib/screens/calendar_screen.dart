@@ -13,7 +13,8 @@ class CalendarScreen extends StatefulWidget {
   State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
-class _CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAliveClientMixin {
+class _CalendarScreenState extends State<CalendarScreen>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -25,9 +26,13 @@ class _CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAlive
     super.didChangeDependencies();
     if (_monthlyStampReportFuture == null) {
       final token = Provider.of<AuthProvider>(context, listen: false).token;
-        final now = DateTime.now();
-        _monthlyStampReportFuture = CalendarApi.fetchMonthlyStampReport(token!, now.year, now.month);
-        _rideStampsFuture = CalendarApi.fetchMonthStampList(token);
+      final now = DateTime.now();
+      _monthlyStampReportFuture = CalendarApi.fetchMonthlyStampReport(
+        token!,
+        now.year,
+        now.month,
+      );
+      _rideStampsFuture = CalendarApi.fetchMonthStampList(token);
     }
   }
 
@@ -48,7 +53,8 @@ class _CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAlive
             } else if (!snapshot.hasData) {
               return const Center(child: Text('No data'));
             } else {
-              final monthlyStampReport = snapshot.data![0] as MonthlyStampReport;
+              final monthlyStampReport =
+                  snapshot.data![0] as MonthlyStampReport;
               final rideStamps = snapshot.data![1] as List<RideStamp>;
 
               return MedalAndCalendarSection(

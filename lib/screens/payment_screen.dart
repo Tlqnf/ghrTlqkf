@@ -69,10 +69,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       const SizedBox(height: 8),
                       const Text(
                         '2,500원 / 월',
-                        style: TextStyle(
-                          fontSize: 22,
-                          color: Colors.black,
-                        ),
+                        style: TextStyle(fontSize: 22, color: Colors.black),
                       ),
                       const SizedBox(height: 40),
                       Card(
@@ -148,10 +145,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         children: [
           const Icon(Icons.check_circle, color: Color(0xFFFF3B30)),
           const SizedBox(width: 12),
-          Text(
-            text,
-            style: const TextStyle(fontSize: 16, color: Colors.black),
-          ),
+          Text(text, style: const TextStyle(fontSize: 16, color: Colors.black)),
         ],
       ),
     );

@@ -61,7 +61,7 @@ class MedalSummaryCard extends StatelessWidget {
   static const List<MedalInfo> medalInfoList = [
     MedalInfo("동메달", "assets/image/medal/bronze.png"), // index 0
     MedalInfo("은메달", "assets/image/medal/silver.png"), // index 1
-    MedalInfo("금메달", "assets/image/medal/gold.png"),   // index 2
+    MedalInfo("금메달", "assets/image/medal/gold.png"), // index 2
     MedalInfo("다이아몬드", "assets/image/medal/diamond.png"), // index 3
     MedalInfo("마스터", "assets/image/medal/master.png"), // index 4
   ];
@@ -73,7 +73,9 @@ class MedalSummaryCard extends StatelessWidget {
       return const SizedBox.shrink(); // Or some error/default widget
     }
 
-    final medalInfo = avgMedalIndex == 0 ? null : medalInfoList[avgMedalIndex - 1];
+    final medalInfo = avgMedalIndex == 0
+        ? null
+        : medalInfoList[avgMedalIndex - 1];
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
@@ -93,24 +95,21 @@ class MedalSummaryCard extends StatelessWidget {
         children: [
           const Text(
             '이번 달 메달 취득 내역',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             '지난 달에 비해 $growRate% 성장했어요!',
-            style: const TextStyle(
-              color: Colors.black54,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: Colors.black54, fontSize: 14),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF6F6F6),
                   borderRadius: BorderRadius.circular(8),
@@ -125,7 +124,10 @@ class MedalSummaryCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF6F6F6),
                   borderRadius: BorderRadius.circular(8),
@@ -141,11 +143,7 @@ class MedalSummaryCard extends StatelessWidget {
                     ),
                     if (medalInfo != null) ...[
                       const SizedBox(width: 4),
-                      Image.asset(
-                        medalInfo.imagePath,
-                        width: 18,
-                        height: 18,
-                      ),
+                      Image.asset(medalInfo.imagePath, width: 18, height: 18),
                       Text(
                         ' ${medalInfo.name}',
                         style: const TextStyle(

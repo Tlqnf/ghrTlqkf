@@ -12,7 +12,9 @@ class AuthWrapper extends StatelessWidget {
       future: Provider.of<AuthProvider>(context, listen: false).tryAutoLogin(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
 
         return Consumer<AuthProvider>(
@@ -32,11 +34,15 @@ class AuthWrapper extends StatelessWidget {
                     },
                   );
                 });
-                return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               case AuthState.loggedOut:
                 return AppRoute.routes[AppRoute.login]!(context);
               default:
-                return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
             }
           },
         );

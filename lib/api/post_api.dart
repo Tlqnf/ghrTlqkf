@@ -12,9 +12,7 @@ class PostApi {
   static Future<List<Post>> getPosts(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/post'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode == 200) {
@@ -27,7 +25,12 @@ class PostApi {
 
   // post - post (수정 필요 반환값)
   // 게시글 만들기 (실질적인 리스트 표시)
-  static Future<bool> createPost(String postData, String? mapImagePath, List<String> imagePaths, String token) async {
+  static Future<bool> createPost(
+    String postData,
+    String? mapImagePath,
+    List<String> imagePaths,
+    String token,
+  ) async {
     try {
       var uri = Uri.parse('${ApiConfig.baseUrl}/post');
       var request = http.MultipartRequest('POST', uri);
@@ -88,11 +91,11 @@ class PostApi {
   // patch - post (수정 필요 createPost와 똑같은 구조)
   // 게시글 수정
   static Future<bool> updatePost(
-      String postData,
-      int postId,
-      List<String> imagePaths,
-      String token,
-      ) async {
+    String postData,
+    int postId,
+    List<String> imagePaths,
+    String token,
+  ) async {
     try {
       var uri = Uri.parse('${ApiConfig.baseUrl}/post/$postId');
       var request = http.MultipartRequest('PATCH', uri);
@@ -141,8 +144,8 @@ class PostApi {
         Uri.parse('${ApiConfig.baseUrl}/post/$postId'),
         headers: {
           'Authorization': 'Bearer $token',
-          'Content-type': "application/json"
-        }
+          'Content-type': "application/json",
+        },
       );
       return response;
     } catch (e) {
@@ -184,7 +187,7 @@ class PostApi {
       Uri.parse('${ApiConfig.baseUrl}/post/$postId/bookmark'),
       headers: {
         'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: jsonEncode({'postId': postId}),
     );
@@ -200,7 +203,7 @@ class PostApi {
       Uri.parse('${ApiConfig.baseUrl}/post/$postId/bookmark'),
       headers: {
         'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: jsonEncode({'postId': postId}),
     );

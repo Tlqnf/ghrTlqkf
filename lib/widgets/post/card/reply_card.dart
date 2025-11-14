@@ -43,8 +43,10 @@ class _ReplyAreaState extends State<ReplyArea> {
     });
 
     try {
-      final replies =
-      await CommentApi.getCommentReplies(widget.commentId, token!);
+      final replies = await CommentApi.getCommentReplies(
+        widget.commentId,
+        token!,
+      );
 
       if (!mounted) return;
       setState(() {
@@ -110,12 +112,8 @@ class _ReplyAreaState extends State<ReplyArea> {
               });
             },
             child: Text(
-              _showReplies
-                  ? '댓글 숨기기'
-                  : '댓글 ${_replies!.length}개 더보기',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
-              ),
+              _showReplies ? '댓글 숨기기' : '댓글 ${_replies!.length}개 더보기',
+              style: TextStyle(color: Theme.of(context).colorScheme.secondary),
             ),
           ),
         ),
@@ -123,8 +121,7 @@ class _ReplyAreaState extends State<ReplyArea> {
         // ReplyItem 리스트
         if (_showReplies)
           Column(
-            children: _replies!
-                .map((reply) {
+            children: _replies!.map((reply) {
               return ReplyItem(reply: reply, parentId: widget.commentId);
             }).toList(),
           ),
@@ -178,17 +175,15 @@ class _ReplyItemState extends State<ReplyItem> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          widget.reply.profilePic != null &&
-          widget.reply.profilePic!.isNotEmpty
-            ? CircleAvatar(
-                radius: 20,
-                backgroundImage: NetworkImage(widget.reply.profilePic!),
-              )
-            : const CircleAvatar(
-                radius: 20,
-                backgroundImage:
-                AssetImage('assets/image/not_profile.png'),
-              ),
+          widget.reply.profilePic != null && widget.reply.profilePic!.isNotEmpty
+              ? CircleAvatar(
+                  radius: 20,
+                  backgroundImage: NetworkImage(widget.reply.profilePic!),
+                )
+              : const CircleAvatar(
+                  radius: 20,
+                  backgroundImage: AssetImage('assets/image/not_profile.png'),
+                ),
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
@@ -204,7 +199,8 @@ class _ReplyItemState extends State<ReplyItem> {
                   FutureBuilder<List<TextSpan>>(
                     future: _textSpansFuture,
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
                         return RichText(
                           text: TextSpan(
                             style: DefaultTextStyle.of(context).style,
@@ -231,10 +227,10 @@ class _ReplyItemState extends State<ReplyItem> {
                       const SizedBox(width: 4),
                       isLoading
                           ? const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
                           : Text(likeCount.toString()),
                     ],
                   ),

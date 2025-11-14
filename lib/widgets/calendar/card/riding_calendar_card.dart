@@ -5,7 +5,6 @@ import 'package:pedal/models/calendar_summary.dart';
 
 // 서버 데이터 모델
 
-
 class RidingCalendarCard extends StatefulWidget {
   final List<RideStamp> rideData;
 
@@ -82,10 +81,10 @@ class _RidingCalendarCardState extends State<RidingCalendarCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -100,10 +99,7 @@ class _RidingCalendarCardState extends State<RidingCalendarCard> {
             children: const [
               Text(
                 '라이딩 캘린더',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               SizedBox(width: 6),
               Icon(Icons.info_outline, size: 16, color: Colors.black45),
@@ -123,9 +119,7 @@ class _RidingCalendarCardState extends State<RidingCalendarCard> {
               leftChevronIcon: Icon(Icons.chevron_left),
               rightChevronIcon: Icon(Icons.chevron_right),
             ),
-            calendarStyle: const CalendarStyle(
-              isTodayHighlighted: false,
-            ),
+            calendarStyle: const CalendarStyle(isTodayHighlighted: false),
             calendarBuilders: CalendarBuilders(
               defaultBuilder: (context, day, focusedDay) => _stampMarker(day),
               outsideBuilder: (context, day, focusedDay) => _stampMarker(day),

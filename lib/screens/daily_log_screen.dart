@@ -17,7 +17,8 @@ class StatsScreen extends StatefulWidget {
   State<StatsScreen> createState() => _StatsScreenState();
 }
 
-class _StatsScreenState extends State<StatsScreen> with AutomaticKeepAliveClientMixin {
+class _StatsScreenState extends State<StatsScreen>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -45,7 +46,11 @@ class _StatsScreenState extends State<StatsScreen> with AutomaticKeepAliveClient
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: FutureBuilder<List<Object>>(
-          future: Future.wait([_dailySummaryFuture!, _weeklySummaryFuture!, _dailyDistancesFuture!]),
+          future: Future.wait([
+            _dailySummaryFuture!,
+            _weeklySummaryFuture!,
+            _dailyDistancesFuture!,
+          ]),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -70,15 +75,29 @@ class _StatsScreenState extends State<StatsScreen> with AutomaticKeepAliveClient
                       Expanded(
                         child: WeeklyTimeStat(
                           weeklyTime: Duration(
-                            hours: int.parse(weeklySummary.totalActivityTimeFormatted.split(':')[0]),
-                            minutes: int.parse(weeklySummary.totalActivityTimeFormatted.split(':')[1]),
-                            seconds: int.parse(weeklySummary.totalActivityTimeFormatted.split(':')[2]),
+                            hours: int.parse(
+                              weeklySummary.totalActivityTimeFormatted.split(
+                                ':',
+                              )[0],
+                            ),
+                            minutes: int.parse(
+                              weeklySummary.totalActivityTimeFormatted.split(
+                                ':',
+                              )[1],
+                            ),
+                            seconds: int.parse(
+                              weeklySummary.totalActivityTimeFormatted.split(
+                                ':',
+                              )[2],
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: WeeklySpeedStat(topSpeed: weeklySummary.maxSpeed),
+                        child: WeeklySpeedStat(
+                          topSpeed: weeklySummary.maxSpeed,
+                        ),
                       ),
                     ],
                   ),

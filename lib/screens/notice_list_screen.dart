@@ -70,15 +70,15 @@ class _NoticeListScreenState extends State<NoticeListScreen> {
                         ),
                         title: Text(notice.title),
                         content: SingleChildScrollView(
-                          child: Text(notice.content)
+                          child: Text(notice.content),
                         ),
                         actions: [
                           TextButton(
                             child: const Text('닫기'),
                             onPressed: () => Navigator.of(context).pop(),
-                          )
+                          ),
                         ],
-                      )
+                      ),
                     );
                   },
                 );

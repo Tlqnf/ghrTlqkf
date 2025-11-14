@@ -17,7 +17,7 @@ class NavigationListModal extends StatefulWidget {
   const NavigationListModal({
     super.key,
     required this.scrollController,
-    required this.mapProvider
+    required this.mapProvider,
   });
 
   @override
@@ -48,10 +48,7 @@ class _NavigationListModalState extends State<NavigationListModal> {
         UserApi.getRecentPosts(token),
         UserApi.getRecentBookmarks(token),
       ]);
-      return {
-        'myRoutes': results[0],
-        'bookmarkedRoutes': results[1],
-      };
+      return {'myRoutes': results[0], 'bookmarkedRoutes': results[1]};
     } catch (e) {
       // Propagate error to be handled by FutureBuilder
       throw Exception('Failed to load routes: $e');
@@ -63,9 +60,7 @@ class _NavigationListModalState extends State<NavigationListModal> {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(16),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: SingleChildScrollView(
         controller: widget.scrollController,
@@ -113,7 +108,10 @@ class _NavigationListModalState extends State<NavigationListModal> {
                   children: [
                     if (myRoutes.isNotEmpty) ...[
                       const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16.0),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 16.0,
+                        ),
                         child: Text(
                           '내 경로',
                           style: TextStyle(
@@ -127,7 +125,10 @@ class _NavigationListModalState extends State<NavigationListModal> {
                     ],
                     if (bookmarkedRoutes.isNotEmpty) ...[
                       const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16.0),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 16.0,
+                        ),
                         child: Text(
                           '저장한 경로',
                           style: TextStyle(
@@ -166,8 +167,13 @@ class _NavigationListModalState extends State<NavigationListModal> {
             if (authProvider.token == null) return;
 
             try {
-              final points = await RouteApi.getRoutePoint(post.routeId, authProvider.token!);
-              final routeCoords = points.map((p) => NLatLng(p['lat'], p['lon'])).toList();
+              final points = await RouteApi.getRoutePoint(
+                post.routeId,
+                authProvider.token!,
+              );
+              final routeCoords = points
+                  .map((p) => NLatLng(p['lat'], p['lon']))
+                  .toList();
               if (routeCoords.isNotEmpty) {
                 widget.mapProvider.startNavigation(routeCoords);
               } else {

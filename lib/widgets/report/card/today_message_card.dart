@@ -11,12 +11,19 @@ class TodayMessageCard extends StatelessWidget {
     } else if (calories >= 1200) {
       return {'name': '라면 두 그릇', 'image': 'assets/image/kal_food/ramen.png'};
     } else if (calories >= 600) {
-      return {'name': '떡볶이 1인분', 'image': 'assets/image/kal_food/tteokbokki.png'};
+      return {
+        'name': '떡볶이 1인분',
+        'image': 'assets/image/kal_food/tteokbokki.png',
+      };
     } else if (calories >= 450) {
       return {'name': '김밥 한 개', 'image': 'assets/image/kal_food/gimbap.png'};
     } else if (calories >= 250) {
-      return {'name': '샌드위치 한 개', 'image': 'assets/image/kal_food/sandwich.png'};
-    } else { // calories < 250
+      return {
+        'name': '샌드위치 한 개',
+        'image': 'assets/image/kal_food/sandwich.png',
+      };
+    } else {
+      // calories < 250
       return {'name': '아직 아무것도 태우지 못했어요....', 'image': 'assets/image_mock.png'};
     }
   }
@@ -33,10 +40,7 @@ class TodayMessageCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 5,
-          )
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5),
         ],
       ),
       child: Column(
@@ -67,15 +71,9 @@ class TodayMessageCard extends StatelessWidget {
             TextSpan(
               children: [
                 if (foodName == '아직 아무것도 태우지 못했어요....')
-                  TextSpan(
-                    text: foodName,
-                    style: const TextStyle(fontSize: 16),
-                  )
+                  TextSpan(text: foodName, style: const TextStyle(fontSize: 16))
                 else ...[
-                  const TextSpan(
-                    text: '오늘 ',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  const TextSpan(text: '오늘 ', style: TextStyle(fontSize: 16)),
                   TextSpan(
                     text: '$foodName ',
                     style: const TextStyle(

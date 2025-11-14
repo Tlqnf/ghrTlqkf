@@ -76,7 +76,9 @@ class UserApi {
 
     if (response.statusCode != 200) {
       final responseBody = await response.stream.bytesToString();
-      throw Exception('Failed to update user profile: ${response.statusCode} $responseBody');
+      throw Exception(
+        'Failed to update user profile: ${response.statusCode} $responseBody',
+      );
     }
   }
 
@@ -88,7 +90,7 @@ class UserApi {
       headers: {
         "Authorization": "Bearer $token",
         "Content-type": "application/json",
-      }
+      },
     );
 
     if (response.statusCode == 200) {
@@ -100,8 +102,10 @@ class UserApi {
 
   // get - users/me/profile-description-status
   // 유저의 프로필 중 설명이 있는가? (완)
-  static Future<bool?> checkUserProfile(String token) async{
-    final url = Uri.parse('${ApiConfig.baseUrl}/users/me/profile-description-status');
+  static Future<bool?> checkUserProfile(String token) async {
+    final url = Uri.parse(
+      '${ApiConfig.baseUrl}/users/me/profile-description-status',
+    );
     final response = await http.get(
       url,
       headers: {
@@ -113,7 +117,6 @@ class UserApi {
     if (response.statusCode == 200) {
       Map<String, dynamic> json = jsonDecode(response.body);
       return json["is_null"];
-
     } else {
       throw Exception('Failed to load user profile: ${response.statusCode}');
     }
@@ -255,7 +258,9 @@ class UserApi {
   // 유저가 북마크한 모든 게시글 반환
   static Future<List<Post>> getBookmarks(String token, int page) async {
     final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/post/me/bookmarked?page=$page&page_size=10'),
+      Uri.parse(
+        '${ApiConfig.baseUrl}/post/me/bookmarked?page=$page&page_size=10',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

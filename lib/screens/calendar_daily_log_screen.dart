@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:pedal/api/report_api.dart';
-import 'package:pedal/models/calendar_summary.dart';
-import 'package:pedal/providers/auth_provider.dart';
-import 'package:pedal/widgets/report/ride_summery_widget.dart';
+import '../api/report_api.dart';
+import '../models/calendar_summary.dart';
+import '../providers/auth_provider.dart';
+import '../widgets/report/ride_summery_widget.dart';
 import 'calendar_screen.dart';
 import 'daily_log_screen.dart';
 
@@ -17,7 +17,9 @@ class RidingStatsScreen extends StatefulWidget {
 
 class _RidingStatsScreenState extends State<RidingStatsScreen> {
   final PageController _pageController = PageController();
+  final ScrollController _scrollController = ScrollController();
   int _selectedIndex = 0;
+  double _scrollOffset = 0.0;
 
   // Future를 분리하여 개별 관리
   Future<DailySummary>? _dailySummaryFuture;
@@ -32,10 +34,18 @@ class _RidingStatsScreenState extends State<RidingStatsScreen> {
   @override
   void initState() {
     super.initState();
-    _pages = const [
-      CalendarScreen(),
-      StatsScreen(),
-    ];
+    _scrollController.addListener(() {
+      setState(() {
+        _scrollOffset = _scrollController.offset;
+      });
+    });
+    _pages = const [CalendarScreen(), StatsScreen()];
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -64,92 +74,89 @@ class _RidingStatsScreenState extends State<RidingStatsScreen> {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
-    const double headerHeight = 70;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            // 헤더를 RepaintBoundary로 감싸서 재빌드 최소화
-            RepaintBoundary(
-              child: Container(
-                height: headerHeight + topPadding,
-                width: double.infinity,
-                color: const Color(0xFFB9E9FF),
-                padding: EdgeInsets.only(top: topPadding),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      '일지',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            Expanded(
-              child: NestedScrollView(
-                physics: const BouncingScrollPhysics(),
-                headerSliverBuilder: (context, innerBoxIsScrolled) {
-                  return [
-                    // Summary 위젯
-                    SliverToBoxAdapter(
-                      child: _buildSummarySection(),
-                    ),
-                    // 탭 버튼
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Center(
-                          child: Container(
-                            width: 200,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 3,
-                                ),
-                              ],
+      body: Stack(
+        children: [
+          // 메인 컨텐츠
+          NestedScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverToBoxAdapter(child: _buildSummarySection()),
+                // 탭 버튼
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child: Center(
+                      child: Container(
+                        width: 200,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 3,
                             ),
-                            child: Row(
-                              children: [
-                                _buildTabButton("캘린더", 0),
-                                _buildTabButton("통계", 1),
-                              ],
-                            ),
-                          ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            _buildTabButton("캘린더", 0),
+                            _buildTabButton("통계", 1),
+                          ],
                         ),
                       ),
                     ),
-                  ];
-                },
-                body: PageView(
-                  controller: _pageController,
-                  onPageChanged: (index) {
-                    setState(() => _selectedIndex = index);
-                  },
-                  children: _pages,
+                  ),
                 ),
+              ];
+            },
+            body: PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() => _selectedIndex = index);
+              },
+              children: _pages,
+            ),
+          ),
+
+          // 상단에 겹치는 헤더 (뒤로가기 + 일지)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 70 + topPadding,
+              padding: EdgeInsets.only(top: topPadding, left: 20, right: 20),
+              color: Colors.white.withValues(
+                alpha: (_scrollOffset / 200).clamp(0, 1),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    '일지',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

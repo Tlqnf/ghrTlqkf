@@ -55,26 +55,23 @@ class UpdateRoute {
   final String? name;
   final List<Map<String, double>>? pointsJson;
 
-  UpdateRoute({
-    required this.name,
-    this.pointsJson,
-  });
+  UpdateRoute({required this.name, this.pointsJson});
 
   factory UpdateRoute.fromJson(Map<String, dynamic> json) {
     return UpdateRoute(
       name: json['name'] ?? '',
       pointsJson: (json['points_json'] as List<dynamic>?)
-          ?.map((e) => {
-        "lat": (e['lat'] as num).toDouble(),
-        "lon": (e['lon'] as num).toDouble(),
-      }).toList(),
+          ?.map(
+            (e) => {
+              "lat": (e['lat'] as num).toDouble(),
+              "lon": (e['lon'] as num).toDouble(),
+            },
+          )
+          .toList(),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      "name": name,
-      "points_json": pointsJson,
-    };
+    return {"name": name, "points_json": pointsJson};
   }
 }

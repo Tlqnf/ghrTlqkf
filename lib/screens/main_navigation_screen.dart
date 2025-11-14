@@ -24,7 +24,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void _onMapButtonPressed() {
     Navigator.of(context).push(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const MapScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const MapScreen(),
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
       ),
@@ -33,10 +34,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> screens = [
-      const HomeScreen(),
-      const MyPageScreen(),
-    ];
+    final List<Widget> screens = [const HomeScreen(), const MyPageScreen()];
 
     return Scaffold(
       appBar: const LogoBar(),

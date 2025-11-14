@@ -35,19 +35,18 @@ class _RidingProgressBarState extends State<RidingProgressBar> {
     const double pixelsPerKm = 60.0;
     const double startOffset = 50.0;
 
-    final double displayMaxKm =
-    widget.medalDistances.isNotEmpty ? widget.medalDistances.last + 1.5 : widget
-        .maxKm;
+    final double displayMaxKm = widget.medalDistances.isNotEmpty
+        ? widget.medalDistances.last + 1.5
+        : widget.maxKm;
     final double progressWidth = widget.currentKm * pixelsPerKm;
     final double maxProgressWidth = displayMaxKm * pixelsPerKm;
     final double clampedProgressWidth = progressWidth.clamp(
-        0.0, maxProgressWidth);
+      0.0,
+      maxProgressWidth,
+    );
     final bool isCompleted = widget.currentKm >= displayMaxKm;
 
-    final screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
+    final screenWidth = MediaQuery.of(context).size.width;
     double bicycleXPosition;
 
     if (isCompleted) {
@@ -71,15 +70,17 @@ class _RidingProgressBarState extends State<RidingProgressBar> {
     const double barHeight = 20.0; // 게이지 두께
     const double startOffset = 50.0; // 시작 여백
 
-    final double displayMaxKm =
-    widget.medalDistances.isNotEmpty ? widget.medalDistances.last + 1.5 : widget
-        .maxKm;
+    final double displayMaxKm = widget.medalDistances.isNotEmpty
+        ? widget.medalDistances.last + 1.5
+        : widget.maxKm;
 
     final double totalWidth = displayMaxKm * pixelsPerKm + startOffset * 2;
     final double progressWidth = widget.currentKm * pixelsPerKm;
     final double maxProgressWidth = displayMaxKm * pixelsPerKm;
     final double clampedProgressWidth = progressWidth.clamp(
-        0.0, maxProgressWidth);
+      0.0,
+      maxProgressWidth,
+    );
     final bool isCompleted = widget.currentKm >= displayMaxKm;
 
     String getMedalImage(int index) {
@@ -136,30 +137,26 @@ class _RidingProgressBarState extends State<RidingProgressBar> {
             for (int i = 0; i < widget.medalDistances.length; i++) ...[
               Positioned(
                 top: 0,
-                left: startOffset + (widget.medalDistances[i] * pixelsPerKm) -
-                    32,
-                child: Image.asset(
-                  getMedalImage(i),
-                  width: 65,
-                ),
+                left:
+                    startOffset + (widget.medalDistances[i] * pixelsPerKm) - 32,
+                child: Image.asset(getMedalImage(i), width: 65),
               ),
               Positioned(
                 top: 120, // Moved down
-                left: startOffset + (widget.medalDistances[i] * pixelsPerKm) -
-                    32,
+                left:
+                    startOffset + (widget.medalDistances[i] * pixelsPerKm) - 32,
                 width: 65,
                 child: Text(
                   '${widget.medalDistances[i].toInt()} km',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 20, color: Colors.grey.shade600),
                 ),
               ),
               Positioned(
                 top: 70, // Centered on gauge
-                left: startOffset + (widget.medalDistances[i] * pixelsPerKm) -
+                left:
+                    startOffset +
+                    (widget.medalDistances[i] * pixelsPerKm) -
                     15, // Adjusted offset
                 child: Container(
                   width: 30, // Increased size
@@ -179,18 +176,12 @@ class _RidingProgressBarState extends State<RidingProgressBar> {
                   ? startOffset + maxProgressWidth - 20
                   : startOffset + clampedProgressWidth - 20,
               top: 40,
-              child: Image.asset(
-                'assets/image/medal/bicycle.png',
-                width: 30,
-              ),
+              child: Image.asset('assets/image/medal/bicycle.png', width: 30),
             ),
             Positioned(
               left: 10,
               top: 45,
-              child: Image.asset(
-                'assets/image/medal/start.png',
-                width: 80,
-              ),
+              child: Image.asset('assets/image/medal/start.png', width: 80),
             ),
             if (widget.medalDistances.isNotEmpty &&
                 widget.currentKm >= widget.medalDistances.last)
@@ -214,7 +205,5 @@ class _RidingProgressBarState extends State<RidingProgressBar> {
         ),
       ),
     );
-
-
   }
 }

@@ -93,53 +93,53 @@ class _AllRecordsScreenState extends State<AllRecordsScreen> {
       body: _records.isEmpty && _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ListView(
-              controller: _scrollController,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                PostList(
-                  bookmarked: widget.bookmarked,
-                  postData: _records,
-                  onItemTap: widget.bookmarked
-                      ? null
-                      : (Post post) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ReportDetailScreen(
-                          reportId: post.reportId,
-                        ),
+                Expanded(
+                  child: ListView(
+                    controller: _scrollController,
+                    children: [
+                      PostList(
+                        bookmarked: widget.bookmarked,
+                        postData: _records,
+                        onItemTap: widget.bookmarked
+                            ? null
+                            : (Post post) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ReportDetailScreen(
+                                      reportId: post.reportId,
+                                    ),
+                                  ),
+                                );
+                              },
+                        onItemEdit: widget.bookmarked
+                            ? null
+                            : (Post post) {
+                                // Only allow edit for non-bookmarked (my records)
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PostFormScreen(
+                                      postData: post,
+                                      routeId: post.routeId,
+                                      mapImagePath: post.mapImageUrl,
+                                    ),
+                                  ),
+                                );
+                              },
                       ),
-                    );
-                  },
-                  onItemEdit: widget.bookmarked
-                      ? null
-                      : (Post post) {
-                    // Only allow edit for non-bookmarked (my records)
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PostFormScreen(
-                          postData: post,
-                          routeId: post.routeId,
-                          mapImagePath: post.mapImageUrl,
+                      if (_isLoading && _records.isNotEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: Center(child: CircularProgressIndicator()),
                         ),
-                      ),
-                    );
-                  },
-                ),
-                if (_isLoading && _records.isNotEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Center(child: CircularProgressIndicator()),
+                    ],
                   ),
+                ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -20,7 +20,7 @@ class FullScreenImage extends StatelessWidget {
                 maxScale: PhotoViewComputedScale.covered * 3,
               ),
             ),
-          )
+          ),
         ],
       ),
     );

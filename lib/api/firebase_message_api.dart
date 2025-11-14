@@ -18,7 +18,9 @@ class FcmApiService {
     if (fcmResponse.statusCode == 200) {
       debugPrint('FCM token sent to server successfully.');
     } else {
-      debugPrint('Failed to send FCM token to server: ${fcmResponse.statusCode}');
+      debugPrint(
+        'Failed to send FCM token to server: ${fcmResponse.statusCode}',
+      );
       debugPrint('Response body: ${fcmResponse.body}');
     }
   }

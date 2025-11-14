@@ -16,8 +16,15 @@ class WeeklyDistanceChart extends StatelessWidget {
         .toList();
 
     final yValues = spots.map((spot) => spot.y).toList();
-    final minY = yValues.isEmpty ? 0.0 : (((yValues.reduce((a, b) => a < b ? a : b) - 10) / 10).floor() * 10).clamp(0, double.infinity).toDouble();
-    final maxY = yValues.isEmpty ? 50.0 : (((yValues.reduce((a, b) => a > b ? a : b) + 10) / 10).ceil() * 10).toDouble();
+    final minY = yValues.isEmpty
+        ? 0.0
+        : (((yValues.reduce((a, b) => a < b ? a : b) - 10) / 10).floor() * 10)
+              .clamp(0, double.infinity)
+              .toDouble();
+    final maxY = yValues.isEmpty
+        ? 50.0
+        : (((yValues.reduce((a, b) => a > b ? a : b) + 10) / 10).ceil() * 10)
+              .toDouble();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -95,12 +102,20 @@ class WeeklyDistanceChart extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         );
-                        return Text('${value.toInt()}km', style: style, textAlign: TextAlign.left);
+                        return Text(
+                          '${value.toInt()}km',
+                          style: style,
+                          textAlign: TextAlign.left,
+                        );
                       },
                     ),
                   ),
-                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                 ),
                 borderData: FlBorderData(
                   show: false,

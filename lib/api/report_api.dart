@@ -41,7 +41,7 @@ class ReportApi {
       Uri.parse("${ApiConfig.baseUrl}/report"),
       headers: {
         "Authorization": "Bearer $token",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: jsonEncode(reportData.toJson()),
     );
@@ -57,9 +57,7 @@ class ReportApi {
   static Future<List<Report>> getReports(String token) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/report'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode == 200) {
@@ -75,21 +73,25 @@ class ReportApi {
   static Future<Report> getReportById(String token, int reportId) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/report/$reportId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode == 200) {
       return Report.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
     } else {
-      throw Exception('Failed to load report $reportId: ${response.statusCode}');
+      throw Exception(
+        'Failed to load report $reportId: ${response.statusCode}',
+      );
     }
   }
 
   // patch - report/{reportId}
   // 리포트 수정
-  static Future<void> updateReport(String token, int reportId, ReportCreate reportData) async {
+  static Future<void> updateReport(
+    String token,
+    int reportId,
+    ReportCreate reportData,
+  ) async {
     final response = await http.patch(
       Uri.parse('${ApiConfig.baseUrl}/report/$reportId'),
       headers: {
@@ -100,54 +102,68 @@ class ReportApi {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to update report $reportId: ${response.statusCode}');
+      throw Exception(
+        'Failed to update report $reportId: ${response.statusCode}',
+      );
     }
   }
 
   // get - report/by-user
   // 유저 필터로 리포트 가져오기
-  static Future<List<Report>> getReportsByUser(String token, String userId) async {
+  static Future<List<Report>> getReportsByUser(
+    String token,
+    String userId,
+  ) async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/report/by-user?userId=$userId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
       return data.map((json) => Report.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to load reports for user $userId: ${response.statusCode}');
+      throw Exception(
+        'Failed to load reports for user $userId: ${response.statusCode}',
+      );
     }
   }
 
   // get - report/by-route-user (body routeId, userId?)
   // 경로&유저 필터로 리포트 가져오기
-  static Future<List<Report>> getReportsByRouteAndUser(String token, int routeId, String userId) async {
+  static Future<List<Report>> getReportsByRouteAndUser(
+    String token,
+    int routeId,
+    String userId,
+  ) async {
     final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/report/by-route-user?routeId=$routeId&userId=$userId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      Uri.parse(
+        '${ApiConfig.baseUrl}/report/by-route-user?routeId=$routeId&userId=$userId',
+      ),
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
       return data.map((json) => Report.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to load reports for route $routeId and user $userId: ${response.statusCode}');
+      throw Exception(
+        'Failed to load reports for route $routeId and user $userId: ${response.statusCode}',
+      );
     }
   }
 
-
-
   // get - report/weekly-summary
   // 주간 기록 요약 가져오기
-  static Future<WeeklySummary> getWeeklySummary(String token, DateTime date) async {
+  static Future<WeeklySummary> getWeeklySummary(
+    String token,
+    DateTime date,
+  ) async {
     final formattedDate = date.toIso8601String();
     final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/report/weekly-summary?date=$formattedDate'),
+      Uri.parse(
+        '${ApiConfig.baseUrl}/report/weekly-summary?date=$formattedDate',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -155,9 +171,13 @@ class ReportApi {
     );
 
     if (response.statusCode == 200) {
-      return WeeklySummary.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
+      return WeeklySummary.fromJson(
+        jsonDecode(utf8.decode(response.bodyBytes)),
+      );
     } else {
-      debugPrint('Failed to load weekly record: ${utf8.decode(response.bodyBytes)}');
+      debugPrint(
+        'Failed to load weekly record: ${utf8.decode(response.bodyBytes)}',
+      );
       throw Exception('Failed to load weekly record: ${response.statusCode}');
     }
   }
@@ -195,16 +215,22 @@ class ReportApi {
       return MonthlyComparison.fromJson(jsonDecode(response.body));
     } else {
       throw Exception(
-          'Failed to load monthly comparison: ${response.statusCode}');
+        'Failed to load monthly comparison: ${response.statusCode}',
+      );
     }
   }
 
   // get - report/daily-summary
   // 오늘 하루 통계 가져오기
-  static Future<DailySummary> fetchDailySummary(String token, DateTime date) async {
+  static Future<DailySummary> fetchDailySummary(
+    String token,
+    DateTime date,
+  ) async {
     final formattedDate = date.toIso8601String();
     final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/report/daily-summary/?date=$formattedDate'),
+      Uri.parse(
+        '${ApiConfig.baseUrl}/report/daily-summary/?date=$formattedDate',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

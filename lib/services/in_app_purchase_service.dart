@@ -15,7 +15,9 @@ class InAppPurchaseService {
 
   void loadProducts() async {
     const Set<String> kIds = {};
-    final ProductDetailsResponse response = await _iap.queryProductDetails(kIds);
+    final ProductDetailsResponse response = await _iap.queryProductDetails(
+      kIds,
+    );
     if (response.notFoundIDs.isEmpty) {
       _products = response.productDetails;
     }
@@ -53,14 +55,14 @@ class InAppPurchaseService {
   }
 
   Future<bool> verifyPurchase(
-      String productId, PurchaseDetails purchaseDetails) async {
+    String productId,
+    PurchaseDetails purchaseDetails,
+  ) async {
     // 플랫폼 확인
     String platform = Platform.isAndroid ? 'google' : 'apple';
 
     // POST 데이터
-    Map<String, dynamic> purchaseData = {
-      'platform': platform,
-    };
+    Map<String, dynamic> purchaseData = {'platform': platform};
 
     // 플랫폼에 따라 필요한 데이터를 추가
     if (platform == 'apple') {
@@ -81,18 +83,20 @@ class InAppPurchaseService {
       builder: (BuildContext context) {
         return AlertDialog(
           contentPadding: const EdgeInsets.all(20.0),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
           title: Text("${Intl.message('pay')}$text"),
           actions: <Widget>[
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text(Intl.message("ok"))
+              child: Text(Intl.message("ok")),
             ),
           ],
         );
-      }
+      },
     );
   }
 }

@@ -90,8 +90,9 @@ class PostFormViewModel extends ChangeNotifier {
       bodyController.text = postData.content;
       tags.addAll(postData.hashTag);
       additionalImageInfos.addAll(postData.images);
-      additionalImageUrls
-          .addAll(postData.images.map((image) => image["url"].toString()));
+      additionalImageUrls.addAll(
+        postData.images.map((image) => image["url"].toString()),
+      );
       isCommunityUploadEnabled = postData.public;
     } else {
       if (initialDistance != null) {
@@ -127,8 +128,9 @@ class PostFormViewModel extends ChangeNotifier {
       showOverlaySnackBar(_context, '최대 2장의 사진만 추가할 수 있습니다.');
       return;
     }
-    final XFile? selectedImage =
-        await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? selectedImage = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
     if (selectedImage != null) {
       additionalImages.add(selectedImage);
       notifyListeners();
@@ -172,16 +174,16 @@ class PostFormViewModel extends ChangeNotifier {
           _isAdLoaded = true;
           _interstitialAd?.fullScreenContentCallback =
               FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) {
-              ad.dispose();
-              _navigateToHome();
-            },
-            onAdFailedToShowFullScreenContent: (ad, error) {
-              ad.dispose();
-              debugPrint('Failed to show ad: $error');
-              _navigateToHome();
-            },
-          );
+                onAdDismissedFullScreenContent: (ad) {
+                  ad.dispose();
+                  _navigateToHome();
+                },
+                onAdFailedToShowFullScreenContent: (ad, error) {
+                  ad.dispose();
+                  debugPrint('Failed to show ad: $error');
+                  _navigateToHome();
+                },
+              );
         },
         onAdFailedToLoad: (error) {
           debugPrint('InterstitialAd failed to load: $error');
@@ -227,17 +229,15 @@ class PostFormViewModel extends ChangeNotifier {
         return;
       }
 
-      final List<String> additionalImagePaths =
-          additionalImages.map((xfile) => xfile.path).toList();
+      final List<String> additionalImagePaths = additionalImages
+          .map((xfile) => xfile.path)
+          .toList();
 
       await RouteApi.updateRoute(
         UpdateRoute(
           name: routeNameController.text,
           pointsJson: routeCoords?.map((coord) {
-            return {
-              "lat": coord[0].toDouble(),
-              "lon": coord[1].toDouble(),
-            };
+            return {"lat": coord[0].toDouble(), "lon": coord[1].toDouble()};
           }).toList(),
         ),
         routeId!,
@@ -245,14 +245,15 @@ class PostFormViewModel extends ChangeNotifier {
       );
 
       final reportId = await ReportApi.createReport(
-          ReportCreate(
-            routeId: routeId!,
-            healthTime: timeToInt(initialTime!),
-            distance: initialDistance,
-            averageSpeed: initialAvgSpeed,
-            highestSpeed: initialMaxSpeed,
-          ),
-          _authProvider.token!);
+        ReportCreate(
+          routeId: routeId!,
+          healthTime: timeToInt(initialTime!),
+          distance: initialDistance,
+          averageSpeed: initialAvgSpeed,
+          highestSpeed: initialMaxSpeed,
+        ),
+        _authProvider.token!,
+      );
 
       final post = CreatePost(
         title: isCommunityUploadEnabled
@@ -322,8 +323,9 @@ class PostFormViewModel extends ChangeNotifier {
         return;
       }
 
-      final List<String> additionalImagePaths =
-          additionalImages.map((xfile) => xfile.path).toList();
+      final List<String> additionalImagePaths = additionalImages
+          .map((xfile) => xfile.path)
+          .toList();
 
       final List<int> imagesToKeepIds = additionalImageInfos
           .where((img) => additionalImageUrls.contains(img["url"]))
@@ -331,18 +333,17 @@ class PostFormViewModel extends ChangeNotifier {
           .toList();
 
       final post = UpdatePost(
-          title: isCommunityUploadEnabled
-              ? titleController.text
-              : routeNameController.text,
-          content: isCommunityUploadEnabled ? bodyController.text : '',
-          hashTag: tags,
-          public: isCommunityUploadEnabled,
-          imagesToKeepIds: imagesToKeepIds);
+        title: isCommunityUploadEnabled
+            ? titleController.text
+            : routeNameController.text,
+        content: isCommunityUploadEnabled ? bodyController.text : '',
+        hashTag: tags,
+        public: isCommunityUploadEnabled,
+        imagesToKeepIds: imagesToKeepIds,
+      );
 
       await RouteApi.updateRoute(
-        UpdateRoute(
-          name: routeNameController.text,
-        ),
+        UpdateRoute(name: routeNameController.text),
         routeId!,
         token,
       );
@@ -390,7 +391,10 @@ class PostFormViewModel extends ChangeNotifier {
       try {
         final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
         final errorMessage = responseBody['detail'] ?? '삭제에 실패했습니다.';
-        showOverlaySnackBar(_context, '오류: ${response.statusCode} - $errorMessage');
+        showOverlaySnackBar(
+          _context,
+          '오류: ${response.statusCode} - $errorMessage',
+        );
       } catch (e) {
         showOverlaySnackBar(_context, '삭제에 실패했습니다.');
       }

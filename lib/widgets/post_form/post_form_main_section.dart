@@ -17,7 +17,7 @@ class PostFormMainSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Route Name
-          const SizedBox(height: 8,),
+          const SizedBox(height: 8),
           _buildSectionTitle('경로 이름', isRequired: true),
           const SizedBox(height: 8),
           TextField(
@@ -25,11 +25,14 @@ class PostFormMainSection extends StatelessWidget {
             decoration: const InputDecoration(
               hintText: '경로 이름을 입력해주세요.',
               border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
               enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
               focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -43,11 +46,14 @@ class PostFormMainSection extends StatelessWidget {
             decoration: const InputDecoration(
               hintText: '추가할 태그를 입력해주세요. (최대 3개)',
               border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
               enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
               focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey, width: 1.0)),
+                borderSide: BorderSide(color: Colors.grey, width: 1.0),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -55,14 +61,16 @@ class PostFormMainSection extends StatelessWidget {
             spacing: 8.0,
             runSpacing: 4.0,
             children: viewModel.tags
-                .map((tag) => Chip(
-                      label: Text('#$tag'),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: const BorderSide(color: Colors.grey),
-                      ),
-                      onDeleted: () => viewModel.removeTag(tag),
-                    ))
+                .map(
+                  (tag) => Chip(
+                    label: Text('#$tag'),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: const BorderSide(color: Colors.grey),
+                    ),
+                    onDeleted: () => viewModel.removeTag(tag),
+                  ),
+                )
                 .toList(),
           ),
           const SizedBox(height: 24),
@@ -72,8 +80,10 @@ class PostFormMainSection extends StatelessWidget {
           const SizedBox(height: 8),
           _buildImagePicker(context, viewModel),
           const SizedBox(height: 8),
-          const Text('상단에서 추가된 사진을 드래그로 확인 가능',
-              style: TextStyle(color: Colors.grey, fontSize: 14)),
+          const Text(
+            '상단에서 추가된 사진을 드래그로 확인 가능',
+            style: TextStyle(color: Colors.grey, fontSize: 14),
+          ),
           const SizedBox(height: 32),
 
           // Community Upload
@@ -97,17 +107,21 @@ class PostFormMainSection extends StatelessWidget {
   Widget _buildSectionTitle(String title, {bool isRequired = false}) {
     return Row(
       children: [
-        Text(title,
-            style:
-                const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
         if (isRequired) ...[
           const SizedBox(width: 4),
-          const Text("*",
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red)),
-        ]
+          const Text(
+            "*",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.red,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -117,10 +131,14 @@ class PostFormMainSection extends StatelessWidget {
       height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: viewModel.additionalImages.length +
+        itemCount:
+            viewModel.additionalImages.length +
             viewModel.additionalImageUrls.length +
             (viewModel.additionalImages.length +
-              viewModel.additionalImageUrls.length < 2 ? 1 : 0),
+                        viewModel.additionalImageUrls.length <
+                    2
+                ? 1
+                : 0),
         itemBuilder: (context, index) {
           final localImageCount = viewModel.additionalImages.length;
           final totalImageCount =
@@ -142,7 +160,9 @@ class PostFormMainSection extends StatelessWidget {
   }
 
   Widget _buildAddPhotoButton(
-      BuildContext context, PostFormViewModel viewModel) {
+    BuildContext context,
+    PostFormViewModel viewModel,
+  ) {
     return GestureDetector(
       onTap: viewModel.pickImage,
       child: Padding(
@@ -158,17 +178,17 @@ class PostFormMainSection extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.add_a_photo_outlined,
-                    color: Colors.grey, size: 30),
-                const SizedBox(height: 8),
-                Text(
-                  '사진 추가',
-                  style: const TextStyle(color: Colors.grey)
+                const Icon(
+                  Icons.add_a_photo_outlined,
+                  color: Colors.grey,
+                  size: 30,
                 ),
+                const SizedBox(height: 8),
+                Text('사진 추가', style: const TextStyle(color: Colors.grey)),
                 Text(
                   '(${viewModel.additionalImages.length + viewModel.additionalImageUrls.length}/2)',
                   style: const TextStyle(color: Colors.grey),
-                )
+                ),
               ],
             ),
           ),
@@ -178,7 +198,10 @@ class PostFormMainSection extends StatelessWidget {
   }
 
   Widget _buildLocalImageItem(
-      BuildContext context, PostFormViewModel viewModel, int index) {
+    BuildContext context,
+    PostFormViewModel viewModel,
+    int index,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
       child: Stack(
@@ -212,7 +235,10 @@ class PostFormMainSection extends StatelessWidget {
   }
 
   Widget _buildNetworkImageItem(
-      BuildContext context, PostFormViewModel viewModel, int urlIndex) {
+    BuildContext context,
+    PostFormViewModel viewModel,
+    int urlIndex,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
       child: Stack(
