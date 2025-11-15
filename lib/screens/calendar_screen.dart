@@ -38,33 +38,53 @@ class _CalendarScreenState extends State<CalendarScreen>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Add this line
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+    super.build(context);
+
+    // Scaffold 제거하고 Container로 변경
+    return Container(
+      color: Colors.white,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 0,      // 상단 여백 제거
+          bottom: 16,  // 하단 최소 패딩
+        ),
         child: FutureBuilder<List<Object>>(
           future: Future.wait([_monthlyStampReportFuture!, _rideStampsFuture!]),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              );
             } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return SizedBox(
+                height: 200,
+                child: Center(child: Text('Error: ${snapshot.error}')),
+              );
             } else if (!snapshot.hasData) {
-              return const Center(child: Text('No data'));
-            } else {
-              final monthlyStampReport =
-                  snapshot.data![0] as MonthlyStampReport;
-              final rideStamps = snapshot.data![1] as List<RideStamp>;
-
-              return MedalAndCalendarSection(
-                getMedal: monthlyStampReport.getStampsNum,
-                getMonthDay: monthlyStampReport.daysOfMonth,
-                avgMedalIndex: monthlyStampReport.averageOfStampLev,
-                growRate: monthlyStampReport.levRaiseRate,
-                rideData: rideStamps,
+              return const SizedBox(
+                height: 200,
+                child: Center(child: Text('No data')),
               );
             }
+
+            final monthlyStampReport = snapshot.data![0] as MonthlyStampReport;
+            final rideStamps = snapshot.data![1] as List<RideStamp>;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min, // 컨텐츠 크기에 맞춤
+              children: [
+                MedalAndCalendarSection(
+                  getMedal: monthlyStampReport.getStampsNum,
+                  getMonthDay: monthlyStampReport.daysOfMonth,
+                  avgMedalIndex: monthlyStampReport.averageOfStampLev,
+                  growRate: monthlyStampReport.levRaiseRate,
+                  rideData: rideStamps,
+                ),
+              ],
+            );
           },
         ),
       ),

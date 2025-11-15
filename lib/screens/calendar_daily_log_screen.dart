@@ -116,13 +116,20 @@ class _RidingStatsScreenState extends State<RidingStatsScreen> {
                 ),
               ];
             },
-            body: PageView(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() => _selectedIndex = index);
-              },
-              children: _pages,
+            body: Column(
+              children: [
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() => _selectedIndex = index);
+                    },
+                    children: _pages,
+                  ),
+                ),
+              ],
             ),
+
           ),
 
           // 상단에 겹치는 헤더 (뒤로가기 + 일지)

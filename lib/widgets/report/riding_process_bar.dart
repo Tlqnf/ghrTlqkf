@@ -138,18 +138,18 @@ class _RidingProgressBarState extends State<RidingProgressBar> {
               Positioned(
                 top: 0,
                 left:
-                    startOffset + (widget.medalDistances[i] * pixelsPerKm) - 32,
-                child: Image.asset(getMedalImage(i), width: 65),
+                    startOffset + (widget.medalDistances[i] * pixelsPerKm) - 27,
+                child: Image.asset(getMedalImage(i), width: 55),
               ),
               Positioned(
-                top: 120, // Moved down
+                top: 110, // Moved down
                 left:
                     startOffset + (widget.medalDistances[i] * pixelsPerKm) - 32,
                 width: 65,
                 child: Text(
                   '${widget.medalDistances[i].toInt()} km',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 20, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
               ),
               Positioned(

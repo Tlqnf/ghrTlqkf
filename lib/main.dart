@@ -1,4 +1,4 @@
-// import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -182,6 +182,8 @@ class PedalApp extends StatefulWidget {
 }
 
 class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+
   @override
   void initState() {
     super.initState();
@@ -216,6 +218,9 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
 
       routes: AppRoute.routes,
       onGenerateRoute: AppRoute.onGenerateRoute,
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(analytics: analytics)
+      ],
 
       home: FutureBuilder(
         future: Provider.of<AuthProvider>(

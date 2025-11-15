@@ -320,8 +320,9 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   // 기록 종료
   Future<Map<String, dynamic>?> stopRecording() async {
     if (_recordingStatus != RecordingStatus.recording ||
-        _authProvider?.token == null)
+        _authProvider?.token == null) {
       return null;
+    }
 
     String? snapshotPath;
     final fullRoute = _routeChunks.expand((chunk) => chunk).toList();

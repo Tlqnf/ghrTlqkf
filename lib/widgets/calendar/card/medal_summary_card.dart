@@ -149,7 +149,7 @@ class MedalSummaryCard extends StatelessWidget {
                         style: const TextStyle(
                           color: Colors.black54,
                           fontWeight: FontWeight.w500,
-                          fontSize: 14,
+                          fontSize: 16,
                         ),
                       ),
                     ] else ...[
@@ -158,7 +158,7 @@ class MedalSummaryCard extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.black54,
                           fontWeight: FontWeight.w500,
-                          fontSize: 14,
+                          fontSize: 16,
                         ),
                       ),
                     ],
