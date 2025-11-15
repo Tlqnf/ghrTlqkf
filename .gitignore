@@ -46,3 +46,6 @@ app.*.map.json
 /android/app/release
 /android/google-services.json
 /android/app/google-services.json
+
+# Design Token
+/assets/design-tokens.tokens.json
