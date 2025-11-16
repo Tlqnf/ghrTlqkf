@@ -162,6 +162,8 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
           if (_mapController == null) return;
           // 새로운 위치, 속도 정보 저장
           final newPoint = NLatLng(pos.latitude, pos.longitude);
+          // 내 위치 갱신
+          _currentUserLocation = newPoint;
 
           final marker = NMarker(
             id: "user_pos",
@@ -172,6 +174,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
           );
           // 사용자 위치 표시 (overlay)
           _mapController?.addOverlay(marker);
+
           if (_recordingStatus == RecordingStatus.recording) {
             recordingLogic(newPoint, pos);
           }
@@ -200,13 +203,20 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
         ) *
         0.001;
 
-    if (distance >= 0 && distance < 0.1) {
+    if (distance > 0 && distance < 0.1) {
       _distance += distance;
     }
 
-    // 속력
+    // 현재, 최고 속력 업데이트
+    _currentSpeed = pos.speed * 3.6;
     final instantSpeed = pos.speed * 3.6; // km/h
     if (instantSpeed > _maxSpeed) _maxSpeed = instantSpeed;
+
+    // 평균 속력 업데이트
+    final elapsedSeconds = _stopwatch.elapsed.inSeconds;
+    if (elapsedSeconds > 0) {
+      _avgSpeed = (_distance / elapsedSeconds) * 3600; // km/h
+    }
 
     // 현재 위치와 timestamp 갱신
     _currentUserLocation = newPoint;
@@ -290,9 +300,10 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
         size: const Size(12, 12),
         anchor: const NPoint(0.5, 0.5),
       );
-      _mapController!.addOverlay(marker);
+      await _mapController!.addOverlay(marker);
     }
 
+    _lastTimestamp = null;
     _stopwatch.reset();
     _stopwatch.start();
     _timer?.cancel();
@@ -302,6 +313,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       _showTrackingNotification();
       notifyListeners();
     });
+    notifyListeners();
   }
 
   // 일시 정지
@@ -319,7 +331,8 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
 
   // 기록 종료
   Future<Map<String, dynamic>?> stopRecording() async {
-    if (_recordingStatus != RecordingStatus.recording ||
+    debugPrint("$_recordingStatus");
+    if (_recordingStatus == RecordingStatus.idle ||
         _authProvider?.token == null) {
       return null;
     }
