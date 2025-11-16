@@ -282,4 +282,20 @@ class UserApi {
       throw Exception('Failed to load user profile: ${response.statusCode}');
     }
   }
+
+  static Future<bool?> getUserSubscription(String token) async {
+    final response = await http.get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}/users/subscription',
+      ),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)["is_subscribed"];
+    }
+    return null;
+  }
 }

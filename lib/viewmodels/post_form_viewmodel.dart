@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:pedal/api/post_api.dart';
 import 'package:pedal/api/report_api.dart';
 import 'package:pedal/api/route_api.dart';
+import 'package:pedal/api/user_api.dart';
 import 'package:pedal/models/post.dart';
 import 'package:pedal/models/report.dart';
 import 'package:pedal/models/route.dart';
@@ -161,7 +162,14 @@ class PostFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _loadInterstitialAd() {
+  void _loadInterstitialAd() async {
+    final token = _authProvider.token;
+    if (token != null) {
+      final isSubscribed = await UserApi.getUserSubscription(token);
+      if (isSubscribed == true) {
+        return;
+      }
+    }
     final adUnitId = AdMobService.interstitialAdUnitId;
     if (adUnitId == null) return;
 
