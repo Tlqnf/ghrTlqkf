@@ -49,7 +49,8 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   final List<NMarker> _arrowMarkers = [];
 
   // 백그라운드 알림
-  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notifications =
+      FlutterLocalNotificationsPlugin();
 
   // getter 함수
   bool get isLoading => _isLoading;
@@ -70,10 +71,12 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     _authProvider = authProvider;
     notifyListeners();
   }
+
   set mapController(NaverMapController mapController) {
     _mapController = mapController;
     notifyListeners();
   }
+
   set isFollowingUser(bool isFollowing) {
     _isFollowing = isFollowing;
     notifyListeners();
@@ -111,7 +114,9 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      debugPrint('Location permissions are permanently denied, we cannot request permissions.');
+      debugPrint(
+        'Location permissions are permanently denied, we cannot request permissions.',
+      );
       return;
     }
 
@@ -137,36 +142,43 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   }
 
   Future<void> initNotification() async {
-    const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initSettings = InitializationSettings(android: androidInit);
+    const AndroidInitializationSettings androidInit =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidInit,
+    );
     await _notifications.initialize(initSettings);
   }
 
   // 실시간 위치 스트림 구독
   Future<void> positionStream() async {
-    _positionStreamSubscription = Geolocator.getPositionStream(
-      locationSettings: LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 0,
-      )
-    ).listen((Position pos) {
-      if (_mapController == null) return;
-      // 새로운 위치, 속도 정보 저장
-      final newPoint = NLatLng(pos.latitude, pos.longitude);
+    _positionStreamSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 0,
+          ),
+        ).listen((Position pos) {
+          if (_mapController == null) return;
+          // 새로운 위치, 속도 정보 저장
+          final newPoint = NLatLng(pos.latitude, pos.longitude);
+          // 내 위치 갱신
+          _currentUserLocation = newPoint;
 
-      final marker = NMarker(
-        id: "user_pos",
-        position: newPoint,
-        icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
-        size: const Size(12, 12),
-        anchor: const NPoint(0.5, 0.5)
-      );
-      // 사용자 위치 표시 (overlay)
-      _mapController?.addOverlay(marker);
-      if (_recordingStatus == RecordingStatus.recording) {
-        recordingLogic(newPoint, pos);
-      }
-    });
+          final marker = NMarker(
+            id: "user_pos",
+            position: newPoint,
+            icon: NOverlayImage.fromAssetImage('assets/image/circleMarker.png'),
+            size: const Size(12, 12),
+            anchor: const NPoint(0.5, 0.5),
+          );
+          // 사용자 위치 표시 (overlay)
+          _mapController?.addOverlay(marker);
+
+          if (_recordingStatus == RecordingStatus.recording) {
+            recordingLogic(newPoint, pos);
+          }
+        });
   }
 
   void recordingLogic(NLatLng newPoint, Position pos) {
@@ -182,20 +194,29 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     }
 
     // 거리 계산 km로 표시
-    final distance = Geolocator.distanceBetween(
-      lastPoint.latitude,
-      lastPoint.longitude,
-      newPoint.latitude,
-      newPoint.longitude
-    ) * 0.001;
+    final distance =
+        Geolocator.distanceBetween(
+          lastPoint.latitude,
+          lastPoint.longitude,
+          newPoint.latitude,
+          newPoint.longitude,
+        ) *
+        0.001;
 
-    if (distance >= 0 && distance < 0.1) {
+    if (distance > 0 && distance < 0.1) {
       _distance += distance;
     }
 
-    // 속력
+    // 현재, 최고 속력 업데이트
+    _currentSpeed = pos.speed * 3.6;
     final instantSpeed = pos.speed * 3.6; // km/h
     if (instantSpeed > _maxSpeed) _maxSpeed = instantSpeed;
+
+    // 평균 속력 업데이트
+    final elapsedSeconds = _stopwatch.elapsed.inSeconds;
+    if (elapsedSeconds > 0) {
+      _avgSpeed = (_distance / elapsedSeconds) * 3600; // km/h
+    }
 
     // 현재 위치와 timestamp 갱신
     _currentUserLocation = newPoint;
@@ -231,17 +252,20 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   }
 
   Future<void> _showTrackingNotification() async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'ride_tracking_channel',
-      '주행 기록',
-      channelDescription: '라이딩 중 상태를 표시합니다.',
-      importance: Importance.low,
-      priority: Priority.low,
-      ongoing: true,
-      showWhen: false,
-    );
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'ride_tracking_channel',
+          '주행 기록',
+          channelDescription: '라이딩 중 상태를 표시합니다.',
+          importance: Importance.low,
+          priority: Priority.low,
+          ongoing: true,
+          showWhen: false,
+        );
 
-    const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+    );
 
     await _notifications.show(
       0, // notification ID
@@ -259,7 +283,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   Future<void> startRecording() async {
     if (_authProvider?.token == null) {
       debugPrint("인증 정보가 존재하지 않습니다.");
-      return ;
+      return;
     }
     _recordingStatus = RecordingStatus.recording;
 
@@ -276,9 +300,10 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
         size: const Size(12, 12),
         anchor: const NPoint(0.5, 0.5),
       );
-      _mapController!.addOverlay(marker);
+      await _mapController!.addOverlay(marker);
     }
 
+    _lastTimestamp = null;
     _stopwatch.reset();
     _stopwatch.start();
     _timer?.cancel();
@@ -288,6 +313,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       _showTrackingNotification();
       notifyListeners();
     });
+    notifyListeners();
   }
 
   // 일시 정지
@@ -305,7 +331,11 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
 
   // 기록 종료
   Future<Map<String, dynamic>?> stopRecording() async {
-    if (_recordingStatus != RecordingStatus.recording || _authProvider?.token == null) return null;
+    debugPrint("$_recordingStatus");
+    if (_recordingStatus == RecordingStatus.idle ||
+        _authProvider?.token == null) {
+      return null;
+    }
 
     String? snapshotPath;
     final fullRoute = _routeChunks.expand((chunk) => chunk).toList();
@@ -315,7 +345,10 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
 
       if (fullRoute.isNotEmpty) {
         final bounds = NLatLngBounds.from(fullRoute);
-        cameraUpdate = NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80));
+        cameraUpdate = NCameraUpdate.fitBounds(
+          bounds,
+          padding: const EdgeInsets.all(80),
+        );
         final double distanceMeters = calculateRouteDistance(fullRoute);
         int durationMs = (distanceMeters / 500).clamp(500, 3000).toInt();
         cameraUpdate.setAnimation(
@@ -350,7 +383,9 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     final time = _time;
     final avgSpeed = _avgSpeed;
     final maxSpeed = _maxSpeed;
-    final routeCoords = fullRoute.map((p) => [p.latitude, p.longitude]).toList();
+    final routeCoords = fullRoute
+        .map((p) => [p.latitude, p.longitude])
+        .toList();
 
     // 프로세스 종료
     _stopwatch.stop();
@@ -377,7 +412,6 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       'mapImagePath': snapshotPath,
       'routeCoords': routeCoords,
     };
-
   }
 
   // 중앙 정렬
@@ -411,7 +445,8 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
 
     // Add arrow markers
     final arrowIcon = NOverlayImage.fromAssetImage('assets/image/arrow.svg');
-    for (int i = 0; i < routeCoords.length - 1; i += 10) { // Adjust step for density
+    for (int i = 0; i < routeCoords.length - 1; i += 10) {
+      // Adjust step for density
       final start = routeCoords[i];
       final end = routeCoords[i + 1];
       final angle = _calculateBearing(start, end);
@@ -431,7 +466,10 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     }
 
     final bounds = NLatLngBounds.from(routeCoords);
-    final cameraUpdate = NCameraUpdate.fitBounds(bounds, padding: const EdgeInsets.all(80));
+    final cameraUpdate = NCameraUpdate.fitBounds(
+      bounds,
+      padding: const EdgeInsets.all(80),
+    );
     _mapController!.updateCamera(cameraUpdate);
 
     notifyListeners();

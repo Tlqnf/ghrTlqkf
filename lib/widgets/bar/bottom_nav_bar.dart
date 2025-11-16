@@ -71,10 +71,7 @@ class _NavBarItem extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                color: selected ? Colors.red : Colors.grey,
-              ),
+              Icon(icon, color: selected ? Colors.red : Colors.grey),
               const SizedBox(height: 4),
               Text(
                 label,

@@ -16,10 +16,7 @@ void showOverlaySnackBar(BuildContext context, String message) {
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child: Text(
-              message,
-              style: const TextStyle(color: Colors.white),
-            ),
+            child: Text(message, style: const TextStyle(color: Colors.white)),
           ),
         ),
       ),

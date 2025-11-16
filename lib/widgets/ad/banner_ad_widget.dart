@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:pedal/api/user_api.dart';
+import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/services/admob_service.dart';
+import 'package:provider/provider.dart';
 
 class BannerAdWidget extends StatefulWidget {
   const BannerAdWidget({super.key});
@@ -13,6 +16,7 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
   AdSize? _adSize;
+  bool _isSubscribed = false;
 
   @override
   void didChangeDependencies() {
@@ -21,7 +25,18 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   }
 
   Future<void> _loadAd() async {
-    // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token != null) {
+      final isSubscribed = await UserApi.getUserSubscription(token);
+      if (mounted && isSubscribed == true) {
+        setState(() {
+          _isSubscribed = true;
+        });
+        return;
+      }
+    }
+    // Get an AnchoredAdaptiveBannerAdSize before loading the ad
     final AnchoredAdaptiveBannerAdSize? size =
         await AdSize.getAnchoredAdaptiveBannerAdSize(
       Orientation.portrait,
@@ -45,6 +60,10 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
       size: size,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
+          if (!mounted) {
+            ad.dispose();
+            return;
+          }
           setState(() {
             _bannerAd = ad as BannerAd;
             _isAdLoaded = true;
@@ -66,6 +85,10 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isSubscribed) {
+      return const SizedBox.shrink();
+    }
+
     if (_isAdLoaded && _bannerAd != null && _adSize != null) {
       return SizedBox(
         width: _adSize!.width.toDouble(),

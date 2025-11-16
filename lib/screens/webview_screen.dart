@@ -50,17 +50,21 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 try {
                   // 웹페이지 body의 텍스트 가져오기
                   final body = await controller.evaluateJavascript(
-                      source: "document.body.innerText");
+                    source: "document.body.innerText",
+                  );
                   if (body != null) {
                     final jsonResponse = jsonDecode(body);
-                    if (jsonResponse is Map && jsonResponse.containsKey('access_token')) {
+                    if (jsonResponse is Map &&
+                        jsonResponse.containsKey('access_token')) {
                       final token = jsonResponse['access_token'];
 
                       // 토큰이 나오면 화면 전체를 흰색으로 덮기
-                      await controller.evaluateJavascript(source: """
+                      await controller.evaluateJavascript(
+                        source: """
                         document.documentElement.style.backgroundColor = '#ffffff';
                         document.body.style.display = 'none';
-                      """);
+                      """,
+                      );
 
                       // 토큰 반환 후 페이지 종료
                       Navigator.pop(context, token);

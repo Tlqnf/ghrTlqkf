@@ -42,12 +42,10 @@ class Post {
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
-    final imgs = (json['images'] as List?)
-        ?.map((e) => {
-      "id": e['id'],
-      "url": e['url'],
-    })
-        .toList() ??
+    final imgs =
+        (json['images'] as List?)
+            ?.map((e) => {"id": e['id'], "url": e['url']})
+            .toList() ??
         <Map<String, dynamic>>[];
 
     return Post(
@@ -60,7 +58,9 @@ class Post {
       userId: json['user_id'] ?? 0,
       reportId: json['report_id'] ?? 0,
       routeId: json["route_id"] ?? 0,
-      createdAt: DateTime.tryParse(json['created_at'] ?? '')?.toLocal() ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['created_at'] ?? '')?.toLocal() ??
+          DateTime.now(),
       images: imgs, // List<Map<String, dynamic>>
       hashTag: List<String>.from(json['hash_tag'] ?? []),
       public: json['public'] ?? false,

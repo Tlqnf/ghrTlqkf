@@ -73,9 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
         final token = await Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => WebViewScreen(url: url),
-          ),
+          MaterialPageRoute(builder: (_) => WebViewScreen(url: url)),
         );
         if (token != null && token is String) {
           await _handleLogin(token);
@@ -91,7 +89,9 @@ class _LoginScreenState extends State<LoginScreen> {
         try {
           await _extraAlertDialog();
           final kakaoToken = await UserApi.instance.loginWithKakaoTalk();
-          final accessToken = await OauthLoginApi.sendTokenKakao(kakaoToken.accessToken);
+          final accessToken = await OauthLoginApi.sendTokenKakao(
+            kakaoToken.accessToken,
+          );
           if (accessToken != null) {
             await _handleLogin(accessToken);
           }
@@ -109,14 +109,16 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        contentPadding: const EdgeInsets.all(20.0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
         title: const Text(
           '위치정보 수집 안내',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         content: const Text(
           '이 앱은 서비스 제공을 위해 사용자가 앱을 닫은 상태(백그라운드)에서도 위치 정보를 수집합니다.\n\n'
-              '수집된 데이터는 주행 기록 저장, 맞춤형 알림 제공, 통계 분석에 활용되며, 언제든 설정에서 해제할 수 있습니다.\n\n'
-              '이에 동의하시겠습니까?',
+          '수집된 데이터는 주행 기록 저장, 맞춤형 알림 제공, 통계 분석에 활용되며, 언제든 설정에서 해제할 수 있습니다.\n\n'
+          '이에 동의하시겠습니까?',
         ),
         actions: [
           TextButton(
@@ -140,8 +142,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (mounted) {
-      await Provider.of<AuthProvider>(context, listen: false)
-          .checkBackgroundPermission();
+      await Provider.of<AuthProvider>(
+        context,
+        listen: false,
+      ).checkBackgroundPermission();
     }
   }
 
@@ -158,10 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const Text(
               '로그인',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 48),
             SocialLoginButton(

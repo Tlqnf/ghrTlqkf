@@ -23,10 +23,15 @@ Future<List<TextSpan>> buildMentionTextSpans(String text, String? token) async {
     }
 
     if (isValid) {
-      spans.add(TextSpan(
-        text: match.group(0),
-        style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-      ));
+      spans.add(
+        TextSpan(
+          text: match.group(0),
+          style: const TextStyle(
+            color: Colors.blue,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
     } else {
       spans.add(TextSpan(text: match.group(0)));
     }

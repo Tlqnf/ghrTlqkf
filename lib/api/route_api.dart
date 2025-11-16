@@ -11,8 +11,8 @@ class RouteApi {
       Uri.parse("${ApiConfig.baseUrl}/start-session"),
       headers: {
         "Authorization": "Bearer $token",
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body)["route_id"];
@@ -23,18 +23,22 @@ class RouteApi {
 
   // patch - routes/{routeId}
   // 경로 이름 or 태그 수정
-  static Future<void> updateRoute(UpdateRoute routeData, int routeId, String token) async {
+  static Future<void> updateRoute(
+    UpdateRoute routeData,
+    int routeId,
+    String token,
+  ) async {
     final response = await http.patch(
       Uri.parse("${ApiConfig.baseUrl}/routes/$routeId"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
       },
-      body: jsonEncode(routeData.toJson())
+      body: jsonEncode(routeData.toJson()),
     );
 
     if (response.statusCode == 200) {
-      return ;
+      return;
     } else {
       throw Exception('Failed to update route: ${response.body}');
     }
@@ -45,9 +49,7 @@ class RouteApi {
   static Future<void> getMyRoutes(String token) async {
     final response = await http.get(
       Uri.parse("${ApiConfig.baseUrl}/routes/me"),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: {"Authorization": "Bearer $token"},
     );
 
     if (response.statusCode == 200) {
@@ -62,9 +64,7 @@ class RouteApi {
   static Future<List<dynamic>> getRouteById(int routeId, String token) async {
     final response = await http.get(
       Uri.parse("${ApiConfig.baseUrl}/routes/$routeId"),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: {"Authorization": "Bearer $token"},
     );
 
     if (response.statusCode == 200) {
@@ -77,23 +77,20 @@ class RouteApi {
   // get - routes
   // 모든 경로 목록 표시 todo
   static Future<void> getRoutesByFilter(List<String> tags, String token) async {
-    final uri = Uri.parse("${ApiConfig.baseUrl}/routes").replace(
-      queryParameters: {
-        'tags': tags,
-      },
-    );
+    final uri = Uri.parse(
+      "${ApiConfig.baseUrl}/routes",
+    ).replace(queryParameters: {'tags': tags});
     final response = await http.get(
       uri,
-      headers: {
-        "Authorization": "Bearer $token",
-      },
+      headers: {"Authorization": "Bearer $token"},
     );
 
     if (response.statusCode == 200) {
       return;
     } else {
       throw Exception(
-          'Failed to load routes by filter: ${response.statusCode}');
+        'Failed to load routes by filter: ${response.statusCode}',
+      );
     }
   }
 
@@ -102,7 +99,7 @@ class RouteApi {
       Uri.parse("${ApiConfig.baseUrl}/routes/$routeId/turn-points"),
       headers: {
         "Authorization": "Bearer $token",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
     );
     if (response.statusCode == 200) {

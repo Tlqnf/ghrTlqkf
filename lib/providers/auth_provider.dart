@@ -12,7 +12,9 @@ class AuthProvider with ChangeNotifier {
 
   String? get token => _token;
   AuthState get authState => _authState;
-  bool get isLoggedIn => _authState == AuthState.loggedIn || _authState == AuthState.needsProfileSetup;
+  bool get isLoggedIn =>
+      _authState == AuthState.loggedIn ||
+      _authState == AuthState.needsProfileSetup;
   bool get hasBackgroundPermission => _hasBackgroundPermission;
 
   Future<void> checkBackgroundPermission() async {
@@ -36,7 +38,6 @@ class AuthProvider with ChangeNotifier {
 
     notifyListeners();
   }
-
 
   Future<void> login(String token) async {
     _token = token;

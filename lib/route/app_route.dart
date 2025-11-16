@@ -22,19 +22,16 @@ class AppRoute {
       case profile:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (context) =>
-              ProfileSetupScreen(
-                onSetupComplete: args?['onSetupComplete'],
-                token: args?['token'],
-                isEditing: args?['isEditing'],
-              ),
+          builder: (context) => ProfileSetupScreen(
+            onSetupComplete: args?['onSetupComplete'],
+            token: args?['token'],
+            isEditing: args?['isEditing'],
+          ),
         );
       default:
         return MaterialPageRoute(
           builder: (context) =>
-          const Scaffold(
-            body: Center(child: Text("Route not found")),
-          ),
+              const Scaffold(body: Center(child: Text("Route not found"))),
         );
     }
   }

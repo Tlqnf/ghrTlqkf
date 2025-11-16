@@ -5,7 +5,6 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdMobService {
   // 배너 광고
-  //앱 개발시 테스트광고 ID로 입력
   static String? get bannerAdUnitId {
     if (Platform.isAndroid) {
       return 'ca-app-pub-3940256099942544/6300978111';

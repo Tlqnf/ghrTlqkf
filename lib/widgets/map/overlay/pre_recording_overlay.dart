@@ -10,10 +10,7 @@ import 'package:provider/provider.dart';
 class PreRecordingOverlay extends StatelessWidget {
   final VoidCallback onBackPressed;
 
-  const PreRecordingOverlay({
-    super.key,
-    required this.onBackPressed,
-  });
+  const PreRecordingOverlay({super.key, required this.onBackPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +32,9 @@ class PreRecordingOverlay extends StatelessWidget {
               const SizedBox(height: 32),
               MapControlButton(
                 icon: Icons.explore_outlined,
-                onPressed: () =>
-                    mapProvider.mapController?.updateCamera(NCameraUpdate.withParams(bearing: 0)),
+                onPressed: () => mapProvider.mapController?.updateCamera(
+                  NCameraUpdate.withParams(bearing: 0),
+                ),
               ),
               const SizedBox(height: 8),
               MapControlButton(
@@ -56,14 +54,14 @@ class PreRecordingOverlay extends StatelessWidget {
                     backgroundColor: Colors.transparent,
                     builder: (_) => DraggableScrollableSheet(
                       expand: false,
-                      initialChildSize: 0.5,
+                      initialChildSize: 0.7,
                       maxChildSize: 0.7,
-                      minChildSize: 0.2,
+                      minChildSize: 0.3,
                       builder: (context, scrollController) =>
-                        NavigationListModal(
-                          scrollController: scrollController,
-                          mapProvider: mapProvider,
-                        ),
+                          NavigationListModal(
+                            scrollController: scrollController,
+                            mapProvider: mapProvider,
+                          ),
                     ),
                   );
                 },

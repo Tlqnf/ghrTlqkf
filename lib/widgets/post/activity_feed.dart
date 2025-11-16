@@ -44,7 +44,8 @@ class _ActivityFeedState extends State<ActivityFeed> {
   void _onScroll() {
     if (!_scroll.hasClients || _isLoading || !_hasMore) return;
     const threshold = 300.0; // 끝에서 300px 남으면 다음 로드
-    if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - threshold) {
+    if (_scroll.position.pixels >=
+        _scroll.position.maxScrollExtent - threshold) {
       _loadNext();
     }
   }

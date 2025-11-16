@@ -46,7 +46,9 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 onRemoveAdsTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const PaymentScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const PaymentScreen(),
+                    ),
                   );
                 },
               ),
@@ -83,9 +85,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ReportDetailScreen(
-                            reportId: post.reportId,
-                          ),
+                          builder: (context) =>
+                              ReportDetailScreen(reportId: post.reportId),
                         ),
                       );
                     },

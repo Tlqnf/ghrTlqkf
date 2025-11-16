@@ -30,24 +30,30 @@ class StatCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         child: Column(
           children: [
-            Text(title,
-                style: const TextStyle(fontSize: 12, color: Colors.black54)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+            ),
             const SizedBox(height: 4),
             Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text(value,
-                    style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF007AFF))),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF007AFF),
+                  ),
+                ),
                 if (unit.isNotEmpty)
-                  Text(unit,
-                      style:
-                      const TextStyle(fontSize: 12, color: Colors.black87)),
+                  Text(
+                    unit,
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
+                  ),
               ],
-            )
+            ),
           ],
         ),
       ),

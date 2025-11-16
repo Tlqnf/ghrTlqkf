@@ -19,12 +19,10 @@ class ActivitySummaryCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8.0),
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       color: Colors.grey[100], // 카드 배경색
       child: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

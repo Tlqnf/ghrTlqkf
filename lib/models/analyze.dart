@@ -11,10 +11,10 @@ class Analyze {
 
   factory Analyze.fromJson(Map<String, dynamic> json) {
     return Analyze(
-        routesTakenCount: json['routes_taken_count'] ?? 0,
-        totalActivityTimeFormatted: json['total_activity_time_formatted'] ?? 0,
-        totalActivityDistanceKm: (json['total_activity_distance_km'])?.toDouble() ?? 0.0
+      routesTakenCount: json['routes_taken_count'] ?? 0,
+      totalActivityTimeFormatted: json['total_activity_time_formatted'] ?? 0,
+      totalActivityDistanceKm:
+          (json['total_activity_distance_km'])?.toDouble() ?? 0.0,
     );
   }
-
 }

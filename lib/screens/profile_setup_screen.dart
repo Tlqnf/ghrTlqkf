@@ -57,8 +57,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? selectedImage =
-        await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? selectedImage = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
     if (selectedImage != null) {
       setState(() {
         _imageFile = selectedImage;
@@ -119,10 +120,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       appBar: AppBar(
         title: const Text(
           '프로필 설정',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
@@ -142,28 +140,30 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   children: [
                     _isLoading
                         ? const CircleAvatar(
-                      radius: 40,
-                      child: CircularProgressIndicator(),
-                    )
+                            radius: 40,
+                            child: CircularProgressIndicator(),
+                          )
                         : CircleAvatar(
-                      radius: 40,
-                      backgroundColor: const Color(0xFFE0E0E0),
-                      backgroundImage: _imageFile != null
-                          ? FileImage(File(_imageFile!.path))
-                          : (userInfo?.profilePic != null &&
-                          userInfo.profilePic!.isNotEmpty
-                          ? NetworkImage(userInfo.profilePic!)
-                          : null) as ImageProvider?,
-                      child: (_imageFile == null &&
-                          (userInfo?.profilePic == null ||
-                              userInfo.profilePic!.isEmpty))
-                          ? const Icon(
-                        Icons.person,
-                        size: 50,
-                        color: Colors.white,
-                      )
-                          : null,
-                    ),
+                            radius: 40,
+                            backgroundColor: const Color(0xFFE0E0E0),
+                            backgroundImage: _imageFile != null
+                                ? FileImage(File(_imageFile!.path))
+                                : (userInfo?.profilePic != null &&
+                                              userInfo.profilePic!.isNotEmpty
+                                          ? NetworkImage(userInfo.profilePic!)
+                                          : null)
+                                      as ImageProvider?,
+                            child:
+                                (_imageFile == null &&
+                                    (userInfo?.profilePic == null ||
+                                        userInfo.profilePic!.isEmpty))
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: Colors.white,
+                                  )
+                                : null,
+                          ),
                     const SizedBox(width: 16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,9 +198,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(
-                      width: 4,
-                    ),
+                    const SizedBox(width: 4),
                     const Text(
                       "*",
                       style: TextStyle(
@@ -208,7 +206,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         fontWeight: FontWeight.w600,
                         color: Colors.red,
                       ),
-                    )
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -217,16 +215,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   decoration: const InputDecoration(
                     hintText: '닉네임을 입력해주세요.',
                     border: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey,
-                        width: 1.0,
-                      ),
+                      borderSide: BorderSide(color: Colors.grey, width: 1.0),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey,
-                        width: 1.0,
-                      ),
+                      borderSide: BorderSide(color: Colors.grey, width: 1.0),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
@@ -239,10 +231,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 const SizedBox(height: 24),
                 const Text(
                   '설명',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -251,16 +240,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   decoration: const InputDecoration(
                     hintText: '자신을 소개하는 설명 문구를 입력해주세요.',
                     border: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey,
-                        width: 1.0,
-                      ),
+                      borderSide: BorderSide(color: Colors.grey, width: 1.0),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Colors.grey,
-                        width: 1.0,
-                      ),
+                      borderSide: BorderSide(color: Colors.grey, width: 1.0),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(

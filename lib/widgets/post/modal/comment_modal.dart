@@ -103,7 +103,9 @@ class _CommentModalState extends State<CommentModal> {
       await _fetchComments();
       if (mounted) {
         showOverlaySnackBar(
-            context, _isReplying ? '대댓글이 등록되었습니다.' : '댓글이 등록되었습니다.');
+          context,
+          _isReplying ? '대댓글이 등록되었습니다.' : '댓글이 등록되었습니다.',
+        );
       }
       if (_isReplying) {
         cancelReplying();
@@ -157,6 +159,7 @@ class _CommentModalState extends State<CommentModal> {
                           comment: comments[index],
                           onCommentMutated: _fetchComments,
                           onStartReply: startReplying,
+                          currentUser: _user,
                         );
                       },
                     );
@@ -183,8 +186,10 @@ class _CommentModalState extends State<CommentModal> {
         children: [
           if (_isReplying)
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 4.0,
+              ),
               child: Row(
                 children: [
                   Text(
@@ -195,7 +200,7 @@ class _CommentModalState extends State<CommentModal> {
                   IconButton(
                     icon: const Icon(Icons.close, size: 16),
                     onPressed: cancelReplying,
-                  )
+                  ),
                 ],
               ),
             ),
@@ -212,8 +217,9 @@ class _CommentModalState extends State<CommentModal> {
                       )
                     : const CircleAvatar(
                         radius: 18,
-                        backgroundImage:
-                            AssetImage('assets/image/not_profile.png'),
+                        backgroundImage: AssetImage(
+                          'assets/image/not_profile.png',
+                        ),
                       ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -221,8 +227,7 @@ class _CommentModalState extends State<CommentModal> {
                     controller: _commentController,
                     focusNode: _commentFocusNode,
                     decoration: InputDecoration(
-                      hintText:
-                          _isReplying ? '대댓글을 입력해주세요.' : '댓글을 입력해주세요.',
+                      hintText: _isReplying ? '대댓글을 입력해주세요.' : '댓글을 입력해주세요.',
                       border: InputBorder.none,
                     ),
                   ),
@@ -244,12 +249,15 @@ class CommentItem extends StatefulWidget {
   final dynamic comment;
   final VoidCallback onCommentMutated;
   final Function(int commentId, String username) onStartReply;
+  final User? currentUser;
 
-  const CommentItem(
-      {super.key,
-      required this.comment,
-      required this.onCommentMutated,
-      required this.onStartReply});
+  const CommentItem({
+    super.key,
+    required this.comment,
+    required this.onCommentMutated,
+    required this.onStartReply,
+    this.currentUser,
+  });
 
   @override
   State<CommentItem> createState() => _CommentItemState();
@@ -302,8 +310,10 @@ class _CommentItemState extends State<CommentItem> {
   void _initComment() async {
     if (token == null) return;
     try {
-      final checked =
-          await CommentApi.checkLikeComment(token!, widget.comment.commentId);
+      final checked = await CommentApi.checkLikeComment(
+        token!,
+        widget.comment.commentId,
+      );
       if (!mounted) return;
       setState(() {
         _isLiked = checked;
@@ -351,10 +361,16 @@ class _CommentItemState extends State<CommentItem> {
   }
 
   void _handleReply() {
-    widget.onStartReply(widget.comment.commentId, _user?.username ?? '알 수 없는 사용자');
+    widget.onStartReply(
+      widget.comment.commentId,
+      _user?.username ?? '알 수 없는 사용자',
+    );
   }
 
   void _showEditDeleteModal() {
+    final isAuthor = widget.currentUser?.id == widget.comment.userId;
+    if (!isAuthor) return;
+
     showModalBottomSheet(
       context: context,
       builder: (_) => SafeArea(
@@ -385,16 +401,15 @@ class _CommentItemState extends State<CommentItem> {
 
   void _handleEdit() {
     if (token == null) return;
-    final TextEditingController editController =
-        TextEditingController(text: widget.comment.content);
+    final TextEditingController editController = TextEditingController(
+      text: widget.comment.content,
+    );
     final BuildContext originalContext = context;
 
     showModalBottomSheet(
       isScrollControlled: true,
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (modalContext) => SafeArea(
         child: Padding(
           padding: EdgeInsets.only(
@@ -410,17 +425,18 @@ class _CommentItemState extends State<CommentItem> {
               child: Row(
                 children: [
                   _user != null &&
-                      _user!.profilePic != null &&
-                      _user!.profilePic!.isNotEmpty
+                          _user!.profilePic != null &&
+                          _user!.profilePic!.isNotEmpty
                       ? CircleAvatar(
-                    radius: 18,
-                    backgroundImage: NetworkImage(_user!.profilePic!),
-                  )
+                          radius: 18,
+                          backgroundImage: NetworkImage(_user!.profilePic!),
+                        )
                       : const CircleAvatar(
-                    radius: 18,
-                    backgroundImage:
-                    AssetImage('assets/image/not_profile.png'),
-                  ),
+                          radius: 18,
+                          backgroundImage: AssetImage(
+                            'assets/image/not_profile.png',
+                          ),
+                        ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
@@ -440,7 +456,10 @@ class _CommentItemState extends State<CommentItem> {
 
                       try {
                         await CommentApi.updateComment(
-                            token!, widget.comment.commentId, newContent);
+                          token!,
+                          widget.comment.commentId,
+                          newContent,
+                        );
 
                         Navigator.pop(modalContext);
 
@@ -487,16 +506,18 @@ class _CommentItemState extends State<CommentItem> {
               children: [
                 // 프로필
                 _user != null &&
-                    _user!.profilePic != null &&
-                    _user!.profilePic!.isNotEmpty
+                        _user!.profilePic != null &&
+                        _user!.profilePic!.isNotEmpty
                     ? CircleAvatar(
-                  radius: 25,
-                  backgroundImage: NetworkImage(_user!.profilePic!),
-                )
+                        radius: 25,
+                        backgroundImage: NetworkImage(_user!.profilePic!),
+                      )
                     : const CircleAvatar(
-                  radius: 25,
-                  backgroundImage: AssetImage('assets/image/not_profile.png'),
-                ),
+                        radius: 25,
+                        backgroundImage: AssetImage(
+                          'assets/image/not_profile.png',
+                        ),
+                      ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -511,7 +532,9 @@ class _CommentItemState extends State<CommentItem> {
                             Text(
                               _user?.username ?? '',
                               style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             _isBuildingText
@@ -519,10 +542,12 @@ class _CommentItemState extends State<CommentItem> {
                                 : RichText(
                                     text: TextSpan(
                                       style: DefaultTextStyle.of(context).style,
-                                      children: _textSpans ??
+                                      children:
+                                          _textSpans ??
                                           [
                                             TextSpan(
-                                                text: widget.comment.content)
+                                              text: widget.comment.content,
+                                            ),
                                           ],
                                     ),
                                   ),
@@ -543,9 +568,9 @@ class _CommentItemState extends State<CommentItem> {
                                       : Icons.thumb_up_alt_outlined,
                                   color: _isLiked
                                       ? AppColors.light.info!
-                                      : Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
+                                      : Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                   size: 16,
                                 ),
                                 const SizedBox(width: 4),
@@ -553,9 +578,9 @@ class _CommentItemState extends State<CommentItem> {
                                   _likeCount.toString(),
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ],
@@ -568,7 +593,9 @@ class _CommentItemState extends State<CommentItem> {
                             borderRadius: BorderRadius.circular(4),
                             child: const Padding(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 4, vertical: 2),
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
                               child: Text('답글 달기'),
                             ),
                           ),

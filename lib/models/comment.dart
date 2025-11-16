@@ -16,7 +16,8 @@ class CreateComment {
       content: json['content'] as String,
       parentId: json['parent_id'] as int?,
       postId: json['post_id'] as int,
-      mentions: (json['mentions'] as List<dynamic>?)
+      mentions:
+          (json['mentions'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],

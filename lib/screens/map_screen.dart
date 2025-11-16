@@ -69,8 +69,7 @@ class _MapScreenViewState extends State<MapScreenView> {
             onMapReady: (controller) async {
               mapProvider.mapController = controller;
             },
-            onCameraChange:
-                (NCameraUpdateReason reason, bool animated) {
+            onCameraChange: (NCameraUpdateReason reason, bool animated) {
               if (reason == NCameraUpdateReason.gesture &&
                   mapProvider.isFollowing) {
                 mapProviderReader.isFollowingUser = false;
@@ -80,18 +79,16 @@ class _MapScreenViewState extends State<MapScreenView> {
         ),
         // Conditional Overlays
         mapProvider.isRecording
-          ? const RecordingOverlay()
-          : PreRecordingOverlay(
-              onBackPressed: () => Navigator.of(context).pop(),
-            ),
+            ? const RecordingOverlay()
+            : PreRecordingOverlay(
+                onBackPressed: () => Navigator.of(context).pop(),
+              ),
         // Common UI - Ad Banner
         Positioned(
           bottom: 0,
           left: 0,
           right: 0,
-          child: SafeArea(
-            child: Center(child: BannerAdWidget()),
-          ),
+          child: SafeArea(child: Center(child: BannerAdWidget())),
         ),
       ],
     );

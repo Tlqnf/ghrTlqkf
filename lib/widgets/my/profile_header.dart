@@ -84,8 +84,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                 CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.transparent,
-                  backgroundImage:
-                  AssetImage('assets/image/not_profile.png'),
+                  backgroundImage: AssetImage('assets/image/not_profile.png'),
                 ),
                 SizedBox(width: 16),
                 Text(
@@ -103,28 +102,28 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                         backgroundColor: Colors.transparent,
                         child: CircularProgressIndicator(),
                       )
-                    : _user!.profilePic != null &&
-                            _user!.profilePic!.isNotEmpty
-                        ? CircleAvatar(
-                            radius: 30,
-                            backgroundColor: Colors.transparent,
-                            child: _user!.profilePic != null
-                                ? ClipOval(
-                                    child: Image.network(
-                                      _user!.profilePic!,
-                                      width: 60,
-                                      height: 60,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                : const Icon(Icons.person, size: 30),
-                          )
-                        : const CircleAvatar(
-                            radius: 30,
-                            backgroundColor: Colors.transparent,
-                            backgroundImage:
-                                AssetImage('assets/image/not_profile.png'),
-                          ),
+                    : _user!.profilePic != null && _user!.profilePic!.isNotEmpty
+                    ? CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.transparent,
+                        child: _user!.profilePic != null
+                            ? ClipOval(
+                                child: Image.network(
+                                  _user!.profilePic!,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const Icon(Icons.person, size: 30),
+                      )
+                    : const CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.transparent,
+                        backgroundImage: AssetImage(
+                          'assets/image/not_profile.png',
+                        ),
+                      ),
                 const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,29 +132,34 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                         ? const Text(
                             'Loading...',
                             style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
                           )
                         : Text(
                             _user?.username ?? 'Guest',
                             style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                     _isLoading
                         ? const Text(
                             'Loading...',
                             style: TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w600
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
                           )
                         : Text(
                             _user?.email ?? 'example@gmail.com',
                             style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey,
                             ),
                           ),
-                    const SizedBox(height: 4,),
+                    const SizedBox(height: 4),
                     _isLoading
                         ? const Text(
                             'Loading...',
@@ -164,38 +168,38 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                         : Text(
                             _user?.profileDescription ?? 'No description',
                             style: const TextStyle(
-                                fontSize: 14, color: Colors.grey),
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
                           ),
                     if (_error != null)
                       Text(
                         'Error: $_error',
-                        style:
-                            const TextStyle(fontSize: 13, color: Colors.red),
+                        style: const TextStyle(fontSize: 13, color: Colors.red),
                       ),
                   ],
                 ),
               ],
             ),
-          // todo 결제 연동 진행 후에 표시
-          // const Spacer(),
-          // OutlinedButton(
-          //   onPressed: widget.onRemoveAdsTap,
-          //   style: OutlinedButton.styleFrom(
-          //     backgroundColor: const Color(0xFFFF3B30),
-          //     side: const BorderSide(color: Colors.transparent),
-          //     shape: RoundedRectangleBorder(
-          //       borderRadius: BorderRadius.circular(8),
-          //     ),
-          //   ),
-          //   child: const Text(
-          //     '광고 제거',
-          //     style: TextStyle(
-          //       color: Colors.white,
-          //       fontSize: 18,
-          //       fontWeight: FontWeight.w600
-          //     ),
-          //   ),
-          // ),
+          const Spacer(),
+          OutlinedButton(
+            onPressed: widget.onRemoveAdsTap,
+            style: OutlinedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF3B30),
+              side: const BorderSide(color: Colors.transparent),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              '광고 제거',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600
+              ),
+            ),
+          ),
         ],
       ),
     );

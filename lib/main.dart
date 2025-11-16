@@ -1,4 +1,4 @@
-// import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -11,8 +11,10 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/route/app_route.dart';
 import 'package:pedal/config/firebase_options.dart';
+import 'package:pedal/screens/on_boarding_screen.dart';
 import 'package:pedal/services/fcm_service.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ThemeExtension을 사용한 AppColors 정의
 @immutable
@@ -31,17 +33,17 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.highlight,
   });
 
-  final Color? primary;    // 메인 컬러
+  final Color? primary; // 메인 컬러
   final Color? background; // 이전 background
-  final Color? subBg;      // 이전 surface (Sub Bg)
-  final Color? text;       // 이전 onSurface (Text)
-  final Color? subText;    // 이전 onSurfaceVariant (Sub Text)
-  final Color? stroke;     // 이전 outline (Stroke)
-  final Color? success;    // Success (성공 상태)
-  final Color? info;       // 이전 secondary (정보)
-  final Color? warning;    // Warning (경고 상태)
-  final Color? error;      // Error (오류 상태)
-  final Color? highlight;  // 이전 primary (강조, 메인 레드)
+  final Color? subBg; // 이전 surface (Sub Bg)
+  final Color? text; // 이전 onSurface (Text)
+  final Color? subText; // 이전 onSurfaceVariant (Sub Text)
+  final Color? stroke; // 이전 outline (Stroke)
+  final Color? success; // Success (성공 상태)
+  final Color? info; // 이전 secondary (정보)
+  final Color? warning; // Warning (경고 상태)
+  final Color? error; // Error (오류 상태)
+  final Color? highlight; // 이전 primary (강조, 메인 레드)
 
   // 기본 'light' 테마 색상을 static 상수로 정의합니다.
   static const light = AppColors(
@@ -136,11 +138,11 @@ void main() async {
   await initializeDateFormatting('ko_KR', null);
 
   // Firebase 초기화
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler); // FCM background handler 등록
+  FirebaseMessaging.onBackgroundMessage(
+    firebaseMessagingBackgroundHandler,
+  ); // FCM background handler 등록
   await FCMService().initialize(); // FCM
 
   // Ads 초기화
@@ -157,8 +159,9 @@ void main() async {
   // 인앱 로그인 진행
   // Google Sign-In 초기화
   await GoogleSignIn.instance.initialize(
-    clientId: dotenv.env["GOOGLE_CLIENT_ID"],// clientId->android
-    serverClientId: dotenv.env["GOOGLE_SERVER_CLIENT_ID"], // serverClientId->webClient
+    clientId: dotenv.env["GOOGLE_CLIENT_ID"], // clientId->android
+    serverClientId:
+        dotenv.env["GOOGLE_SERVER_CLIENT_ID"], // serverClientId->webClient
   );
   // Kakao SDK 초기화
   KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']);
@@ -179,8 +182,8 @@ class PedalApp extends StatefulWidget {
 }
 
 class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
-  // // Firebase google analytics 설정 추가
-  // final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+
   @override
   void initState() {
     super.initState();
@@ -193,13 +196,19 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  Future<bool> _checkOnboardingStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('onboarding_complete') ?? false;
+  }
+
+  void _turnOnboardingStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_complete', false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // navigatorObservers: [
-      //   // 감시자 추가
-      //   FirebaseAnalyticsObserver(analytics: analytics),
-      // ],
       title: 'Pedal',
       theme: ThemeData(
         useMaterial3: true,
@@ -209,43 +218,62 @@ class _PedalAppState extends State<PedalApp> with WidgetsBindingObserver {
 
       routes: AppRoute.routes,
       onGenerateRoute: AppRoute.onGenerateRoute,
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(analytics: analytics)
+      ],
 
       home: FutureBuilder(
-        future: Provider.of<AuthProvider>(context, listen: false).tryAutoLogin(),
-        builder: (context, snapshot) {
-          // 자동 로그인이 완료될 때까지 로딩 화면을 표시합니다.
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        future: Provider.of<AuthProvider>(
+          context,
+          listen: false,
+        ).tryAutoLogin(),
+        builder: (context, authSnapshot) {
+          if (authSnapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           }
 
           // 자동 로그인 시도 후, Consumer를 사용하여 인증 상태에 따라 UI를 빌드합니다.
           return Consumer<AuthProvider>(
             builder: (context, auth, _) {
-              switch (auth.authState) {
-                case AuthState.loggedIn:
-                  debugPrint("로그인 성공");
-                  // 메인 화면 위젯 반환
-                  return AppRoute.routes[AppRoute.main]!(context);
-                case AuthState.needsProfileSetup:
-                  // 빌드 후 네비게이션 실행
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRoute.profile,
-                      arguments: {
-                        "onSetupComplete": () => auth.completeProfileSetup(),
-                        "token": auth.token,
-                      },
-                    );
-                  });
-                  // 내비게이션이 실행될 때까지 로딩 화면을 표시합니다.
-                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
-                case AuthState.loggedOut:
-                  // 로그인 화면 위젯을 직접 반환합니다.
-                  return AppRoute.routes[AppRoute.login]!(context);
-                default: // AuthState.loading
-                  // 인증 상태가 변경되는 동안 로딩 화면을 표시합니다.
-                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+              if (auth.authState == AuthState.loggedIn) {
+                return AppRoute.routes[AppRoute.main]!(context);
+              } else if (auth.authState == AuthState.needsProfileSetup) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.pushReplacementNamed(
+                    context,
+                    AppRoute.profile,
+                    arguments: {
+                      "onSetupComplete": () => auth.completeProfileSetup(),
+                      "token": auth.token,
+                    },
+                  );
+                });
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              } else {
+                // loggedOut
+                return FutureBuilder<bool>(
+                  future: _checkOnboardingStatus(),
+                  builder: (context, onboardingSnapshot) {
+                    if (onboardingSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    final onboardingComplete = onboardingSnapshot.data ?? false;
+                    if (onboardingComplete) {
+                      _turnOnboardingStatus();
+                      return AppRoute.routes[AppRoute.login]!(context);
+                    } else {
+                      return const WelcomeScreen();
+                    }
+                  },
+                );
               }
             },
           );

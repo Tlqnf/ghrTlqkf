@@ -7,10 +7,7 @@ import 'package:provider/provider.dart';
 class ReportDetailScreen extends StatefulWidget {
   final int reportId;
 
-  const ReportDetailScreen({
-    super.key,
-    required this.reportId,
-  });
+  const ReportDetailScreen({super.key, required this.reportId});
 
   @override
   State<ReportDetailScreen> createState() => _ReportDetailScreenState();
@@ -23,7 +20,10 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
   void initState() {
     super.initState();
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    _reportFuture = ReportApi.getReportById(authProvider.token!, widget.reportId);
+    _reportFuture = ReportApi.getReportById(
+      authProvider.token!,
+      widget.reportId,
+    );
   }
 
   String _formatDuration(num seconds) {
@@ -68,10 +68,26 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildStatRow(context, '시간', _formatDuration(report.healthTime)),
-                    _buildStatRow(context, '거리(km)', report.distance.toStringAsFixed(2)),
-                    _buildStatRow(context, '최고 속력', report.highestSpeed.toStringAsFixed(2)),
-                    _buildStatRow(context, '평균 속력', report.averageSpeed.toStringAsFixed(2)),
+                    _buildStatRow(
+                      context,
+                      '시간',
+                      _formatDuration(report.healthTime),
+                    ),
+                    _buildStatRow(
+                      context,
+                      '거리(km)',
+                      report.distance.toStringAsFixed(2),
+                    ),
+                    _buildStatRow(
+                      context,
+                      '최고 속력',
+                      report.highestSpeed.toStringAsFixed(2),
+                    ),
+                    _buildStatRow(
+                      context,
+                      '평균 속력',
+                      report.averageSpeed.toStringAsFixed(2),
+                    ),
                     const SizedBox(height: 40),
                     Text(
                       '추가적인 정보 제공은 업데이트 중입니다.',

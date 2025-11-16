@@ -6,15 +6,17 @@ class NotificationService {
 
   static const String _channelId = 'pedal_recording_channel';
   static const String _channelName = 'Pedal Recording';
-  static const String _channelDescription = 'Notification for ongoing ride recording.';
+  static const String _channelDescription =
+      'Notification for ongoing ride recording.';
 
   Future<void> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher'); // Assuming default launcher icon
+        AndroidInitializationSettings(
+          '@mipmap/ic_launcher',
+        ); // Assuming default launcher icon
 
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
 
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
@@ -27,7 +29,8 @@ class NotificationService {
 
     await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(channel);
   }
 
@@ -36,8 +39,8 @@ class NotificationService {
     required String distance,
     required String speed,
   }) async {
-    final AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
+    final AndroidNotificationDetails
+    androidPlatformChannelSpecifics = AndroidNotificationDetails(
       _channelId,
       _channelName,
       channelDescription: _channelDescription,
@@ -52,8 +55,9 @@ class NotificationService {
         htmlFormatBigText: true,
       ),
     );
-    final NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
 
     await _flutterLocalNotificationsPlugin.show(
       0, // Notification ID

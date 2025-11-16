@@ -34,6 +34,10 @@ class _NoticeListScreenState extends State<NoticeListScreen> {
         title: const Text('공지사항'),
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: FutureBuilder<List<Notice>>(
         future: _noticesFuture,
@@ -60,20 +64,21 @@ class _NoticeListScreenState extends State<NoticeListScreen> {
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
+                        contentPadding: const EdgeInsets.all(20.0),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
+                          borderRadius: BorderRadius.circular(5.0),
                         ),
                         title: Text(notice.title),
                         content: SingleChildScrollView(
-                          child: Text(notice.content)
+                          child: Text(notice.content),
                         ),
                         actions: [
                           TextButton(
                             child: const Text('닫기'),
                             onPressed: () => Navigator.of(context).pop(),
-                          )
+                          ),
                         ],
-                      )
+                      ),
                     );
                   },
                 );

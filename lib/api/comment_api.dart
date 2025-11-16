@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:pedal/config/api_config.dart';
 import 'package:pedal/models/comment.dart';
 
-class CommentApi{
+class CommentApi {
   // get - post/{postId}/comments
   // 댓글 리스트 표시
   static Future<List<Comment>> getPostComments(String token, int postId) async {
@@ -17,16 +17,21 @@ class CommentApi{
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
       return data.map((json) => Comment.fromJson(json)).toList();
-    } else if (response.statusCode == 404){
+    } else if (response.statusCode == 404) {
       return [];
     } else {
-      throw Exception('Failed to load comments for post $postId: ${response.statusCode}');
+      throw Exception(
+        'Failed to load comments for post $postId: ${response.statusCode}',
+      );
     }
   }
 
   // get - post/comments/{commentId}/Replies
   // 대댓글 리스트 표시
-  static Future<List<Reply>> getCommentReplies(int commentId, String token) async {
+  static Future<List<Reply>> getCommentReplies(
+    int commentId,
+    String token,
+  ) async {
     final response = await http.get(
       Uri.parse("${ApiConfig.baseUrl}/post/comments/$commentId/replies"),
       headers: {
@@ -37,10 +42,12 @@ class CommentApi{
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
       return data.map((json) => Reply.fromJson(json)).toList();
-    } else if (response.statusCode == 404){
+    } else if (response.statusCode == 404) {
       throw Exception("댓글이 없습니다.");
     } else {
-      throw Exception('Failed to load replies for comment $commentId: ${response.statusCode}');
+      throw Exception(
+        'Failed to load replies for comment $commentId: ${response.statusCode}',
+      );
     }
   }
 
@@ -62,7 +69,12 @@ class CommentApi{
 
   // patch - post/comments/{commentId}
   // 댓글 수정하기
-  static Future<void> updateComment(String token, int commentId, String content, {List<String>? mentions}) async {
+  static Future<void> updateComment(
+    String token,
+    int commentId,
+    String content, {
+    List<String>? mentions,
+  }) async {
     final response = await http.patch(
       Uri.parse("${ApiConfig.baseUrl}/post/comments/$commentId"),
       headers: {
