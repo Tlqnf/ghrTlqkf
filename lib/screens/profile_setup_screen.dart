@@ -212,6 +212,22 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _usernameController,
+                  maxLength: 20,
+                  buildCounter: (
+                    BuildContext context, {
+                    required int currentLength,
+                    required int? maxLength,
+                    required bool isFocused,
+                  }) {
+                    return Text(
+                      '$currentLength/$maxLength',
+                      style: TextStyle(
+                        color: currentLength > (maxLength ?? 0)
+                            ? Colors.red
+                            : Colors.grey,
+                      ),
+                    );
+                  },
                   decoration: const InputDecoration(
                     hintText: '닉네임을 입력해주세요.',
                     border: OutlineInputBorder(
@@ -237,6 +253,22 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 TextField(
                   controller: _descriptionController,
                   maxLines: 3,
+                  maxLength: 100,
+                  buildCounter: (
+                    BuildContext context, {
+                    required int currentLength,
+                    required int? maxLength,
+                    required bool isFocused,
+                  }) {
+                    return Text(
+                      '$currentLength/$maxLength',
+                      style: TextStyle(
+                        color: currentLength > (maxLength ?? 0)
+                            ? Colors.red
+                            : Colors.grey,
+                      ),
+                    );
+                  },
                   decoration: const InputDecoration(
                     hintText: '자신을 소개하는 설명 문구를 입력해주세요.',
                     border: OutlineInputBorder(

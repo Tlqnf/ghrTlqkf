@@ -124,7 +124,7 @@ class RecordingOverlay extends StatelessWidget {
                                   : Icons.pause,
                               size: 50,
                             ),
-                            onPressed: mapProviderReader.pauseAndRecording,
+                            onPressed: () => mapProviderReader.pauseAndRecording(),
                           ),
                           const SizedBox(width: 8),
                           IconButton(
@@ -161,7 +161,7 @@ class RecordingOverlay extends StatelessWidget {
                     icon: mapProvider.isMapVisible
                         ? Icons.layers_clear
                         : Icons.layers,
-                    onPressed: mapProviderReader.mapVisibility,
+                    onPressed: () => mapProviderReader.mapVisibility(),
                   ),
                 ],
               ),

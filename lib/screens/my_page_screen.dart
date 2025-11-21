@@ -37,11 +37,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ProfileHeader(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: ProfileHeader(
                 token: authProvider.token!,
                 onRemoveAdsTap: () {
                   Navigator.push(
@@ -52,8 +51,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 16),
-              SectionHeader(
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+            SliverToBoxAdapter(
+              child: SectionHeader(
                 title: '내 기록',
                 showMoreButton: true,
                 onMoreTap: () {
@@ -68,7 +70,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   );
                 },
               ),
-              FutureBuilder<List<Post>>(
+            ),
+
+            SliverToBoxAdapter(
+              child: FutureBuilder<List<Post>>(
                 future: _recentPostsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -105,8 +110,12 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 32),
-              SectionHeader(
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
+
+            SliverToBoxAdapter(
+              child: SectionHeader(
                 title: '북마크 경로',
                 showMoreButton: true,
                 onMoreTap: () {
@@ -121,7 +130,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   );
                 },
               ),
-              FutureBuilder<List<Post>>(
+            ),
+
+            SliverToBoxAdapter(
+              child: FutureBuilder<List<Post>>(
                 future: _recentBookmarksFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -138,8 +150,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   );
                 },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

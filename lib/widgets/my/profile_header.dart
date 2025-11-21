@@ -24,6 +24,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
   bool _isLoading = true;
   String? _error;
   bool _isProfileSetupComplete = false;
+  bool _isExpanded = false;
 
   @override
   void initState() {
@@ -77,6 +78,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_isProfileSetupComplete)
             const Row(
@@ -94,94 +96,151 @@ class _ProfileHeaderState extends State<ProfileHeader> {
               ],
             )
           else
-            Row(
-              children: [
-                _isLoading
-                    ? const CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.transparent,
-                        child: CircularProgressIndicator(),
-                      )
-                    : _user!.profilePic != null && _user!.profilePic!.isNotEmpty
-                    ? CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.transparent,
-                        child: _user!.profilePic != null
-                            ? ClipOval(
-                                child: Image.network(
-                                  _user!.profilePic!,
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _isLoading
+                      ? const CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.transparent,
+                          child: CircularProgressIndicator(),
+                        )
+                      : _user!.profilePic != null &&
+                            _user!.profilePic!.isNotEmpty
+                      ? CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.transparent,
+                          child: _user!.profilePic != null
+                              ? ClipOval(
+                                  child: Image.network(
+                                    _user!.profilePic!,
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : const Icon(Icons.person, size: 30),
+                        )
+                      : const CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.transparent,
+                          backgroundImage: AssetImage(
+                            'assets/image/not_profile.png',
+                          ),
+                        ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _isLoading
+                            ? const Text(
+                                'Loading...',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               )
-                            : const Icon(Icons.person, size: 30),
-                      )
-                    : const CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage: AssetImage(
-                          'assets/image/not_profile.png',
-                        ),
-                      ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _isLoading
-                        ? const Text(
-                            'Loading...',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : Text(
-                            _user?.username ?? 'Guest',
+                            : Text(
+                                _user?.username ?? 'Guest',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                        _isLoading
+                            ? const Text(
+                                'Loading...',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )
+                            : Text(
+                                _user?.email ?? 'example@gmail.com',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                        const SizedBox(height: 4),
+                        _isLoading
+                            ? const Text(
+                                'Loading...',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                              )
+                            : LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final text = _user?.profileDescription ?? '';
+                                  if (text.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  final style = const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  );
+                                  final textPainter = TextPainter(
+                                    text: TextSpan(text: text, style: style),
+                                    maxLines: 2,
+                                    textDirection: TextDirection.ltr,
+                                  )..layout(maxWidth: constraints.maxWidth);
+
+                                  if (textPainter.didExceedMaxLines) {
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          text,
+                                          style: style,
+                                          maxLines: _isExpanded ? null : 1,
+                                          overflow: _isExpanded
+                                              ? TextOverflow.visible
+                                              : TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _isExpanded = !_isExpanded;
+                                            });
+                                          },
+                                          child: Text(
+                                            _isExpanded ? '간략히' : '더보기',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.red,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  } else {
+                                    return Text(text, style: style);
+                                  }
+                                },
+                              ),
+                        if (_error != null)
+                          Text(
+                            'Error: $_error',
                             style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                    _isLoading
-                        ? const Text(
-                            'Loading...',
-                            style: TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          )
-                        : Text(
-                            _user?.email ?? 'example@gmail.com',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey,
+                              color: Colors.red,
                             ),
                           ),
-                    const SizedBox(height: 4),
-                    _isLoading
-                        ? const Text(
-                            'Loading...',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          )
-                        : Text(
-                            _user?.profileDescription ?? 'No description',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
-                          ),
-                    if (_error != null)
-                      Text(
-                        'Error: $_error',
-                        style: const TextStyle(fontSize: 13, color: Colors.red),
-                      ),
-                  ],
-                ),
-              ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          const Spacer(),
+          const SizedBox(width: 10,),
           OutlinedButton(
             onPressed: widget.onRemoveAdsTap,
             style: OutlinedButton.styleFrom(
@@ -196,7 +255,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14,
-                fontWeight: FontWeight.w600
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
