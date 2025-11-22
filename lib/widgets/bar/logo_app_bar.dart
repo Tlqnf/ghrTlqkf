@@ -57,12 +57,7 @@ class LogoBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(5),
-            child: Image.asset("assets/Logo.png", height: 35),
-          ),
-          const SizedBox(width: 8),
-          const Text(
-            'PEDAL',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+            child: Image.asset("assets/Appbar.png", height: 35),
           ),
         ],
       ),
