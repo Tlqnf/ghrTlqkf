@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:pedal/api/route_api.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/utils/route_utils.dart';
 import 'package:pedal/utils/time_formatter.dart';
@@ -41,8 +40,6 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   double _avgSpeed = 0.0; // km/h 단위
   double _currentSpeed = 0.0;
   double _maxSpeed = 0.0;
-
-  late int _routeId;
 
   // 네비게이션 기능 todo
   NPathOverlay? _navigationPath;
@@ -288,7 +285,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     _recordingStatus = RecordingStatus.recording;
 
     // 경로 id 지정
-    _routeId = await RouteApi.getRouteId(_authProvider!.token!);
+
 
     // 마커 초기화
     await _mapController?.clearOverlays();
@@ -404,7 +401,6 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     notifyListeners();
 
     return {
-      'routeId': _routeId,
       'initialDistance': distance,
       'initialTime': time,
       'initialAvgSpeed': avgSpeed,

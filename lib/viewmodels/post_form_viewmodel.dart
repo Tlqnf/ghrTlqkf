@@ -231,11 +231,8 @@ class PostFormViewModel extends ChangeNotifier {
         _setLoading(false);
         return;
       }
-      if (routeId == null) {
-        showOverlaySnackBar(_context, '경로 ID가 없습니다.');
-        _setLoading(false);
-        return;
-      }
+
+      routeId = await RouteApi.getRouteId(token);
 
       final List<String> additionalImagePaths = additionalImages
           .map((xfile) => xfile.path)

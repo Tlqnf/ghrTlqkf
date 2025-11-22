@@ -20,7 +20,7 @@ class PostFormScreen extends StatefulWidget {
 
   const PostFormScreen({
     super.key,
-    required this.routeId,
+    this.routeId,
     this.initialDistance,
     this.initialTime,
     this.initialAvgSpeed,

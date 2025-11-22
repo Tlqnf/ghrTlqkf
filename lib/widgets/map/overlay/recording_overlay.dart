@@ -136,7 +136,6 @@ class RecordingOverlay extends StatelessWidget {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) => PostFormScreen(
-                                      routeId: navData['routeId'],
                                       initialDistance:
                                           navData['initialDistance'],
                                       initialTime: navData['initialTime'],
