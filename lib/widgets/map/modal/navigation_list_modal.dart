@@ -167,10 +167,11 @@ class _NavigationListModalState extends State<NavigationListModal> {
             if (authProvider.token == null) return;
 
             try {
-              final points = await RouteApi.getRoutePoint(
+              final points = await RouteApi.getRouteById(
                 post.routeId,
                 authProvider.token!,
               );
+              debugPrint('$points');
               final routeCoords = points
                   .map((p) => NLatLng(p['lat'], p['lon']))
                   .toList();

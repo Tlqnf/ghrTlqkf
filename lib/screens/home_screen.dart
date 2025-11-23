@@ -189,8 +189,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Text(
                               '활동 더보기',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 14,
                                 color: Colors.grey,
+                                fontWeight: FontWeight.normal
                               ),
                             ),
                             onPressed: () {

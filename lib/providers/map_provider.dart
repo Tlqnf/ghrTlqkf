@@ -37,7 +37,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   DateTime? _lastTimestamp;
 
   double _distance = 0.0; // km 단위
-  double _avgSpeed = 0.0; // km/h 단위
+  double _avgSpeed = 3.0; // km/h 단위
   double _currentSpeed = 0.0;
   double _maxSpeed = 0.0;
 
@@ -303,6 +303,20 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       return;
     }
     _recordingStatus = RecordingStatus.recording;
+    _lastTimestamp = null;
+    _stopwatch.reset();
+    _stopwatch.start();
+    _timer?.cancel();
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _time = formatTime(_stopwatch.elapsed.inSeconds);
+      _showTrackingNotification();
+      notifyListeners();
+    });
+
+    notifyListeners();
+
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // 마커 초기화
     await _mapController?.clearOverlays();
@@ -316,18 +330,6 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       );
       await _mapController!.addOverlay(marker);
     }
-
-    _lastTimestamp = null;
-    _stopwatch.reset();
-    _stopwatch.start();
-    _timer?.cancel();
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _time = formatTime(_stopwatch.elapsed.inSeconds);
-      _showTrackingNotification();
-      notifyListeners();
-    });
-    notifyListeners();
   }
 
   // 일시 정지
@@ -454,7 +456,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     }
   }
 
-  // 네비게이션 기능들 todo
+  // todo: 네비게이션 불러오는 지 확인
   Future<void> startNavigation(List<NLatLng> routeCoords) async {
     if (_mapController == null || routeCoords.isEmpty) return;
 

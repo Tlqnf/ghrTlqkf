@@ -32,75 +32,73 @@ class MapScreenView extends StatefulWidget {
 }
 
 class _MapScreenViewState extends State<MapScreenView> {
-  late final mapProvider = context.watch<MapProvider>(); // 값 표시
-  late final mapProviderReader = context.read<MapProvider>(); // 이벤트
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      mapProvider.initialize();
+      context.read<MapProvider>().initialize();
     });
-  }
-
-  Widget _buildMap() {
-    if (mapProvider.isLoading || mapProvider.currentUserLocation == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    return Stack(
-      children: [
-        Offstage(
-          offstage: false,
-          child: NaverMap(
-            options: NaverMapViewOptions(
-              initialCameraPosition: NCameraPosition(
-                target: mapProvider.currentUserLocation!,
-                zoom: 16.0,
-              ),
-              locationButtonEnable: false,
-              consumeSymbolTapEvents: false,
-              mapType: NMapType.basic,
-              buildingHeight: 0.0,
-              indoorEnable: false,
-              liteModeEnable: true,
-              symbolScale: 0.0,
-              nightModeEnable: false,
-            ),
-            onMapReady: (controller) async {
-              mapProvider.mapController = controller;
-            },
-            onCameraChange: (NCameraUpdateReason reason, bool animated) {
-              if (reason == NCameraUpdateReason.gesture &&
-                  mapProvider.isFollowing) {
-                mapProviderReader.isFollowingUser = false;
-              }
-            },
-          ),
-        ),
-        // Conditional Overlays
-        mapProvider.isRecording || mapProvider.isPaused
-            ? const RecordingOverlay()
-            : PreRecordingOverlay(
-                onBackPressed: () => Navigator.of(context).pop(),
-              ),
-        // Common UI - Ad Banner
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: SafeArea(child: Center(child: BannerAdWidget())),
-        ),
-      ],
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final mapProvider = context.watch<MapProvider>();
+    final mapProviderReader = context.read<MapProvider>();
+
+    if (mapProvider.isLoading || mapProvider.currentUserLocation == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
-        child: _buildMap(),
+        child: Stack(
+          children: [
+            Offstage(
+              offstage: false,
+              child: NaverMap(
+                options: NaverMapViewOptions(
+                  initialCameraPosition: NCameraPosition(
+                    target: mapProvider.currentUserLocation!,
+                    zoom: 16.0,
+                  ),
+                  locationButtonEnable: false,
+                  consumeSymbolTapEvents: false,
+                  mapType: NMapType.basic,
+                  buildingHeight: 0.0,
+                  indoorEnable: false,
+                  liteModeEnable: true,
+                  symbolScale: 0.0,
+                  nightModeEnable: false,
+                ),
+                onMapReady: (controller) async {
+                  mapProvider.mapController = controller;
+                },
+                onCameraChange: (NCameraUpdateReason reason, bool animated) {
+                  if (reason == NCameraUpdateReason.gesture &&
+                      mapProvider.isFollowing) {
+                    mapProviderReader.isFollowingUser = false;
+                  }
+                },
+              ),
+            ),
+            // Conditional Overlays
+            mapProvider.isRecording || mapProvider.isPaused
+                ? const RecordingOverlay()
+                : PreRecordingOverlay(
+              onBackPressed: () => Navigator.of(context).pop(),
+            ),
+            // Common UI - Ad Banner
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(child: Center(child: BannerAdWidget())),
+            ),
+          ],
+        ),
       ),
     );
   }
