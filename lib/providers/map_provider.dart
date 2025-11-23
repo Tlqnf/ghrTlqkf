@@ -41,7 +41,6 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   double _currentSpeed = 0.0;
   double _maxSpeed = 0.0;
 
-  // 네비게이션 기능 todo
   NPathOverlay? _navigationPath;
   final List<NMarker> _arrowMarkers = [];
 
@@ -77,6 +76,27 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   set isFollowingUser(bool isFollowing) {
     _isFollowing = isFollowing;
     notifyListeners();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // 앱이 백그라운드로 가거나 종료될 때
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      // 기록 중이 아니면 알림 취소
+      if (_recordingStatus == RecordingStatus.idle) {
+        _cancelTrackingNotification();
+      }
+    }
+
+    // 앱이 포그라운드로 돌아올 때
+    if (state == AppLifecycleState.resumed) {
+      // 기록 중이 아니면 알림 취소 (혹시 남아있을 수 있으므로)
+      if (_recordingStatus == RecordingStatus.idle) {
+        _cancelTrackingNotification();
+      }
+    }
   }
 
   void mapVisibility() {
@@ -200,14 +220,14 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
         ) *
         0.001;
 
-    if (distance > 0 && distance < 0.1) {
+    if (distance > 0.001 && distance < 0.5) {
       _distance += distance;
     }
 
     // 현재, 최고 속력 업데이트
     _currentSpeed = pos.speed * 3.6;
     final instantSpeed = pos.speed * 3.6; // km/h
-    if (instantSpeed > _maxSpeed) _maxSpeed = instantSpeed;
+    if (instantSpeed > _maxSpeed && instantSpeed < 100) _maxSpeed = instantSpeed;
 
     // 평균 속력 업데이트
     final elapsedSeconds = _stopwatch.elapsed.inSeconds;
@@ -218,9 +238,9 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     // 현재 위치와 timestamp 갱신
     _currentUserLocation = newPoint;
     _lastTimestamp = pos.timestamp;
-    notifyListeners();
 
     _addPointToRoute(newPoint);
+    notifyListeners();
   }
 
   void _addPointToRoute(NLatLng point) {
@@ -250,24 +270,24 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
 
   Future<void> _showTrackingNotification() async {
     const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'ride_tracking_channel',
-          '주행 기록',
-          channelDescription: '라이딩 중 상태를 표시합니다.',
-          importance: Importance.low,
-          priority: Priority.low,
-          ongoing: true,
-          showWhen: false,
-        );
+    AndroidNotificationDetails(
+      'ride_tracking_channel',
+      '주행 기록',
+      channelDescription: '라이딩 중 상태를 표시합니다.',
+      importance: Importance.low,
+      priority: Priority.low,
+      ongoing: true,
+      showWhen: false,
+    );
 
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidDetails,
     );
 
     await _notifications.show(
-      0, // notification ID
+      0,
       '라이딩 기록 중',
-      '시간: $_time \n 거리: ${_distance.toStringAsFixed(2)} km \n 최고 속력: $_maxSpeed',
+      '시간: $_time | 거리: ${_distance.toStringAsFixed(2)} km | 속도: ${_currentSpeed.toStringAsFixed(1)} km/h', // 속도 추가
       notificationDetails,
     );
   }
@@ -283,9 +303,6 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       return;
     }
     _recordingStatus = RecordingStatus.recording;
-
-    // 경로 id 지정
-
 
     // 마커 초기화
     await _mapController?.clearOverlays();
@@ -314,7 +331,13 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   }
 
   // 일시 정지
-  void pauseAndRecording() async {
+  void pauseAndRecording() {
+    if (_recordingStatus == RecordingStatus.idle) {
+      debugPrint('Cannot pause/resume when not recording');
+      return;
+    }
+
+    final oldStatus = _recordingStatus;
     _recordingStatus = (_recordingStatus == RecordingStatus.recording)
         ? RecordingStatus.paused
         : RecordingStatus.recording;
@@ -323,20 +346,31 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
         ? _stopwatch.stop()
         : _stopwatch.start();
 
+    debugPrint('Status changed: $oldStatus -> $_recordingStatus');
+    debugPrint('isRecording: $isRecording, isPaused: $isPaused');
     notifyListeners();
   }
 
   // 기록 종료
   Future<Map<String, dynamic>?> stopRecording() async {
-    debugPrint("$_recordingStatus");
     if (_recordingStatus == RecordingStatus.idle ||
         _authProvider?.token == null) {
       return null;
     }
 
-    String? snapshotPath;
-    final fullRoute = _routeChunks.expand((chunk) => chunk).toList();
+    _stopwatch.stop();
+    _timer?.cancel();
 
+    final distance = _distance;
+    final time = _time;
+    final avgSpeed = _avgSpeed;
+    final maxSpeed = _maxSpeed;
+    final fullRoute = _routeChunks.expand((chunk) => chunk).toList();
+    final routeCoords = fullRoute
+        .map((p) => [p.latitude, p.longitude])
+        .toList();
+
+    String? snapshotPath;
     if (_mapController != null) {
       late NCameraUpdate cameraUpdate;
 
@@ -376,29 +410,6 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
         _mapController!.addOverlay(marker);
       }
     }
-    final distance = _distance;
-    final time = _time;
-    final avgSpeed = _avgSpeed;
-    final maxSpeed = _maxSpeed;
-    final routeCoords = fullRoute
-        .map((p) => [p.latitude, p.longitude])
-        .toList();
-
-    // 프로세스 종료
-    _stopwatch.stop();
-    _timer?.cancel();
-    _isMapVisible = true;
-    _recordingStatus = RecordingStatus.idle;
-    _stopwatch.reset();
-    _distance = 0.0;
-    _avgSpeed = 0.0;
-    _time = '00:00:00';
-    _currentSpeed = 0.0;
-    _maxSpeed = 0.0;
-    _routeChunks.clear();
-    _routeChunks.add([]);
-    await _cancelTrackingNotification();
-    notifyListeners();
 
     return {
       'initialDistance': distance,
@@ -408,6 +419,25 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       'mapImagePath': snapshotPath,
       'routeCoords': routeCoords,
     };
+  }
+
+  void resetRecording() async {
+    // 프로세스 종료
+    _stopwatch.stop();
+    _timer?.cancel();
+    _isMapVisible = true;
+    _recordingStatus = RecordingStatus.idle;
+    _stopwatch.reset();
+    _distance = 0.0;
+    _avgSpeed = 0.0;
+    _time = '00:00:00';
+    _lastTimestamp = null;
+    _currentSpeed = 0.0;
+    _maxSpeed = 0.0;
+    _routeChunks.clear();
+    _routeChunks.add([]);
+    _cancelTrackingNotification();
+    notifyListeners();
   }
 
   // 중앙 정렬
@@ -428,6 +458,29 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   Future<void> startNavigation(List<NLatLng> routeCoords) async {
     if (_mapController == null || routeCoords.isEmpty) return;
 
+    // 디버그: 경로 좌표 개수 확인
+    debugPrint('=== Navigation Start ===');
+    debugPrint('Total route coordinates: ${routeCoords.length}');
+
+    // 최소 2개의 좌표가 필요
+    if (routeCoords.length < 2) {
+      debugPrint('Error: Need at least 2 coordinates for path overlay');
+      return;
+    }
+
+    // 처음 몇 개의 좌표 출력
+    debugPrint(
+      'First coordinate: ${routeCoords.first.latitude}, ${routeCoords.first.longitude}',
+    );
+    debugPrint(
+      'Last coordinate: ${routeCoords.last.latitude}, ${routeCoords.last.longitude}',
+    );
+    if (routeCoords.length > 2) {
+      debugPrint(
+        'Second coordinate: ${routeCoords[1].latitude}, ${routeCoords[1].longitude}',
+      );
+    }
+
     // Draw the path
     _navigationPath = NPathOverlay(
       id: 'navigation_path',
@@ -437,53 +490,95 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       outlineWidth: 2,
       outlineColor: Colors.white,
     );
-    _mapController!.addOverlay(_navigationPath!);
+
+    try {
+      await _mapController!.addOverlay(_navigationPath!);
+      debugPrint('Path overlay added successfully');
+    } catch (e) {
+      debugPrint('Error adding path overlay: $e');
+      return;
+    }
 
     // Add arrow markers
-    final arrowIcon = NOverlayImage.fromAssetImage('assets/image/arrow.svg');
-    for (int i = 0; i < routeCoords.length - 1; i += 10) {
-      // Adjust step for density
-      final start = routeCoords[i];
-      final end = routeCoords[i + 1];
-      final angle = _calculateBearing(start, end);
+    try {
+      final arrowIcon = NOverlayImage.fromAssetImage('assets/image/arrow.svg');
+      int arrowCount = 0;
 
-      final arrowMarker = NMarker(
-        id: 'arrow_$i',
-        position: start,
-        icon: arrowIcon,
-        size: const Size(24, 24),
-        anchor: const NPoint(0.5, 0.5),
-        angle: angle,
+      for (int i = 0; i < routeCoords.length - 1; i += 10) {
+        // Adjust step for density
+        final start = routeCoords[i];
+        final end = routeCoords[i + 1];
+        final angle = _calculateBearing(start, end);
+
+        final arrowMarker = NMarker(
+          id: 'arrow_$i',
+          position: start,
+          icon: arrowIcon,
+          size: const Size(24, 24),
+          anchor: const NPoint(0.5, 0.5),
+          angle: angle,
+        );
+        _arrowMarkers.add(arrowMarker);
+        arrowCount++;
+      }
+
+      debugPrint('Creating $arrowCount arrow markers');
+
+      for (final marker in _arrowMarkers) {
+        await _mapController!.addOverlay(marker);
+      }
+
+      debugPrint('All arrow markers added successfully');
+    } catch (e) {
+      debugPrint('Error adding arrow markers: $e');
+    }
+
+    // 카메라 이동
+    try {
+      final bounds = NLatLngBounds.from(routeCoords);
+      final cameraUpdate = NCameraUpdate.fitBounds(
+        bounds,
+        padding: const EdgeInsets.all(80),
       );
-      _arrowMarkers.add(arrowMarker);
-    }
-    for (final marker in _arrowMarkers) {
-      _mapController!.addOverlay(marker);
+      await _mapController!.updateCamera(cameraUpdate);
+      debugPrint('Camera updated to fit route bounds');
+    } catch (e) {
+      debugPrint('Error updating camera: $e');
     }
 
-    final bounds = NLatLngBounds.from(routeCoords);
-    final cameraUpdate = NCameraUpdate.fitBounds(
-      bounds,
-      padding: const EdgeInsets.all(80),
-    );
-    _mapController!.updateCamera(cameraUpdate);
-
+    debugPrint('=== Navigation Started Successfully ===');
     notifyListeners();
   }
 
   void stopNavigation() {
     if (_mapController == null) return;
 
+    debugPrint('=== Stopping Navigation ===');
+
     if (_navigationPath != null) {
-      _mapController!.deleteOverlay(_navigationPath!.info);
+      try {
+        _mapController!.deleteOverlay(_navigationPath!.info);
+        debugPrint('Path overlay deleted');
+      } catch (e) {
+        debugPrint('Error deleting path overlay: $e');
+      }
       _navigationPath = null;
     }
+
     if (_arrowMarkers.isNotEmpty) {
-      for (final marker in _arrowMarkers) {
-        _mapController!.deleteOverlay(marker.info);
+      debugPrint('Deleting ${_arrowMarkers.length} arrow markers');
+      try {
+        for (final marker in _arrowMarkers) {
+          _mapController!.deleteOverlay(marker.info);
+        }
+        debugPrint('All arrow markers deleted');
+      } catch (e) {
+        debugPrint('Error deleting arrow markers: $e');
       }
       _arrowMarkers.clear();
     }
+
+    debugPrint('=== Navigation Stopped ===');
     notifyListeners();
   }
 
@@ -505,6 +600,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     _positionStreamSubscription = null;
     _timer?.cancel();
     _mapController?.dispose();
+    _cancelTrackingNotification();
     super.dispose();
   }
 }

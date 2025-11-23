@@ -65,6 +65,7 @@ class NotificationService {
       '시간: $time | 거리: $distance | 속도: $speed',
       platformChannelSpecifics,
     );
+
   }
 
   Future<void> cancelNotification() async {

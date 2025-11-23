@@ -149,6 +149,9 @@ class RecordingOverlay extends StatelessWidget {
                                   ),
                                 );
                               }
+                              if (context.mounted) {
+                                mapProviderReader.resetRecording();
+                              }
                             },
                           ),
                         ],

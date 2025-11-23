@@ -78,7 +78,7 @@ class _MapScreenViewState extends State<MapScreenView> {
           ),
         ),
         // Conditional Overlays
-        mapProvider.isRecording
+        mapProvider.isRecording || mapProvider.isPaused
             ? const RecordingOverlay()
             : PreRecordingOverlay(
                 onBackPressed: () => Navigator.of(context).pop(),
