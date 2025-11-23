@@ -1,5 +1,5 @@
+import 'package:pedal/api/reverse_geocoding_api.dart';
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -7,7 +7,7 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pedal/providers/auth_provider.dart';
 import 'package:pedal/utils/route_utils.dart';
-import 'package:pedal/utils/time_formatter.dart';
+import 'package:pedal/utils/time_formatter.dart'; // Import time_formatter.dart
 
 enum RecordingStatus { idle, recording, paused }
 
@@ -37,12 +37,16 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   DateTime? _lastTimestamp;
 
   double _distance = 0.0; // km 단위
-  double _avgSpeed = 3.0; // km/h 단위
+  double _avgSpeed = 0.0; // km/h 단위
   double _currentSpeed = 0.0;
   double _maxSpeed = 0.0;
 
   NPathOverlay? _navigationPath;
-  final List<NMarker> _arrowMarkers = [];
+  String? _endAddress; // Add this line to store the start address
+
+  // Navigation related properties
+  double? _navigationDistance; // in kilometers
+  String? _estimatedTravelTime; // formatted string
 
   // 백그라운드 알림
   final FlutterLocalNotificationsPlugin _notifications =
@@ -61,6 +65,9 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
   double get avgSpeed => _avgSpeed;
   double get currentSpeed => _currentSpeed;
   double get maxSpeed => _maxSpeed;
+  String? get endAddress => _endAddress; // New getter for endAddress
+  double? get navigationDistance => _navigationDistance;
+  String? get estimatedTravelTime => _estimatedTravelTime;
 
   // setter 함수
   set authProvider(AuthProvider authProvider) {
@@ -179,9 +186,6 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
           if (_mapController == null) return;
           // 새로운 위치, 속도 정보 저장
           final newPoint = NLatLng(pos.latitude, pos.longitude);
-          // 내 위치 갱신
-          _currentUserLocation = newPoint;
-
           final marker = NMarker(
             id: "user_pos",
             position: newPoint,
@@ -194,6 +198,9 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
 
           if (_recordingStatus == RecordingStatus.recording) {
             recordingLogic(newPoint, pos);
+          } else {
+            _currentUserLocation = newPoint;
+            notifyListeners();
           }
         });
   }
@@ -319,7 +326,10 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     await Future.delayed(const Duration(milliseconds: 100));
 
     // 마커 초기화
-    await _mapController?.clearOverlays();
+    if (_navigationPath == null) {
+      await _mapController?.clearOverlays();
+    }
+
     if (_mapController != null && _currentUserLocation != null) {
       final marker = NMarker(
         id: 'user_pos',
@@ -358,6 +368,10 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     if (_recordingStatus == RecordingStatus.idle ||
         _authProvider?.token == null) {
       return null;
+    }
+
+    if (_navigationPath != null) {
+      stopNavigation();
     }
 
     _stopwatch.stop();
@@ -456,9 +470,9 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     }
   }
 
-  // todo: 네비게이션 불러오는 지 확인
   Future<void> startNavigation(List<NLatLng> routeCoords) async {
     if (_mapController == null || routeCoords.isEmpty) return;
+    isExistNavigation();
 
     // 디버그: 경로 좌표 개수 확인
     debugPrint('=== Navigation Start ===');
@@ -483,6 +497,28 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       );
     }
 
+    final NaverGeocodingService geocodingService = NaverGeocodingService();
+    _endAddress = await geocodingService.getAddressFromCoordinates(
+      routeCoords.last.latitude,
+      routeCoords.last.longitude,
+    );
+    debugPrint('End Address: $_endAddress');
+
+    // Calculate navigation distance
+    _navigationDistance = calculateRouteDistance(routeCoords) / 1000; // meters to km
+    debugPrint('Navigation Distance: ${_navigationDistance?.toStringAsFixed(2)} km');
+
+    // Estimate travel time for cycling (e.g., 15 km/h average)
+    if (_navigationDistance != null && _navigationDistance! > 0) {
+      const double averageCyclingSpeedKmPerHour = 15.0; // Assume 15 km/h for cycling
+      final double hours = _navigationDistance! / averageCyclingSpeedKmPerHour;
+      final int minutes = (hours * 60).round();
+      _estimatedTravelTime = formatDuration(Duration(minutes: minutes));
+      debugPrint('Estimated Travel Time: $_estimatedTravelTime');
+    } else {
+      _estimatedTravelTime = null;
+    }
+
     // Draw the path
     _navigationPath = NPathOverlay(
       id: 'navigation_path',
@@ -501,41 +537,6 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       return;
     }
 
-    // Add arrow markers
-    try {
-      final arrowIcon = NOverlayImage.fromAssetImage('assets/image/arrow.svg');
-      int arrowCount = 0;
-
-      for (int i = 0; i < routeCoords.length - 1; i += 10) {
-        // Adjust step for density
-        final start = routeCoords[i];
-        final end = routeCoords[i + 1];
-        final angle = _calculateBearing(start, end);
-
-        final arrowMarker = NMarker(
-          id: 'arrow_$i',
-          position: start,
-          icon: arrowIcon,
-          size: const Size(24, 24),
-          anchor: const NPoint(0.5, 0.5),
-          angle: angle,
-        );
-        _arrowMarkers.add(arrowMarker);
-        arrowCount++;
-      }
-
-      debugPrint('Creating $arrowCount arrow markers');
-
-      for (final marker in _arrowMarkers) {
-        await _mapController!.addOverlay(marker);
-      }
-
-      debugPrint('All arrow markers added successfully');
-    } catch (e) {
-      debugPrint('Error adding arrow markers: $e');
-    }
-
-    // 카메라 이동
     try {
       final bounds = NLatLngBounds.from(routeCoords);
       final cameraUpdate = NCameraUpdate.fitBounds(
@@ -552,11 +553,7 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
     notifyListeners();
   }
 
-  void stopNavigation() {
-    if (_mapController == null) return;
-
-    debugPrint('=== Stopping Navigation ===');
-
+  void isExistNavigation() {
     if (_navigationPath != null) {
       try {
         _mapController!.deleteOverlay(_navigationPath!.info);
@@ -566,34 +563,18 @@ class MapProvider with ChangeNotifier, WidgetsBindingObserver {
       }
       _navigationPath = null;
     }
-
-    if (_arrowMarkers.isNotEmpty) {
-      debugPrint('Deleting ${_arrowMarkers.length} arrow markers');
-      try {
-        for (final marker in _arrowMarkers) {
-          _mapController!.deleteOverlay(marker.info);
-        }
-        debugPrint('All arrow markers deleted');
-      } catch (e) {
-        debugPrint('Error deleting arrow markers: $e');
-      }
-      _arrowMarkers.clear();
-    }
-
-    debugPrint('=== Navigation Stopped ===');
-    notifyListeners();
+    _endAddress = null; // Clear the start address when navigation stops
+    _navigationDistance = null; // Clear navigation distance
+    _estimatedTravelTime = null; // Clear estimated travel time
   }
 
-  double _calculateBearing(NLatLng start, NLatLng end) {
-    final lat1 = start.latitude * pi / 180;
-    final lon1 = start.longitude * pi / 180;
-    final lat2 = end.latitude * pi / 180;
-    final lon2 = end.longitude * pi / 180;
+  void stopNavigation() {
+    if (_mapController == null) return;
 
-    final y = sin(lon2 - lon1) * cos(lat2);
-    final x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon2 - lon1);
-    final bearing = atan2(y, x) * 180 / pi;
-    return (bearing + 360) % 360;
+    debugPrint('=== Stopping Navigation ===');
+    isExistNavigation();
+    debugPrint('=== Navigation Stopped ===');
+    notifyListeners();
   }
 
   @override

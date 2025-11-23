@@ -163,6 +163,9 @@ class _NavigationListModalState extends State<NavigationListModal> {
           date: DateFormat('yyyy.MM.dd').format(post.createdAt),
           imageUrl: post.mapImageUrl,
           onTap: () async {
+            // Close the modal
+            Navigator.pop(context);
+
             final authProvider = context.read<AuthProvider>();
             if (authProvider.token == null) return;
 
@@ -171,7 +174,6 @@ class _NavigationListModalState extends State<NavigationListModal> {
                 post.routeId,
                 authProvider.token!,
               );
-              debugPrint('$points');
               final routeCoords = points
                   .map((p) => NLatLng(p['lat'], p['lon']))
                   .toList();

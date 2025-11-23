@@ -6,6 +6,20 @@ String formatTime(int totalSeconds) {
   return '$hours:$minutes:$seconds';
 }
 
+String formatDuration(Duration duration) {
+  String twoDigits(int n) => n.toString().padLeft(2, "0");
+  String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+  String twoDigitHours = twoDigits(duration.inHours);
+
+  if (duration.inHours > 0) {
+    return "$twoDigitHours시간 $twoDigitMinutes분";
+  } else if (duration.inMinutes > 0) {
+    return "$twoDigitMinutes분";
+  } else {
+    return "<1분";
+  }
+}
+
 // 00:00:00 -> inSecond
 int timeToInt(String time) {
   List<String> format = time.split(":");

@@ -22,12 +22,65 @@ class PreRecordingOverlay extends StatelessWidget {
         Positioned(
           top: MediaQuery.of(context).padding.top + 20,
           left: 16,
+          right: 16,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 상단 뒤로가기 버튼
-              MapControlButton(
-                icon: Icons.arrow_back,
-                onPressed: onBackPressed,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MapControlButton(
+                    icon: Icons.arrow_back,
+                    onPressed: onBackPressed,
+                  ),
+                  const SizedBox(width: 20),
+                  if (mapProvider.endAddress != null) ...[
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(width: 1.0, color: Colors.grey),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              mapProvider.endAddress!,
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8,),
+                            if (mapProvider.navigationDistance != null &&
+                                mapProvider.estimatedTravelTime != null)
+                              Text(
+                                '총 거리: ${mapProvider.navigationDistance!.toStringAsFixed(1)} km | 예상 시간: ${mapProvider.estimatedTravelTime!}',
+                                style: const TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 14,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 32),
               MapControlButton(
